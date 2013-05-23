@@ -135,7 +135,7 @@
                            $checkbox.attr("checked", "checked");
                          }
 
-                         updateColumns(ui.item);
+                         updateColumns();
                          e.stopPropagation();
                        }
                      });
@@ -215,7 +215,7 @@
                        // Refresh the list.
                        $menu.sortable("refresh");
 
-                       updateColumns($listItem);
+                       updateColumns();
                      });
 
         if (grid.getColumnIndex(nextCol.id) != null)
@@ -251,7 +251,7 @@
       return evt.notify(args, e, self);
     }
 
-    function updateColumns($target)
+    function updateColumns()
     {
       var previousItems = $(thresholdListItemSelector).prevAll();
       var previousItemCount = previousItems.length;
@@ -261,9 +261,6 @@
       {
         var $listItem = $(li);
 
-//        if ($listItem.find(":checkbox").is(":checked"))
-//        {
-        // Ensure this item's checkbox is checked.
         $listItem.find(":checkbox").attr("checked", "checked");
         var listItemColumnID = $listItem.data("column-id");
 
@@ -274,47 +271,12 @@
             visibleColumns[(previousItemCount - 1) - i] = cO;
           }
         });
-//        }
-//        else
-//        {
-//          $target.find(":checkbox").removeAttr("checked");
-//        }
       });
 
       if (visibleColumns.length)
       {
         grid.setColumns(visibleColumns);
       }
-      /*
-        var columnID = $target.data("column-id");
-        var column;
-
-        for (var c in columns)
-        {
-          var col = columns[c];
-          if (col.id == columnID)
-          {
-            column = col;
-            break;
-          }
-        }
-
-        // Should always be true!
-        if (column)
-        {
-          var addAction = $.grep(visibleColumns, function(colIndex, col)
-          {
-            return (col.id == column.id);
-          }).length > 0;
-
-          trigger(self.onColumnAddOrRemove,
-                  {
-                    "action": addAction ? "add" : "remove",
-                    "column": column
-                  }, null);
-        }
-      }
-      */
 
       trigger(self.onSort,
               {
