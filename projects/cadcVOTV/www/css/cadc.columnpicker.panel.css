@@ -31,6 +31,13 @@ div.slick-column-picker-label-text
   display: inline-block;
 }
 
+div.slick-column-picker-description-label-text
+{
+  font-style: italic;
+  font-size: 9px;
+  color: dimgrey;
+}
+
 .slick-columnpicker li a
 {
   display: block;

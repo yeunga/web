@@ -198,8 +198,6 @@
         // Occurrs after the actual checkbox is checked.
         $input.change(function (e)
                      {
-                       console.log("Change occurred!");
-
                        var $checkbox = $(this);
                        var $listItem = $checkbox.parent().parent();
 
@@ -228,12 +226,22 @@
         var labelText =
             $("<div class='slick-column-picker-label-text'></div>").text(
                 nextCol.name);
-        var label = $("<label></label>");
-        label.attr("id", "LABEL_" + nextCol.id);
+        var $label = $("<label></label>");
+        $label.attr("id", "LABEL_" + nextCol.id);
 
-        label.append(labelText);
-        label.prepend($input);
-        label.appendTo($li);
+        var $descriptionLabelText =
+            $("<div class='slick-column-picker-description-label-text'></div>").text(
+                nextCol.description);
+        var $descriptionLabel = $("<label></label>");
+        $descriptionLabel.attr("id", "_DESC_" + nextCol.id);
+
+        $descriptionLabel.append($descriptionLabelText);
+
+        $label.append(labelText);
+        $label.prepend($input);
+
+        $label.appendTo($li);
+        $descriptionLabel.appendTo($li);
       });
     }
 
