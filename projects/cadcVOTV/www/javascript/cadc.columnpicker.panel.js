@@ -185,19 +185,22 @@
         $li.attr("id", "ITEM_" + nextCol.id);
         $li.data("column-id", nextCol.id);
 
-        var $input = $("<input type='checkbox' />").data("column-id",
-                                                         nextCol.id);
+        // Omit the checkbox column.
+        if (nextCol.id == "_checkbox_selector")
+        {
+          $li.hide();
+        }
+
+        var $input = $("<input type='checkbox' name='column-picker-"
+                       + nextCol.id + "' />").data("column-id", nextCol.id);
 
         // Occurrs after the actual checkbox is checked.
-        $input.click(function (e)
+        $input.change(function (e)
                      {
-                       var $checkbox = $(e.target);
-                       var $oldListItem = $checkbox.parent().parent();
+                       console.log("Change occurred!");
 
-                       // Grandparent is the <li> item.
-                       var $listItem = $oldListItem.clone();
-                       $listItem.data("column-id",
-                                      $oldListItem.data("column-id"));
+                       var $checkbox = $(this);
+                       var $listItem = $checkbox.parent().parent();
 
                        if (!$checkbox.is(":checked"))
                        {
@@ -210,15 +213,13 @@
                          $listItem.find(":checkbox").attr("checked", "checked");
                        }
 
-                       $oldListItem.remove();
-
                        // Refresh the list.
                        $menu.sortable("refresh");
 
                        updateColumns();
                      });
 
-        if (grid.getColumnIndex(nextCol.id) != null)
+        if (grid.getColumnIndex(nextCol.id))
         {
           $input.attr("checked", "checked");
         }
@@ -277,6 +278,13 @@
       {
         grid.setColumns(visibleColumns);
       }
+
+      var nextItems = $(thresholdListItemSelector).nextAll();
+      $.each(nextItems, function (n, nli)
+      {
+        var $listItem = $(nli);
+        $listItem.find(":checkbox").removeAttr("checked");
+      });
 
       trigger(self.onSort,
               {
