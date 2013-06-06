@@ -122,6 +122,7 @@
 
       $menu.sortable({
                        opacity: 0.8,
+                       containment: "parent",
                        stop: function (e, ui)
                        {
                          var $checkbox = ui.item.find(":checkbox");
