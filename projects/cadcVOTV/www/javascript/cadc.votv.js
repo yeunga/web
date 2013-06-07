@@ -45,6 +45,7 @@ cadc.vot.Viewer = function (targetNodeSelector, options)
   this.dataView = null;
   this.grid = null;
   this.columnManager = options.columnManager ? options.columnManager : {};
+  this.rowManager = options.rowManager ? options.rowManager : {};
   this.data = [];
   this.columns = [];
   this.displayColumns = [];  // Columns that are actually in the Grid.
@@ -119,6 +120,11 @@ cadc.vot.Viewer.prototype.getColumnManager = function ()
 {
   return this.columnManager;
 };
+
+cadc.vot.Viewer.prototype.getRowManager = function()
+{
+  return this.rowManager;
+}
 
 cadc.vot.Viewer.prototype.getColumns = function ()
 {
@@ -716,6 +722,8 @@ cadc.vot.Viewer.prototype.init = function ()
                                                gridHeaderLabel.text("Showing " + pagingInfo.totalRows
                                                                         + " rows (" + viewer.getGridData().length
                                                                         + " before filtering)");
+
+
                                              });
     }
   }
@@ -890,6 +898,20 @@ cadc.vot.Viewer.prototype.init = function ()
                                          grid.render();
                                        });
 
+  if (viewer.getRowManager().onRowRendered)
+  {
+    grid.onRowsRendered.subscribe(function(e, args)
+                                  {
+                                    $.each(args.renderedRowIndexes,
+                                           function(rowIndexIndex, rowIndex)
+                                           {
+                                             var $rowItem =
+                                                 dataView.getItemByIdx(rowIndex);
+                                             viewer.getRowManager().onRowRendered($rowItem);
+                                           })
+                                  });
+  }
+
   dataView.onRowsChanged.subscribe(function (e, args)
                                    {
                                      grid.invalidateRows(args.rows);
@@ -923,9 +945,8 @@ cadc.vot.Viewer.prototype.init = function ()
                               }
 
                               var rows = [];
-                              for (var i = 0; (i < 10)
-                                  && (i < dataView.getLength());
-                                   i++)
+                              for (var i = 0;
+                                   (i < 10) && (i < dataView.getLength()); i++)
                               {
                                 rows.push(i);
                               }
