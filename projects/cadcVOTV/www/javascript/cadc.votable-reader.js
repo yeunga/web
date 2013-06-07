@@ -276,6 +276,14 @@ cadc.vot.XMLBuilder.prototype.build = function()
 
       longestValues[fieldID] = -1;
 
+      var fieldDescriptionDOM = this.evaluateXPath(fieldDOM, "DESCRIPTION[1]");
+
+      var fieldDescription = ((fieldDescriptionDOM.length > 0)
+                              && fieldDescriptionDOM[0].childNodes
+                              && fieldDescriptionDOM[0].childNodes[0])
+                             ? fieldDescriptionDOM[0].childNodes[0].nodeValue
+                             : "";
+
       var field = new cadc.vot.VOTable.Field(
           xmlFieldName,
           fieldID,
@@ -285,7 +293,7 @@ cadc.vot.XMLBuilder.prototype.build = function()
           fieldDOM.getAttribute("xtype"),
           fieldDOM.getAttribute("datatype"),
           fieldDOM.getAttribute("arraysize"),
-          fieldDOM.getAttribute("description"),
+          fieldDescription,
           fieldDOM.getAttribute("name"));
 
       tableFields.push(field);

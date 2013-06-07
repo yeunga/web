@@ -151,8 +151,8 @@
       if (dataContext)
       {
         return _selectedRowsLookup[row]
-            ? "<input type='checkbox' checked='checked'>"
-            : "<input type='checkbox'>";
+            ? "<input class='_select_" + dataContext["id"] + "' type='checkbox' checked='checked'>"
+            : "<input class='_select_" + dataContext["id"] + "' type='checkbox'>";
       }
       else
       {

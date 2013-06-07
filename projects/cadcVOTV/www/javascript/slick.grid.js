@@ -1844,17 +1844,20 @@ if (typeof Slick === "undefined") {
         counter_rows_rendered++;
       }
 
-      if (!rows.length) { return; }
+      if (rows.length)
+      {
+        var x = document.createElement("div");
+        x.innerHTML = stringArray.join("");
 
-      var x = document.createElement("div");
-      x.innerHTML = stringArray.join("");
+        for (var i = 0, ii = rows.length; i < ii; i++) {
+          rowsCache[rows[i]].rowNode = parentNode.appendChild(x.firstChild);
+        }
 
-      for (var i = 0, ii = rows.length; i < ii; i++) {
-        rowsCache[rows[i]].rowNode = parentNode.appendChild(x.firstChild);
-      }
+        if (needToReselectCell) {
+          activeCellNode = getCellNode(activeRow, activeCell);
+        }
 
-      if (needToReselectCell) {
-        activeCellNode = getCellNode(activeRow, activeCell);
+        trigger(self.onRowsRendered, {"renderedRowIndexes": rows});
       }
     }
 
@@ -3184,6 +3187,7 @@ if (typeof Slick === "undefined") {
       "onHeaderCellRendered": new Slick.Event(),
       "onBeforeHeaderCellDestroy": new Slick.Event(),
       "onHeaderRowCellRendered": new Slick.Event(),
+      "onRowsRendered": new Slick.Event(),
       "onBeforeHeaderRowCellDestroy": new Slick.Event(),
       "onMouseEnter": new Slick.Event(),
       "onMouseLeave": new Slick.Event(),
