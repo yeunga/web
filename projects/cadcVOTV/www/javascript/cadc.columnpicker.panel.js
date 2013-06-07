@@ -228,7 +228,6 @@
                 nextCol.name);
         var $label = $("<label></label>");
         $label.attr("id", "LABEL_" + nextCol.id);
-
         var $descriptionLabelText =
             $("<div class='slick-column-picker-description-label-text'></div>").text(
                 nextCol.description);
