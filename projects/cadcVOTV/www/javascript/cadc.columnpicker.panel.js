@@ -51,6 +51,9 @@
         originalColumns.push(gridColumn);
       });
 
+      // Clean up first.
+      panel.find("a.slick-columnpicker-panel-link-label").remove();
+
       $link = $("<a name='slick-columnpicker-panel-link' class='slick-columnpicker-panel-link-label'></a>").appendTo(panel);
       $link.text(options.linkText);
       $link.mouseover(function (e)
@@ -64,6 +67,9 @@
         $(tooltipOptions.tooltipContent).remove();
         $link.after(tooltipOptions.tooltipContent);
       }
+
+      // Clean up existing button holder.
+      $(tooltipOptions.targetSelector).empty();
 
       $link.tooltip(tooltipOptions);
 
