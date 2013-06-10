@@ -59,12 +59,12 @@
       if (selectedRows.length && selectedRows.length == _grid.getDataLength())
       {
         _grid.updateColumnHeader(_options.columnId,
-                                 "<input type='checkbox' checked='checked'>",
+                                 "<input type='checkbox' class='slick-header-column-checkboxsel' checked='checked'>",
                                  _options.toolTip);
       }
       else
       {
-        _grid.updateColumnHeader(_options.columnId, "<input type='checkbox'>",
+        _grid.updateColumnHeader(_options.columnId, "<input class='slick-header-column-checkboxsel' type='checkbox'>",
                                  _options.toolTip);
       }
     }
@@ -140,6 +140,7 @@
         width: _options.width,
         resizable: false,
         sortable: false,
+        headerCssClass: _options.headerCssClass,
         cssClass: _options.cssClass,
         formatter: checkboxSelectionFormatter
       };

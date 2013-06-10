@@ -124,7 +124,7 @@ cadc.vot.Viewer.prototype.getColumnManager = function ()
 cadc.vot.Viewer.prototype.getRowManager = function()
 {
   return this.rowManager;
-}
+};
 
 cadc.vot.Viewer.prototype.getColumns = function ()
 {
@@ -364,9 +364,10 @@ cadc.vot.Viewer.prototype.searchFilter = function (item)
         filterValue = filterValue.substring(1);
       }
 
-      var filterOut = viewer.valueFilters(filterValue, cellValue,
-                                          column.datatype
-                                              ? column.datatype : "char");
+//      var filterOut = viewer.valueFilters(filterValue, cellValue,
+//                                          column.datatype
+//                                              ? column.datatype : "char");
+      var filterOut = viewer.valueFilters(filterValue, cellValue);
 
       if ((!negate && filterOut) || (!filterOut && negate))
       {
@@ -381,10 +382,9 @@ cadc.vot.Viewer.prototype.searchFilter = function (item)
 /**
  * @param filter    The filter value as entered by the user.
  * @param value     The value to be filtered or not
- * @param datatype  The column's datatype.
  * @returns {Boolean} true if value is filtered-out by filter.
  */
-cadc.vot.Viewer.prototype.valueFilters = function (filter, value, datatype)
+cadc.vot.Viewer.prototype.valueFilters = function (filter, value)
 {
   var operator = '';
   filter = $.trim(filter);
@@ -640,7 +640,9 @@ cadc.vot.Viewer.prototype.init = function ()
   if (Slick.CheckboxSelectColumn)
   {
     checkboxSelector = new Slick.CheckboxSelectColumn({
-                                                        cssClass: "slick-cell-checkboxsel"
+                                                        cssClass: "slick-cell-checkboxsel",
+                                                        width: 55,
+                                                        headerCssClass: "slick-header-column-checkboxsel"
                                                       });
 
     var checkboxColumn = checkboxSelector.getColumnDefinition();
@@ -673,7 +675,8 @@ cadc.vot.Viewer.prototype.init = function ()
     checkboxSelector = null;
   }
 
-  viewer.getOptions().defaultFormatter = function (row, cell, value, columnDef, dataContext)
+  viewer.getOptions().defaultFormatter = function (row, cell, value, columnDef,
+                                                   dataContext)
   {
     var returnValue;
 
@@ -997,6 +1000,12 @@ cadc.vot.Viewer.prototype.init = function ()
                                                  .attr("title", tooltipTitle)
                                                  .appendTo(args.node);
                                            }
+                                           else
+                                           {
+                                             $("<div class='filter-boxes-label' "
+                                               + "title='Enter values into the boxes to further filter results.'>Filter:</div>").
+                                                 appendTo(args.node);
+                                           }
                                          });
 
   if (Slick.Plugins && Slick.Plugins.UnitSelection)
@@ -1138,14 +1147,6 @@ cadc.vot.Viewer.prototype.refreshColumns = function (table)
 
     viewer.addColumn(columnProperties);
   });
-};
-
-cadc.vot.Viewer.prototype.updateGridColumns = function ()
-{
-  viewer.getGrid().setColumns(viewer.getDisplayColumns().slice(0));
-  new Slick.Controls.ColumnPicker(viewer.getColumns().slice(0),
-                                  viewer.getGrid(),
-                                  viewer.getOptions());
 };
 
 /**
