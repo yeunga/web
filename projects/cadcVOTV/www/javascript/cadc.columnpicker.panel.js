@@ -10,7 +10,8 @@
    * @param options   Optional items.
    * @constructor
    */
-  function PanelTooltipColumnPicker(columns, grid, panel, tooltipOptions, options)
+  function PanelTooltipColumnPicker(columns, grid, panel, tooltipOptions,
+                                    options)
   {
     // Cached value to reset to.
     var originalColumns;
@@ -204,8 +205,6 @@
         // Occurrs after the actual checkbox is checked.
         $input.change(function (e)
                      {
-                       console.log("Change occurred!");
-
                        var $checkbox = $(this);
                        var $listItem = $checkbox.parent().parent();
 
@@ -236,7 +235,6 @@
                 nextCol.name);
         var $label = $("<label></label>");
         $label.attr("id", "LABEL_" + nextCol.id);
-
         var $descriptionLabelText =
             $("<div class='slick-column-picker-description-label-text'></div>").text(
                 nextCol.description);

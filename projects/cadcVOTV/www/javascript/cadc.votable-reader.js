@@ -238,7 +238,7 @@ cadc.vot.XMLBuilder.prototype.build = function()
 
     var tableFields = [];
     var resourceTableDescriptionDOM = this.evaluateXPath(resourceTableDOM,
-                                                    "DESCRIPTION[1]");
+                                                         "DESCRIPTION[1]");
     var resourceTableDescription =
         resourceTableDescriptionDOM.length > 0
             ? resourceTableDescriptionDOM[0].value : "";
