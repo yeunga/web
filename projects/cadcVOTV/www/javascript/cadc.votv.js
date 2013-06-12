@@ -1094,6 +1094,8 @@ cadc.vot.Viewer.prototype.refreshColumns = function (table)
     var colOpts = viewer.getOptionsForColumn(fieldKey);
     var cssClass = colOpts.cssClass;
     var datatype = field.getDatatype();
+
+    // We're extending the column properties a little here.
     var columnProperties =
     {
       id: fieldKey,
@@ -1102,6 +1104,7 @@ cadc.vot.Viewer.prototype.refreshColumns = function (table)
       formatter: colOpts.formatter,
       cssClass: cssClass,
       description: field.getDescription(),
+      unit: field.getUnit(),
       resizable: viewer.getColumnManager().resizable
     };
 
