@@ -10,7 +10,8 @@
    * @param options   Optional items.
    * @constructor
    */
-  function PanelTooltipColumnPicker(columns, grid, panel, tooltipOptions, options)
+  function PanelTooltipColumnPicker(columns, grid, panel, tooltipOptions,
+                                    options)
   {
     // Cached value to reset to.
     var originalColumns;
