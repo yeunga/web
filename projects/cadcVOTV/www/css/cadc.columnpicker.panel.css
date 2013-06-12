@@ -50,6 +50,7 @@ span.slick-column-picker-unit-label-text
 div.slick-column-picker-tooltip-button-holder
 {
   margin-top: 20px;
+  margin-left: -3px;
 }
 
 .slick-columnpicker li a
