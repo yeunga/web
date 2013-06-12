@@ -801,8 +801,8 @@ cadc.vot.Viewer.prototype.init = function ()
       columnPicker = new Slick.Controls.PanelTooltipColumnPicker(viewer.getColumns(),
                                                           grid,
                                                           columnPickerConfig.panel,
-                                                          columnPickerConfig.options,
-                                                          viewer.getOptions());
+                                                          columnPickerConfig.tooltipOptions,
+                                                          columnPickerConfig.options);
 
       columnPicker.onSort.subscribe(resetColumnWidths);
       columnPicker.onResetColumnOrder.subscribe(resetColumnWidths);
