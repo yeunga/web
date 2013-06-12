@@ -17,6 +17,7 @@
   background: none;
   border: 0.1em solid #336699;
   height: auto;
+  width: 100%;
 }
 
 .slick-columnpicker input
@@ -27,15 +28,28 @@
 
 div.slick-column-picker-label-text
 {
+  display: table-cell;
+  width: 170px;
   vertical-align: middle;
-  display: inline-block;
+  border-right: 1px solid #718BB7;
 }
 
 div.slick-column-picker-description-label-text
 {
-  font-style: italic;
-  font-size: 9px;
-  color: dimgrey;
+  display: table-cell;
+  padding-left: 5px;
+  /*word-wrap: break-word;*/
+  /*word-break: normal;*/
+}
+
+span.slick-column-picker-unit-label-text
+{
+  font-weight: bolder;
+}
+
+div.slick-column-picker-tooltip-button-holder
+{
+  margin-top: 20px;
 }
 
 .slick-columnpicker li a

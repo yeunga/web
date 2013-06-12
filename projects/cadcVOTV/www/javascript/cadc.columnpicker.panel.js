@@ -230,24 +230,32 @@
           $input.attr("checked", "checked");
         }
 
-        var labelText =
+        var $columnLabel =
             $("<div class='slick-column-picker-label-text'></div>").text(
                 nextCol.name);
-        var $label = $("<label></label>");
-        $label.attr("id", "LABEL_" + nextCol.id);
-        var $descriptionLabelText =
+        $columnLabel.attr("id", "LABEL_" + nextCol.id);
+
+        var $columnDescription =
             $("<div class='slick-column-picker-description-label-text'></div>").text(
                 nextCol.description);
-        var $descriptionLabel = $("<label></label>");
-        $descriptionLabel.attr("id", "_DESC_" + nextCol.id);
 
-        $descriptionLabel.append($descriptionLabelText);
+        if (nextCol.unit)
+        {
+          var $columnUnitDescriptionContainer = $("<span></span>");
+          var $columnUnitDescription =
+              $("<span class='slick-column-picker-unit-label-text'></span>");
+          $columnUnitDescription.text(nextCol.unit);
 
-        $label.append(labelText);
-        $label.prepend($input);
+          $columnUnitDescriptionContainer.append(" (Default unit '").append(
+              $columnUnitDescription).append("')");
+          $columnDescription.append($columnUnitDescriptionContainer);
+          $columnDescription.attr("id", "_DESC_" + nextCol.id);
+        }
 
-        $label.appendTo($li);
-        $descriptionLabel.appendTo($li);
+        $columnLabel.prepend($input);
+
+        $columnLabel.appendTo($li);
+        $columnDescription.appendTo($li);
       });
     }
 

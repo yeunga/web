@@ -179,6 +179,11 @@ cadc.vot.VOTable.Field.prototype.getUType = function()
   return this.utype;
 };
 
+cadc.vot.VOTable.Field.prototype.getUnit = function()
+{
+  return this.unit;
+};
+
 cadc.vot.VOTable.Field.prototype.getXType = function()
 {
   return this.xtype;
