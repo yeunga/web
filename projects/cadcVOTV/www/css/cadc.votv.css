@@ -31,6 +31,11 @@
   border-right: 0.1em solid silver;
 }
 
+.slick-header-column.slick-header-column-checkboxsel span.slick-column-name input
+{
+  margin-left: 16px;
+}
+
 .slick-header-column.slick-header-column-checkboxsel
 {
   text-align: center;
