@@ -699,10 +699,10 @@ cadc.vot.Viewer.prototype.init = function ()
                             viewer.getOptions());
   var rowSelectionModel;
 
-  if (checkboxSelector && Slick.RowSelectionModel)
+  if (checkboxSelector && CADC.RowSelectionModel)
   {
     rowSelectionModel =
-        new Slick.RowSelectionModel({
+        new CADC.RowSelectionModel({
                                       selectActiveRow: viewer.getOptions().selectActiveRow
                                     });
     grid.setSelectionModel(rowSelectionModel);
