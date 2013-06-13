@@ -697,15 +697,21 @@ cadc.vot.Viewer.prototype.init = function ()
   var grid = new Slick.Grid(viewer.getTargetNodeSelector(),
                             dataView, viewer.getDisplayColumns(),
                             viewer.getOptions());
+  var rowSelectionModel;
 
   if (checkboxSelector && Slick.RowSelectionModel)
   {
-    grid.setSelectionModel(
+    rowSelectionModel =
         new Slick.RowSelectionModel({
                                       selectActiveRow: viewer.getOptions().selectActiveRow
-                                    }));
+                                    });
+    grid.setSelectionModel(rowSelectionModel);
 
     grid.registerPlugin(checkboxSelector);
+  }
+  else
+  {
+    rowSelectionModel = null;
   }
 
   if (viewer.usePager())
@@ -725,8 +731,6 @@ cadc.vot.Viewer.prototype.init = function ()
                                                gridHeaderLabel.text("Showing " + pagingInfo.totalRows
                                                                         + " rows (" + viewer.getGridData().length
                                                                         + " before filtering)");
-
-
                                              });
     }
   }
@@ -819,6 +823,14 @@ cadc.vot.Viewer.prototype.init = function ()
       columnPicker.onResetColumnOrder.subscribe(resetColumnWidths);
       columnPicker.onShowAllColumns.subscribe(resetColumnWidths);
       columnPicker.onSortAlphabetically.subscribe(resetColumnWidths);
+      columnPicker.onColumnAddOrRemove.subscribe(function(e, args)
+                                                 {
+                                                   if (rowSelectionModel)
+                                                   {
+                                                     // Refresh.
+                                                     rowSelectionModel.refreshSelectedRanges();
+                                                   }
+                                                 });
     }
     else
     {

@@ -313,6 +313,11 @@
               {
                 "visibleColumns": visibleColumns
               }, null);
+
+      trigger(self.onColumnAddOrRemove,
+              {
+                "visibleColumns": visibleColumns
+              }, null);
     }
 
     $.extend(this,
