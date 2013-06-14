@@ -10,7 +10,8 @@
    * @param options   Optional items.
    * @constructor
    */
-  function PanelTooltipColumnPicker(columns, grid, panel, tooltipOptions, options)
+  function PanelTooltipColumnPicker(columns, grid, panel, tooltipOptions,
+                                    options)
   {
     // Cached value to reset to.
     var originalColumns;
@@ -51,6 +52,9 @@
         originalColumns.push(gridColumn);
       });
 
+      // Clean up first.
+      panel.find("a.slick-columnpicker-panel-link-label").remove();
+
       $link = $("<a name='slick-columnpicker-panel-link' class='slick-columnpicker-panel-link-label'></a>").appendTo(panel);
       $link.text(options.linkText);
       $link.mouseover(function (e)
@@ -64,6 +68,9 @@
         $(tooltipOptions.tooltipContent).remove();
         $link.after(tooltipOptions.tooltipContent);
       }
+
+      // Clean up existing button holder.
+      $(tooltipOptions.targetSelector).empty();
 
       $link.tooltip(tooltipOptions);
 
@@ -122,6 +129,7 @@
 
       $menu.sortable({
                        opacity: 0.8,
+                       containment: "parent",
                        stop: function (e, ui)
                        {
                          var $checkbox = ui.item.find(":checkbox");
@@ -135,7 +143,7 @@
                            $checkbox.attr("checked", "checked");
                          }
 
-                         updateColumns(ui.item);
+                         updateColumns();
                          e.stopPropagation();
                        }
                      });
@@ -185,19 +193,20 @@
         $li.attr("id", "ITEM_" + nextCol.id);
         $li.data("column-id", nextCol.id);
 
-        var $input = $("<input type='checkbox' />").data("column-id",
-                                                         nextCol.id);
+        // Omit the checkbox column.
+        if (nextCol.id == "_checkbox_selector")
+        {
+          $li.hide();
+        }
+
+        var $input = $("<input type='checkbox' name='column-picker-"
+                       + nextCol.id + "' />").data("column-id", nextCol.id);
 
         // Occurrs after the actual checkbox is checked.
-        $input.click(function (e)
+        $input.change(function (e)
                      {
-                       var $checkbox = $(e.target);
-                       var $oldListItem = $checkbox.parent().parent();
-
-                       // Grandparent is the <li> item.
-                       var $listItem = $oldListItem.clone();
-                       $listItem.data("column-id",
-                                      $oldListItem.data("column-id"));
+                       var $checkbox = $(this);
+                       var $listItem = $checkbox.parent().parent();
 
                        if (!$checkbox.is(":checked"))
                        {
@@ -210,28 +219,43 @@
                          $listItem.find(":checkbox").attr("checked", "checked");
                        }
 
-                       $oldListItem.remove();
-
                        // Refresh the list.
                        $menu.sortable("refresh");
 
-                       updateColumns($listItem);
+                       updateColumns();
                      });
 
-        if (grid.getColumnIndex(nextCol.id) != null)
+        if (grid.getColumnIndex(nextCol.id))
         {
           $input.attr("checked", "checked");
         }
 
-        var labelText =
+        var $columnLabel =
             $("<div class='slick-column-picker-label-text'></div>").text(
                 nextCol.name);
-        var label = $("<label></label>");
-        label.attr("id", "LABEL_" + nextCol.id);
+        $columnLabel.attr("id", "LABEL_" + nextCol.id);
 
-        label.append(labelText);
-        label.prepend($input);
-        label.appendTo($li);
+        var $columnDescription =
+            $("<div class='slick-column-picker-description-label-text'></div>").text(
+                nextCol.description);
+
+        if (nextCol.unit)
+        {
+          var $columnUnitDescriptionContainer = $("<span></span>");
+          var $columnUnitDescription =
+              $("<span class='slick-column-picker-unit-label-text'></span>");
+          $columnUnitDescription.text(nextCol.unit);
+
+          $columnUnitDescriptionContainer.append(" (Default unit '").append(
+              $columnUnitDescription).append("')");
+          $columnDescription.append($columnUnitDescriptionContainer);
+          $columnDescription.attr("id", "_DESC_" + nextCol.id);
+        }
+
+        $columnLabel.prepend($input);
+
+        $columnLabel.appendTo($li);
+        $columnDescription.appendTo($li);
       });
     }
 
@@ -251,7 +275,7 @@
       return evt.notify(args, e, self);
     }
 
-    function updateColumns($target)
+    function updateColumns()
     {
       var previousItems = $(thresholdListItemSelector).prevAll();
       var previousItemCount = previousItems.length;
@@ -261,9 +285,6 @@
       {
         var $listItem = $(li);
 
-//        if ($listItem.find(":checkbox").is(":checked"))
-//        {
-        // Ensure this item's checkbox is checked.
         $listItem.find(":checkbox").attr("checked", "checked");
         var listItemColumnID = $listItem.data("column-id");
 
@@ -274,49 +295,26 @@
             visibleColumns[(previousItemCount - 1) - i] = cO;
           }
         });
-//        }
-//        else
-//        {
-//          $target.find(":checkbox").removeAttr("checked");
-//        }
       });
 
       if (visibleColumns.length)
       {
         grid.setColumns(visibleColumns);
       }
-      /*
-        var columnID = $target.data("column-id");
-        var column;
 
-        for (var c in columns)
-        {
-          var col = columns[c];
-          if (col.id == columnID)
-          {
-            column = col;
-            break;
-          }
-        }
-
-        // Should always be true!
-        if (column)
-        {
-          var addAction = $.grep(visibleColumns, function(colIndex, col)
-          {
-            return (col.id == column.id);
-          }).length > 0;
-
-          trigger(self.onColumnAddOrRemove,
-                  {
-                    "action": addAction ? "add" : "remove",
-                    "column": column
-                  }, null);
-        }
-      }
-      */
+      var nextItems = $(thresholdListItemSelector).nextAll();
+      $.each(nextItems, function (n, nli)
+      {
+        var $listItem = $(nli);
+        $listItem.find(":checkbox").removeAttr("checked");
+      });
 
       trigger(self.onSort,
+              {
+                "visibleColumns": visibleColumns
+              }, null);
+
+      trigger(self.onColumnAddOrRemove,
               {
                 "visibleColumns": visibleColumns
               }, null);

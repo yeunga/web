@@ -45,6 +45,7 @@ cadc.vot.Viewer = function (targetNodeSelector, options)
   this.dataView = null;
   this.grid = null;
   this.columnManager = options.columnManager ? options.columnManager : {};
+  this.rowManager = options.rowManager ? options.rowManager : {};
   this.data = [];
   this.columns = [];
   this.displayColumns = [];  // Columns that are actually in the Grid.
@@ -118,6 +119,11 @@ cadc.vot.Viewer.prototype.getHeaderNodeSelector = function ()
 cadc.vot.Viewer.prototype.getColumnManager = function ()
 {
   return this.columnManager;
+};
+
+cadc.vot.Viewer.prototype.getRowManager = function()
+{
+  return this.rowManager;
 };
 
 cadc.vot.Viewer.prototype.getColumns = function ()
@@ -358,9 +364,10 @@ cadc.vot.Viewer.prototype.searchFilter = function (item)
         filterValue = filterValue.substring(1);
       }
 
-      var filterOut = viewer.valueFilters(filterValue, cellValue,
-                                          column.datatype
-                                              ? column.datatype : "char");
+//      var filterOut = viewer.valueFilters(filterValue, cellValue,
+//                                          column.datatype
+//                                              ? column.datatype : "char");
+      var filterOut = viewer.valueFilters(filterValue, cellValue);
 
       if ((!negate && filterOut) || (!filterOut && negate))
       {
@@ -375,10 +382,9 @@ cadc.vot.Viewer.prototype.searchFilter = function (item)
 /**
  * @param filter    The filter value as entered by the user.
  * @param value     The value to be filtered or not
- * @param datatype  The column's datatype.
  * @returns {Boolean} true if value is filtered-out by filter.
  */
-cadc.vot.Viewer.prototype.valueFilters = function (filter, value, datatype)
+cadc.vot.Viewer.prototype.valueFilters = function (filter, value)
 {
   var operator = '';
   filter = $.trim(filter);
@@ -634,7 +640,9 @@ cadc.vot.Viewer.prototype.init = function ()
   if (Slick.CheckboxSelectColumn)
   {
     checkboxSelector = new Slick.CheckboxSelectColumn({
-                                                        cssClass: "slick-cell-checkboxsel"
+                                                        cssClass: "slick-cell-checkboxsel",
+                                                        width: 55,
+                                                        headerCssClass: "slick-header-column-checkboxsel"
                                                       });
 
     var checkboxColumn = checkboxSelector.getColumnDefinition();
@@ -667,7 +675,8 @@ cadc.vot.Viewer.prototype.init = function ()
     checkboxSelector = null;
   }
 
-  viewer.getOptions().defaultFormatter = function (row, cell, value, columnDef, dataContext)
+  viewer.getOptions().defaultFormatter = function (row, cell, value, columnDef,
+                                                   dataContext)
   {
     var returnValue;
 
@@ -688,15 +697,21 @@ cadc.vot.Viewer.prototype.init = function ()
   var grid = new Slick.Grid(viewer.getTargetNodeSelector(),
                             dataView, viewer.getDisplayColumns(),
                             viewer.getOptions());
+  var rowSelectionModel;
 
-  if (checkboxSelector && Slick.RowSelectionModel)
+  if (checkboxSelector && CADC.RowSelectionModel)
   {
-    grid.setSelectionModel(
-        new Slick.RowSelectionModel({
+    rowSelectionModel =
+        new CADC.RowSelectionModel({
                                       selectActiveRow: viewer.getOptions().selectActiveRow
-                                    }));
+                                    });
+    grid.setSelectionModel(rowSelectionModel);
 
     grid.registerPlugin(checkboxSelector);
+  }
+  else
+  {
+    rowSelectionModel = null;
   }
 
   if (viewer.usePager())
@@ -801,13 +816,21 @@ cadc.vot.Viewer.prototype.init = function ()
       columnPicker = new Slick.Controls.PanelTooltipColumnPicker(viewer.getColumns(),
                                                           grid,
                                                           columnPickerConfig.panel,
-                                                          columnPickerConfig.options,
-                                                          viewer.getOptions());
+                                                          columnPickerConfig.tooltipOptions,
+                                                          columnPickerConfig.options);
 
       columnPicker.onSort.subscribe(resetColumnWidths);
       columnPicker.onResetColumnOrder.subscribe(resetColumnWidths);
       columnPicker.onShowAllColumns.subscribe(resetColumnWidths);
       columnPicker.onSortAlphabetically.subscribe(resetColumnWidths);
+      columnPicker.onColumnAddOrRemove.subscribe(function(e, args)
+                                                 {
+                                                   if (rowSelectionModel)
+                                                   {
+                                                     // Refresh.
+                                                     rowSelectionModel.refreshSelectedRanges();
+                                                   }
+                                                 });
     }
     else
     {
@@ -890,6 +913,20 @@ cadc.vot.Viewer.prototype.init = function ()
                                          grid.render();
                                        });
 
+  if (viewer.getRowManager().onRowRendered)
+  {
+    grid.onRowsRendered.subscribe(function(e, args)
+                                  {
+                                    $.each(args.renderedRowIndexes,
+                                           function(rowIndexIndex, rowIndex)
+                                           {
+                                             var $rowItem =
+                                                 dataView.getItemByIdx(rowIndex);
+                                             viewer.getRowManager().onRowRendered($rowItem);
+                                           })
+                                  });
+  }
+
   dataView.onRowsChanged.subscribe(function (e, args)
                                    {
                                      grid.invalidateRows(args.rows);
@@ -923,9 +960,8 @@ cadc.vot.Viewer.prototype.init = function ()
                               }
 
                               var rows = [];
-                              for (var i = 0; (i < 10)
-                                  && (i < dataView.getLength());
-                                   i++)
+                              for (var i = 0;
+                                   (i < 10) && (i < dataView.getLength()); i++)
                               {
                                 rows.push(i);
                               }
@@ -975,6 +1011,12 @@ cadc.vot.Viewer.prototype.init = function ()
                                                  .val(columnFilters[args.column.id])
                                                  .attr("title", tooltipTitle)
                                                  .appendTo(args.node);
+                                           }
+                                           else
+                                           {
+                                             $("<div class='filter-boxes-label' "
+                                               + "title='Enter values into the boxes to further filter results.'>Filter:</div>").
+                                                 appendTo(args.node);
                                            }
                                          });
 
@@ -1064,6 +1106,8 @@ cadc.vot.Viewer.prototype.refreshColumns = function (table)
     var colOpts = viewer.getOptionsForColumn(fieldKey);
     var cssClass = colOpts.cssClass;
     var datatype = field.getDatatype();
+
+    // We're extending the column properties a little here.
     var columnProperties =
     {
       id: fieldKey,
@@ -1071,6 +1115,8 @@ cadc.vot.Viewer.prototype.refreshColumns = function (table)
       field: fieldKey,
       formatter: colOpts.formatter,
       cssClass: cssClass,
+      description: field.getDescription(),
+      unit: field.getUnit(),
       resizable: viewer.getColumnManager().resizable
     };
 
@@ -1116,14 +1162,6 @@ cadc.vot.Viewer.prototype.refreshColumns = function (table)
 
     viewer.addColumn(columnProperties);
   });
-};
-
-cadc.vot.Viewer.prototype.updateGridColumns = function ()
-{
-  viewer.getGrid().setColumns(viewer.getDisplayColumns().slice(0));
-  new Slick.Controls.ColumnPicker(viewer.getColumns().slice(0),
-                                  viewer.getGrid(),
-                                  viewer.getOptions());
 };
 
 /**

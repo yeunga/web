@@ -22,12 +22,36 @@
     background-color: transparent; /* show default selected row background */
 }
 
+.slick-cell.slick-cell-checkboxsel
+{
+  padding-left: 0;
+  padding-right: 0;
+  text-align: center;
+  background: white;
+  border-right: 0.1em solid silver;
+}
+
+.slick-header-column.slick-header-column-checkboxsel span.slick-column-name input
+{
+  margin-left: 16px;
+}
+
+.slick-header-column.slick-header-column-checkboxsel
+{
+  text-align: center;
+}
+
 /* Start */
 #inlineFilterPanel
 {
     padding: 3px;
     color: black;
     background: rgb(221, 221, 221) initial initial initial initial;
+}
+
+.filter-boxes-label
+{
+  color: rgb(0, 0, 0);
 }
 
 .grid-canvas
