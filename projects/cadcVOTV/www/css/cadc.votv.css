@@ -78,13 +78,26 @@
 
 .grid-header
 {
-    width: 100%;
+  width: auto;
+  font-family: Arial, serif;
+  font-size: 8pt;
+  border: 1px solid gray;
+  background-color: #EEF3F5;
+  color: black;
+  height: 24px;
+  line-height: 24px;
+}
+
+.grid-header label
+{
+  display: inline-block;
+  font-family: Arial, serif;
+  font-size: 8pt;
+  margin: auto auto auto 6px;
 }
 
 .slick-columnpicker
 {
-    /*position: absolute;*/
-    /*display: none;*/
     z-index: 20;
 }
 
@@ -127,15 +140,6 @@
     overflow: hidden;
     display: none;
 }
-
-/*.slick-viewport*/
-/*{*/
-    /*position: relative;*/
-    /*height: 473px;*/
-    /*width: 100%;*/
-    /*overflow: auto;*/
-    /*outline: 0;*/
-/*}*/
 
 .slick-top-panel
 {

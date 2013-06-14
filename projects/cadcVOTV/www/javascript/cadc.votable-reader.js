@@ -265,10 +265,10 @@ cadc.vot.XMLBuilder.prototype.build = function()
       {
         fieldID = xmlFieldID;
       }
-      else if (xmlFieldUType && (xmlFieldUType != ""))
-      {
-        fieldID = xmlFieldUType;
-      }
+//      else if (xmlFieldUType && (xmlFieldUType != ""))
+//      {
+//        fieldID = xmlFieldUType;
+//      }
       else
       {
         fieldID = xmlFieldName;
