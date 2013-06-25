@@ -774,6 +774,7 @@ cadc.vot.Viewer.prototype.init = function ()
             lengthStr += "a";
           }
 
+          lengthDiv.addClass("lengthFinder");
           lengthDiv.attr("style", "position: absolute;visibility: hidden;height: auto;width: auto;");
           lengthDiv.text(lengthStr);
           $(document.body).append(lengthDiv);
@@ -1160,6 +1161,8 @@ cadc.vot.Viewer.prototype.refreshColumns = function (table)
       $(document.body).append(lengthDiv);
 
       columnProperties.width = userColumnWidth || lengthDiv.innerWidth();
+
+      lengthDiv.remove();
     }
     // Here to handle XTypes like the adql:timestamp xtype.
     else if (field.getXType() && field.getXType().match(/timestamp/i))
