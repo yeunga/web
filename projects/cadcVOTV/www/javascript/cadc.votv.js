@@ -8,6 +8,12 @@ else if (typeof cadc != "object")
   throw new Error("cadc already exists and is not an object");
 }
 
+var CADC;
+if (!CADC)
+{
+  CADC = {};
+}
+
 if (!cadc.vot)
 {
   cadc.vot = {};
@@ -196,6 +202,11 @@ cadc.vot.Viewer.prototype.setGrid = function (gridObject)
 cadc.vot.Viewer.prototype.getSelectedRows = function ()
 {
   return this.getGrid().getSelectedRows();
+};
+
+cadc.vot.Viewer.prototype.getRowByIndex = function(_index)
+{
+  return this.getDataView().getItemByIdx(_index);
 };
 
 cadc.vot.Viewer.prototype.getGrid = function ()
@@ -699,13 +710,31 @@ cadc.vot.Viewer.prototype.init = function ()
                             viewer.getOptions());
   var rowSelectionModel;
 
-  if (checkboxSelector && CADC.RowSelectionModel)
+  if (checkboxSelector)
   {
-    rowSelectionModel =
-        new CADC.RowSelectionModel({
-                                      selectActiveRow: viewer.getOptions().selectActiveRow
-                                    });
-    grid.setSelectionModel(rowSelectionModel);
+    if (CADC.RowSelectionModel)
+    {
+      rowSelectionModel =
+          new CADC.RowSelectionModel({
+                                       selectActiveRow: viewer.getOptions().selectActiveRow
+                                     });
+    }
+    else if (Slick.RowSelectionModel)
+    {
+      rowSelectionModel =
+          new Slick.RowSelectionModel({
+                                        selectActiveRow: viewer.getOptions().selectActiveRow
+                                      });
+    }
+    else
+    {
+      rowSelectionModel = null;
+    }
+
+    if (rowSelectionModel)
+    {
+      grid.setSelectionModel(rowSelectionModel);
+    }
 
     grid.registerPlugin(checkboxSelector);
   }
@@ -810,7 +839,7 @@ cadc.vot.Viewer.prototype.init = function ()
     {
       columnPicker = new Slick.Controls.ColumnPicker(viewer.getColumns(),
                                                      grid, viewer.getOptions());
-      columnPicker.onColumnAddOrRemove.subscribe(resetColumnWidths);
+//      columnPicker.onColumnAddOrRemove.subscribe(resetColumnWidths);
     }
     else if (pickerStyle == "tooltip")
     {
@@ -893,9 +922,6 @@ cadc.vot.Viewer.prototype.init = function ()
                         {
                           sortAsc = args.sortAsc;
                           sortcol = args.sortCol.field;
-
-                          console.log("Found sort dir: "
-                                      + (sortAsc ? "asc" : "desc"));
 
 //                          if ($.browser.msie && ($.browser.version <= 8))
 //                          {
@@ -994,9 +1020,7 @@ cadc.vot.Viewer.prototype.init = function ()
                                            $(args.node).empty();
 
                                            // Do not display for the checkbox column.
-                                           if (!checkboxSelector
-                                               || (args.column.id
-                                               != checkboxSelector.getColumnDefinition().id))
+                                           if (args.column.filterable)
                                            {
                                              var datatype =
                                                  args.column.datatype;
@@ -1017,11 +1041,17 @@ cadc.vot.Viewer.prototype.init = function ()
                                                  .attr("title", tooltipTitle)
                                                  .appendTo(args.node);
                                            }
-                                           else
+                                           else if ((checkboxSelector
+                                                    && (args.column.id
+                                               == checkboxSelector.getColumnDefinition().id)))
                                            {
                                              $("<div class='filter-boxes-label' "
-                                               + "title='Enter values into the boxes to further filter results.'>Filter:</div>").
+                                                   + "title='Enter values into the boxes to further filter results.'>Filter:</div>").
                                                  appendTo(args.node);
+                                           }
+                                           else
+                                           {
+                                             $("<span></span>").appendTo(args.node);
                                            }
                                          });
 
@@ -1111,6 +1141,9 @@ cadc.vot.Viewer.prototype.refreshColumns = function (table)
     var colOpts = viewer.getOptionsForColumn(fieldKey);
     var cssClass = colOpts.cssClass;
     var datatype = field.getDatatype();
+    var filterable = columnManager.filterable
+                     && (((colOpts.filterable != undefined) && (colOpts.filterable != null))
+                          ? colOpts.filterable : columnManager.filterable);
 
     // We're extending the column properties a little here.
     var columnProperties =
@@ -1125,13 +1158,14 @@ cadc.vot.Viewer.prototype.refreshColumns = function (table)
 
       // VOTable attributes.
       unit: field.getUnit(),
-      utype: field.getUType()
+      utype: field.getUType(),
+      filterable: filterable
     };
 
-    if (field.getLabel() != 'Preview')
-    {
-      columnProperties.sortable = true;
-    }
+    // Default is to be sortable.
+    columnProperties.sortable =
+      ((colOpts.sortable != null) && (colOpts.sortable != undefined))
+          ? colOpts.sortable : true;
 
     if (datatype)
     {
@@ -1168,6 +1202,10 @@ cadc.vot.Viewer.prototype.refreshColumns = function (table)
     else if (field.getXType() && field.getXType().match(/timestamp/i))
     {
       columnProperties.width = 140;
+    }
+    else if (colOpts.width)
+    {
+      columnProperties.width = colOpts.width;
     }
 
     viewer.addColumn(columnProperties);
@@ -1229,4 +1267,6 @@ cadc.vot.Viewer.prototype.render = function ()
   {
     gridContainer.resizable();
   }
+
+  grid.render();
 };

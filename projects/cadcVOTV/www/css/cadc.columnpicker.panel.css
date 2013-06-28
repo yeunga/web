@@ -26,6 +26,18 @@
   margin: 4px;
 }
 
+a.slick-columnpicker-panel-link-label
+{
+  color: rgb(36, 71, 248);
+  text-decoration: underline;
+  margin-left: 10px;
+}
+
+a.slick-columnpicker-panel-link-label:hover
+{
+  cursor: pointer;
+}
+
 div.slick-column-picker-label-text
 {
   display: table-cell;
