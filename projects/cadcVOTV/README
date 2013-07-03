@@ -1,8 +1,13 @@
- cadcVOTV - Canadian Astronomy Data Center Virtual Observatory Table Viewer
- Version 2.0
- March 2013
+cadcVOTV - Canadian Astronomy Data Center Virtual Observatory Table Viewer
+Version 2.0
+March 2013
+
+ANT Build
+The cadcVOTV.build.xml file contains tasks for running the qunit JavaScript
+Unit Tests, and to install to some other directory.  Run it with
+'ant -f cadcVOTV.build.xml test'.
  
-VOView is a utility for viewing large tables in the VOTABLE format within a 
+The cadcVOTV project is a utility for viewing large tables in the VOTABLE format within a 
 Web browser. It is optimized for handling tables ranging in size from 1000 
 to 500,000 rows.  It performs extremely well due to the available JavaScript
 objects and structures available to modern browsers.
