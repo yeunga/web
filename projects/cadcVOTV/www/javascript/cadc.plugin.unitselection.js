@@ -128,11 +128,6 @@
           unitPullDown.addClass(unitDefinition.cssClass);
         }
 
-//          if (unitDefinition.command)
-//          {
-//            unitPullDown.data("command", unitDefinition.command);
-//          }
-
         if (unitDefinition.handler)
         {
           unitPullDown.data("unitChangeHandler", unitDefinition.handler);
@@ -166,8 +161,6 @@
       var unitValue = $(e.target).val();
       var handler = $(this).data("unitChangeHandler");
 
-//      if (command != null)
-//      {
       _self.onUnitChange.notify({
                                "grid": _grid,
                                "column": columnDef,
@@ -178,7 +171,6 @@
 
       // Update the header in case the user updated the button definition in the handler.
       _grid.updateColumnHeader(columnDef.id);
-//      }
 
       // Stop propagation so that it doesn't register as a header click event.
       e.preventDefault();

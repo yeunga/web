@@ -774,6 +774,7 @@ cadc.vot.Viewer.prototype.init = function ()
             lengthStr += "a";
           }
 
+          lengthDiv.addClass("lengthFinder");
           lengthDiv.attr("style", "position: absolute;visibility: hidden;height: auto;width: auto;");
           lengthDiv.text(lengthStr);
           $(document.body).append(lengthDiv);
@@ -893,17 +894,21 @@ cadc.vot.Viewer.prototype.init = function ()
                           sortAsc = args.sortAsc;
                           sortcol = args.sortCol.field;
 
-                          if ($.browser.msie && ($.browser.version <= 8))
-                          {
+                          console.log("Found sort dir: "
+                                      + (sortAsc ? "asc" : "desc"));
+
+//                          if ($.browser.msie && ($.browser.version <= 8))
+//                          {
                             // use numeric sort of % and lexicographic for everything else
-                            dataView.fastSort(sortcol, args.sortAsc);
-                          }
-                          else
-                          {
+//                            dataView.fastSort(sortcol, args.sortAsc);
+//                          }
+//                          else
+//                          {
                             // using native sort with comparer
                             // preferred method but can be very slow in IE with huge datasets
-                            dataView.sort(viewer.comparer, args.sortAsc);
-                          }
+                          dataView.sort(viewer.comparer, args.sortAsc);
+                          dataView.refresh();
+//                          }
                         });
 
   // wire up model events to drive the grid
@@ -1025,7 +1030,7 @@ cadc.vot.Viewer.prototype.init = function ()
     var unitSelectionPlugin = new Slick.Plugins.UnitSelection();
 
     // Extend the filter row to include the pulldown menu.
-    $(".slick-headerrow-columns").css("height", "42px");
+    $(".slick-headerrow-columns").css("height", "50px");
 
     unitSelectionPlugin.onUnitChange.subscribe(function (e, args)
                                                {
@@ -1116,8 +1121,11 @@ cadc.vot.Viewer.prototype.refreshColumns = function (table)
       formatter: colOpts.formatter,
       cssClass: cssClass,
       description: field.getDescription(),
+      resizable: viewer.getColumnManager().resizable,
+
+      // VOTable attributes.
       unit: field.getUnit(),
-      resizable: viewer.getColumnManager().resizable
+      utype: field.getUType()
     };
 
     if (field.getLabel() != 'Preview')
@@ -1153,6 +1161,8 @@ cadc.vot.Viewer.prototype.refreshColumns = function (table)
       $(document.body).append(lengthDiv);
 
       columnProperties.width = userColumnWidth || lengthDiv.innerWidth();
+
+      lengthDiv.remove();
     }
     // Here to handle XTypes like the adql:timestamp xtype.
     else if (field.getXType() && field.getXType().match(/timestamp/i))
@@ -1203,9 +1213,6 @@ cadc.vot.Viewer.prototype.render = function ()
   dataView.beginUpdate();
 
   dataView.setItems(viewer.getGridData());
-//  dataView.setFilterArgs({
-//                           searchString: searchString
-//                         });
   dataView.setFilter(viewer.searchFilter);
   dataView.endUpdate();
 
