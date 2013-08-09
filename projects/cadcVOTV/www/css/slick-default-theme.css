@@ -92,10 +92,10 @@ classes should alter those!
     background-color: beige;
 }
 
-.slick-cell.active
-{
-    border: solid gray;
-}
+/*.slick-cell.active*/
+/*{*/
+    /*border: solid gray;*/
+/*}*/
 
 .slick-sortable-placeholder
 {

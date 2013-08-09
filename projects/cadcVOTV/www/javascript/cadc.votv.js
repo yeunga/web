@@ -203,6 +203,14 @@ cadc.vot.Viewer.prototype.getGrid = function ()
   return this.grid;
 };
 
+cadc.vot.Viewer.prototype.refreshGrid = function ()
+{
+  var g = this.getGrid();
+  g.updateRowCount();
+  g.invalidateAllRows();
+  g.resizeCanvas();
+};
+
 cadc.vot.Viewer.prototype.getColumn = function (columnID)
 {
   return this.getGrid().getColumns()[
@@ -810,7 +818,11 @@ cadc.vot.Viewer.prototype.init = function ()
     {
       columnPicker = new Slick.Controls.ColumnPicker(viewer.getColumns(),
                                                      grid, viewer.getOptions());
-      columnPicker.onColumnAddOrRemove.subscribe(resetColumnWidths);
+
+      if (forceFitMax)
+      {
+        columnPicker.onColumnAddOrRemove.subscribe(resetColumnWidths);
+      }
     }
     else if (pickerStyle == "tooltip")
     {
@@ -820,10 +832,14 @@ cadc.vot.Viewer.prototype.init = function ()
                                                           columnPickerConfig.tooltipOptions,
                                                           columnPickerConfig.options);
 
-      columnPicker.onSort.subscribe(resetColumnWidths);
-      columnPicker.onResetColumnOrder.subscribe(resetColumnWidths);
-      columnPicker.onShowAllColumns.subscribe(resetColumnWidths);
-      columnPicker.onSortAlphabetically.subscribe(resetColumnWidths);
+      if (forceFitMax)
+      {
+        columnPicker.onSort.subscribe(resetColumnWidths);
+        columnPicker.onResetColumnOrder.subscribe(resetColumnWidths);
+        columnPicker.onShowAllColumns.subscribe(resetColumnWidths);
+        columnPicker.onSortAlphabetically.subscribe(resetColumnWidths);
+      }
+
       columnPicker.onColumnAddOrRemove.subscribe(function(e, args)
                                                  {
                                                    if (rowSelectionModel)
@@ -894,9 +910,6 @@ cadc.vot.Viewer.prototype.init = function ()
                           sortAsc = args.sortAsc;
                           sortcol = args.sortCol.field;
 
-                          console.log("Found sort dir: "
-                                      + (sortAsc ? "asc" : "desc"));
-
 //                          if ($.browser.msie && ($.browser.version <= 8))
 //                          {
                             // use numeric sort of % and lexicographic for everything else
@@ -915,7 +928,6 @@ cadc.vot.Viewer.prototype.init = function ()
   dataView.onRowCountChanged.subscribe(function (e, args)
                                        {
                                          grid.updateRowCount();
-                                         grid.render();
                                        });
 
   if (viewer.getRowManager().onRowRendered)
@@ -928,9 +940,10 @@ cadc.vot.Viewer.prototype.init = function ()
                                              var $rowItem =
                                                  dataView.getItemByIdx(rowIndex);
                                              viewer.getRowManager().onRowRendered($rowItem);
-                                           })
+                                           });
                                   });
   }
+
 
   dataView.onRowsChanged.subscribe(function (e, args)
                                    {
@@ -989,48 +1002,56 @@ cadc.vot.Viewer.prototype.init = function ()
                                     }
                                   });
 
-  grid.onHeaderRowCellRendered.subscribe(function (e, args)
-                                         {
-                                           $(args.node).empty();
-
-                                           // Do not display for the checkbox column.
-                                           if (!checkboxSelector
-                                               || (args.column.id
-                                               != checkboxSelector.getColumnDefinition().id))
+  if (viewer.getColumnManager().filterable)
+  {
+    grid.onHeaderRowCellRendered.subscribe(function (e, args)
                                            {
-                                             var datatype =
-                                                 args.column.datatype;
-                                             var tooltipTitle;
+                                             $(args.node).empty();
 
-                                             if (viewer.isNumericDatatype(datatype))
+                                             // Display the label for the checkbox column filter row.
+                                             if (checkboxSelector
+                                                 && (args.column.id == checkboxSelector.getColumnDefinition().id))
                                              {
-                                               tooltipTitle = "Number: 10 or >=10 or 10..20 for a range , ! to negate";
+                                               $("<div class='filter-boxes-label' "
+                                                     + "title='Enter values into the boxes to further filter results.'>Filter:</div>").
+                                                   appendTo(args.node);
+                                             }
+                                             // Allow for overrides per column.
+                                             else if (args.column.filterable == false)
+                                             {
+                                               $("<span class=\"empty\"></span>").
+                                                   appendTo(args.node);
                                              }
                                              else
                                              {
-                                               tooltipTitle = "String: abc (exact match) or *ab*c* , ! to negate";
-                                             }
+                                               var datatype =
+                                                   args.column.datatype;
+                                               var tooltipTitle;
 
-                                             $("<input type='text'>")
-                                                 .data("columnId", args.column.id)
-                                                 .val(columnFilters[args.column.id])
-                                                 .attr("title", tooltipTitle)
-                                                 .appendTo(args.node);
-                                           }
-                                           else
-                                           {
-                                             $("<div class='filter-boxes-label' "
-                                               + "title='Enter values into the boxes to further filter results.'>Filter:</div>").
-                                                 appendTo(args.node);
-                                           }
-                                         });
+                                               if (viewer.isNumericDatatype(datatype))
+                                               {
+                                                 tooltipTitle = "Number: 10 or >=10 or 10..20 for a range , ! to negate";
+                                               }
+                                               else
+                                               {
+                                                 tooltipTitle = "String: abc (exact match) or *ab*c* , ! to negate";
+                                               }
+
+                                               $("<input type='text'>")
+                                                   .data("columnId", args.column.id)
+                                                   .val(columnFilters[args.column.id])
+                                                   .attr("title", tooltipTitle)
+                                                   .appendTo(args.node);
+                                             }
+                                           });
+  }
 
   if (Slick.Plugins && Slick.Plugins.UnitSelection)
   {
     var unitSelectionPlugin = new Slick.Plugins.UnitSelection();
 
     // Extend the filter row to include the pulldown menu.
-    $(".slick-headerrow-columns").css("height", "50px");
+//    $(".slick-headerrow-columns").css("height", "50px");
 
     unitSelectionPlugin.onUnitChange.subscribe(function (e, args)
                                                {
@@ -1042,12 +1063,12 @@ cadc.vot.Viewer.prototype.init = function ()
                                                });
 
     grid.registerPlugin(unitSelectionPlugin);
-
-    grid.onColumnsReordered.subscribe(function (e, args)
-                                      {
-                                        grid.invalidate();
-                                      });
   }
+
+  grid.onColumnsReordered.subscribe(function (e, args)
+                                    {
+                                      grid.invalidate();
+                                    });
 
   viewer.setDataView(dataView);
   viewer.setGrid(grid);
@@ -1122,16 +1143,13 @@ cadc.vot.Viewer.prototype.refreshColumns = function (table)
       cssClass: cssClass,
       description: field.getDescription(),
       resizable: viewer.getColumnManager().resizable,
+      sortable: colOpts.sortable ? colOpts.sortable : true,
 
       // VOTable attributes.
+      filterable: colOpts.filterable,
       unit: field.getUnit(),
       utype: field.getUType()
     };
-
-    if (field.getLabel() != 'Preview')
-    {
-      columnProperties.sortable = true;
-    }
 
     if (datatype)
     {
@@ -1163,6 +1181,10 @@ cadc.vot.Viewer.prototype.refreshColumns = function (table)
       columnProperties.width = userColumnWidth || lengthDiv.innerWidth();
 
       lengthDiv.remove();
+    }
+    else if (colOpts.width)
+    {
+      columnProperties.width = colOpts.width;
     }
     // Here to handle XTypes like the adql:timestamp xtype.
     else if (field.getXType() && field.getXType().match(/timestamp/i))
@@ -1207,11 +1229,8 @@ cadc.vot.Viewer.prototype.render = function ()
   var dataView = viewer.getDataView();
   var grid = viewer.getGrid();
 
-  grid.init();
-
   // initialize the model after all the events have been hooked up
   dataView.beginUpdate();
-
   dataView.setItems(viewer.getGridData());
   dataView.setFilter(viewer.searchFilter);
   dataView.endUpdate();
@@ -1229,4 +1248,6 @@ cadc.vot.Viewer.prototype.render = function ()
   {
     gridContainer.resizable();
   }
+
+  grid.init();
 };
