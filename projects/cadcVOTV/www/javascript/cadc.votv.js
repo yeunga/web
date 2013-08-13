@@ -1067,7 +1067,7 @@ cadc.vot.Viewer.prototype.init = function ()
 
   grid.onColumnsReordered.subscribe(function (e, args)
                                     {
-                                      grid.invalidate();
+//                                      grid.invalidateRows();
                                     });
 
   viewer.setDataView(dataView);
