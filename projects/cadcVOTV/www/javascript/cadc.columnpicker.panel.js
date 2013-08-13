@@ -55,7 +55,9 @@
       // Clean up first.
       panel.find("a.slick-columnpicker-panel-link-label").remove();
 
-      $link = $("<a name='slick-columnpicker-panel-link' class='slick-columnpicker-panel-link-label'></a>").appendTo(panel);
+      var $linkHolder = $("<span class='slick-columnpicker-panel-link-holder'></span>").appendTo(panel);
+
+      $link = $("<a name='slick-columnpicker-panel-link' class='slick-columnpicker-panel-link-label'></a>").appendTo($linkHolder);
       $link.text(options.linkText);
       $link.mouseover(function (e)
                       {
@@ -69,10 +71,18 @@
         $link.after(tooltipOptions.tooltipContent);
       }
 
+      // Assume default tooltip attachment.
+      if (!tooltipOptions.tooltipInit)
+      {
+        $link.tooltip(tooltipOptions);
+      }
+      else
+      {
+        tooltipOptions.tooltipInit($link);
+      }
+
       // Clean up existing button holder.
       $(tooltipOptions.targetSelector).empty();
-
-      $link.tooltip(tooltipOptions);
 
       var $buttonHolder = $("<div class='slick-column-picker-tooltip-button-holder'></div>").appendTo(tooltipOptions.targetSelector);
 
