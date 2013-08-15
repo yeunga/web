@@ -1,5 +1,7 @@
-.slick-columnpicker
+ul.slick-columnpicker
 {
+  list-style-type: none;
+  margin: 0;
   border: 1px solid #718BB7;
   background: #f0f0f0;
   padding: 6px;
@@ -11,7 +13,6 @@
 
 .slick-columnpicker li
 {
-  list-style: none;
   margin: 0;
   padding: 0;
   background: none;

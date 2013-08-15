@@ -140,23 +140,31 @@
       $menu.sortable({
                        opacity: 0.8,
                        containment: "parent",
+                       tolerance: "pointer",
+                       axis: "y",
                        stop: function (e, ui)
                        {
                          var $checkbox = ui.item.find(":checkbox");
+                         var $liItems = $menu.find("li");
+                         var thisItemIndex = $liItems.index(ui.item);
+                         var thresholdIndex = $liItems.index($(thresholdListItemSelector));
 
-                         if ($checkbox.is(":checked"))
+                         if (thisItemIndex < thresholdIndex)
                          {
-                           $checkbox.removeAttr("checked");
+                           // This item is above the threshold line.
+                           $checkbox.attr("checked", "checked");
                          }
                          else
                          {
-                           $checkbox.attr("checked", "checked");
+                           // This item is below the threshold line.
+                           $checkbox.removeAttr("checked");
                          }
 
                          updateColumns();
                          e.stopPropagation();
                        }
                      });
+
       $menu.disableSelection();
     }
 
@@ -199,7 +207,7 @@
     {
       $.each(cols, function(cindex, nextCol)
       {
-        var $li = $("<li></li>").appendTo($menu);
+        var $li = $("<li class=\"ui-state-default\"></li>").appendTo($menu);
         $li.attr("id", "ITEM_" + nextCol.id);
         $li.data("column-id", nextCol.id);
 

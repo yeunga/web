@@ -288,7 +288,9 @@ cadc.vot.Viewer.prototype.getDisplayColumns = function ()
 };
 
 /**
- * Get the columns that are currently displayed.
+ * Get the columns that ARE CURRENTLY displayed.  Useful for saving for future
+ * profile usage (i.e. restoring previous session).
+ *
  * @return {Array}    Array of Column objects.
  */
 cadc.vot.Viewer.prototype.getDisplayedColumns = function ()
