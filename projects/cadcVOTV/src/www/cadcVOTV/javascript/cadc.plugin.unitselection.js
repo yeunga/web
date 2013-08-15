@@ -114,12 +114,12 @@
 
           if (selectedUnit && (selectedUnit == unitDefinition.value))
           {
-            nextOption.attr("selected", true);
+            nextOption.prop("selected", true);
           }
           else if (!selectedUnit && unitDefinition.default)
           {
             $(column).data("unitValue", unitDefinition.value);
-            nextOption.attr("selected", true);
+            nextOption.prop("selected", true);
           }
         }
 

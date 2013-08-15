@@ -814,7 +814,7 @@ cadc.vot.Viewer.prototype.init = function ()
           }
 
           lengthDiv.addClass("lengthFinder");
-          lengthDiv.attr("style", "position: absolute;visibility: hidden;height: auto;width: auto;");
+          lengthDiv.prop("style", "position: absolute;visibility: hidden;height: auto;width: auto;");
           lengthDiv.text(lengthStr);
           $(document.body).append(lengthDiv);
 
@@ -1073,7 +1073,7 @@ cadc.vot.Viewer.prototype.init = function ()
                                                $("<input type='text'>")
                                                    .data("columnId", args.column.id)
                                                    .val(columnFilters[args.column.id])
-                                                   .attr("title", tooltipTitle)
+                                                   .prop("title", tooltipTitle)
                                                    .appendTo(args.node);
                                              }
                                            }
@@ -1182,7 +1182,7 @@ cadc.vot.Viewer.prototype.refreshColumns = function (table)
       sortable: colOpts.sortable ? colOpts.sortable : true,
 
       // VOTable attributes.
-      filterable: colOpts.filterable,
+//      filterable: colOpts.filterable,
       unit: field.getUnit(),
       utype: field.getUType(),
       filterable: filterable
@@ -1216,7 +1216,7 @@ cadc.vot.Viewer.prototype.refreshColumns = function (table)
         lengthStr += "a";
       }
 
-      lengthDiv.attr("style", "position: absolute;visibility: hidden;height: auto;width: auto;");
+      lengthDiv.prop("style", "position: absolute;visibility: hidden;height: auto;width: auto;");
       lengthDiv.text(lengthStr);
       $(document.body).append(lengthDiv);
 
