@@ -288,7 +288,9 @@ cadc.vot.Viewer.prototype.getDisplayColumns = function ()
 };
 
 /**
- * Get the columns that are currently displayed.
+ * Get the columns that ARE CURRENTLY displayed.  Useful for saving for future
+ * profile usage (i.e. restoring previous session).
+ *
  * @return {Array}    Array of Column objects.
  */
 cadc.vot.Viewer.prototype.getDisplayedColumns = function ()
@@ -812,7 +814,7 @@ cadc.vot.Viewer.prototype.init = function ()
           }
 
           lengthDiv.addClass("lengthFinder");
-          lengthDiv.attr("style", "position: absolute;visibility: hidden;height: auto;width: auto;");
+          lengthDiv.prop("style", "position: absolute;visibility: hidden;height: auto;width: auto;");
           lengthDiv.text(lengthStr);
           $(document.body).append(lengthDiv);
 
@@ -1071,7 +1073,7 @@ cadc.vot.Viewer.prototype.init = function ()
                                                $("<input type='text'>")
                                                    .data("columnId", args.column.id)
                                                    .val(columnFilters[args.column.id])
-                                                   .attr("title", tooltipTitle)
+                                                   .prop("title", tooltipTitle)
                                                    .appendTo(args.node);
                                              }
                                            }
@@ -1174,13 +1176,14 @@ cadc.vot.Viewer.prototype.refreshColumns = function (table)
       name: field.getName(),
       field: fieldKey,
       formatter: colOpts.formatter,
+      asyncPostRender: colOpts.asyncFormatter,
       cssClass: cssClass,
       description: field.getDescription(),
       resizable: viewer.getColumnManager().resizable,
       sortable: colOpts.sortable ? colOpts.sortable : true,
 
       // VOTable attributes.
-      filterable: colOpts.filterable,
+//      filterable: colOpts.filterable,
       unit: field.getUnit(),
       utype: field.getUType(),
       filterable: filterable
@@ -1214,7 +1217,7 @@ cadc.vot.Viewer.prototype.refreshColumns = function (table)
         lengthStr += "a";
       }
 
-      lengthDiv.attr("style", "position: absolute;visibility: hidden;height: auto;width: auto;");
+      lengthDiv.prop("style", "position: absolute;visibility: hidden;height: auto;width: auto;");
       lengthDiv.text(lengthStr);
       $(document.body).append(lengthDiv);
 

@@ -140,23 +140,45 @@
       $menu.sortable({
                        opacity: 0.8,
                        containment: "parent",
+                       tolerance: "pointer",
+                       axis: "y",
+                       helper: "original",
                        stop: function (e, ui)
                        {
                          var $checkbox = ui.item.find(":checkbox");
+                         var $liItems = $menu.find("li");
 
-                         if ($checkbox.is(":checked"))
+                         var thisItemIndex = $liItems.index(ui.item);
+                         var thresholdIndex = $liItems.index($(thresholdListItemSelector));
+
+                         if (thisItemIndex < thresholdIndex)
                          {
-                           $checkbox.removeAttr("checked");
+                           // This item is above the threshold line.
+                           $checkbox.prop("checked", true);
                          }
-                         else
+                         else if (thisItemIndex != thresholdIndex)
                          {
-                           $checkbox.attr("checked", "checked");
+                           // This item is below the threshold line.
+                           $checkbox.prop("checked", false);
                          }
 
                          updateColumns();
                          e.stopPropagation();
                        }
                      });
+
+
+      $menu.bind("sortstart", function (event, ui)
+      {
+        ui.helper.css('margin-top', $(window).scrollTop());
+      });
+
+      $menu.bind("sortbeforestop", function (event, ui)
+      {
+        ui.helper.css('margin-top', 0);
+      });
+
+
       $menu.disableSelection();
     }
 
@@ -199,8 +221,8 @@
     {
       $.each(cols, function(cindex, nextCol)
       {
-        var $li = $("<li></li>").appendTo($menu);
-        $li.attr("id", "ITEM_" + nextCol.id);
+        var $li = $("<li class=\"ui-state-default\"></li>").appendTo($menu);
+        $li.prop("id", "ITEM_" + nextCol.id);
         $li.data("column-id", nextCol.id);
 
         // Omit the checkbox column.
@@ -221,12 +243,12 @@
                        if (!$checkbox.is(":checked"))
                        {
                          $(thresholdListItemSelector).after($listItem);
-                         $listItem.find(":checkbox").removeAttr("checked");
+                         $listItem.find(":checkbox").prop("checked", false);
                        }
                        else
                        {
                          $(thresholdListItemSelector).before($listItem);
-                         $listItem.find(":checkbox").attr("checked", "checked");
+                         $listItem.find(":checkbox").prop("checked", true);
                        }
 
                        // Refresh the list.
@@ -237,13 +259,13 @@
 
         if (grid.getColumnIndex(nextCol.id))
         {
-          $input.attr("checked", "checked");
+          $input.prop("checked", true);
         }
 
         var $columnLabel =
             $("<div class='slick-column-picker-label-text'></div>").text(
                 nextCol.name);
-        $columnLabel.attr("id", "LABEL_" + nextCol.id);
+        $columnLabel.prop("id", "LABEL_" + nextCol.id);
 
         var $columnDescription =
             $("<div class='slick-column-picker-description-label-text'></div>").text(
@@ -259,7 +281,7 @@
           $columnUnitDescriptionContainer.append(" (Default unit '").append(
               $columnUnitDescription).append("')");
           $columnDescription.append($columnUnitDescriptionContainer);
-          $columnDescription.attr("id", "_DESC_" + nextCol.id);
+          $columnDescription.prop("id", "_DESC_" + nextCol.id);
         }
 
         $columnLabel.prepend($input);
@@ -294,8 +316,10 @@
       $.each(previousItems, function (i, li)
       {
         var $listItem = $(li);
+        var $listItemCheckbox = $listItem.find(":checkbox");
 
-        $listItem.find(":checkbox").attr("checked", "checked");
+        $listItemCheckbox.prop("checked", true);
+
         var listItemColumnID = $listItem.data("column-id");
 
         $.each(columns, function(cI, cO)
@@ -316,7 +340,7 @@
       $.each(nextItems, function (n, nli)
       {
         var $listItem = $(nli);
-        $listItem.find(":checkbox").removeAttr("checked");
+        $listItem.find(":checkbox").prop("checked", false);
       });
 
       trigger(self.onSort,
