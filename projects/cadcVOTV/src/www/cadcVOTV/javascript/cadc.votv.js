@@ -153,6 +153,11 @@ cadc.vot.Viewer.prototype.getColumnFilters = function ()
   return this.columnFilters;
 };
 
+cadc.vot.Viewer.prototype.clearColumnFilters = function()
+{
+  this.columnFilters = {};
+};
+
 cadc.vot.Viewer.prototype.addColumn = function (columnObject)
 {
   this.columns.push(columnObject);
@@ -207,6 +212,11 @@ cadc.vot.Viewer.prototype.getSelectedRows = function ()
 cadc.vot.Viewer.prototype.getRowByIndex = function(_index)
 {
   return this.getDataView().getItemByIdx(_index);
+};
+
+cadc.vot.Viewer.prototype.getRow = function(_index)
+{
+  return this.getDataView().getItem(_index);
 };
 
 cadc.vot.Viewer.prototype.getGrid = function ()
