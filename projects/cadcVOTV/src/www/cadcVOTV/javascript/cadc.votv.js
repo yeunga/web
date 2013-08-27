@@ -153,6 +153,11 @@ cadc.vot.Viewer.prototype.getColumnFilters = function ()
   return this.columnFilters;
 };
 
+cadc.vot.Viewer.prototype.clearColumnFilters = function()
+{
+  this.columnFilters = {};
+};
+
 cadc.vot.Viewer.prototype.addColumn = function (columnObject)
 {
   this.columns.push(columnObject);
