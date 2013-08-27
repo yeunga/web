@@ -1176,6 +1176,7 @@ cadc.vot.Viewer.prototype.refreshColumns = function (table)
       name: field.getName(),
       field: fieldKey,
       formatter: colOpts.formatter,
+      asyncPostRender: colOpts.asyncFormatter,
       cssClass: cssClass,
       description: field.getDescription(),
       resizable: viewer.getColumnManager().resizable,
