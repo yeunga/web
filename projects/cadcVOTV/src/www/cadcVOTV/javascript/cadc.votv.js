@@ -1084,6 +1084,7 @@ cadc.vot.Viewer.prototype.init = function ()
                                                    .data("columnId", args.column.id)
                                                    .val(columnFilters[args.column.id])
                                                    .prop("title", tooltipTitle)
+                                                   .prop("id", args.column.utype + "_filter")
                                                    .appendTo(args.node);
                                              }
                                            }
