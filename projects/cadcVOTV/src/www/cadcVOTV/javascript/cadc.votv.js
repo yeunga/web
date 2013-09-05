@@ -655,6 +655,69 @@ cadc.vot.Viewer.prototype.hasColumn = function (columnDefinition)
   return false;
 };
 
+// Used for resetting the force fit column widths.
+cadc.vot.Viewer.prototype.resetColumnWidths = function (checkboxSelector)
+{
+  var g = viewer.getGrid();
+  var gridColumns = g.getColumns();
+  var totalWidth = 0;
+  var tabData = viewer.getVOTableData();
+
+  for (var c in gridColumns)
+  {
+    var col = gridColumns[c];
+    var colWidth;
+
+    // Do not calculate with checkbox column.
+    if (!checkboxSelector
+        || (col.id != checkboxSelector.getColumnDefinition().id))
+    {
+      var colOpts = viewer.getOptionsForColumn(col.name);
+      var minWidth = col.name.length + 3;
+      var longestCalculatedWidth = tabData.getLongestValueLength(col.id);
+      var textWidthToUse = (longestCalculatedWidth > minWidth)
+          ? longestCalculatedWidth : minWidth;
+
+      var lengthDiv = $("<div></div>");
+      var lengthStr = "";
+      var userColumnWidth = colOpts.width;
+
+      for (var v = 0; v < textWidthToUse; v++)
+      {
+        lengthStr += "a";
+      }
+
+      lengthDiv.addClass("lengthFinder");
+      lengthDiv.prop("style", "position: absolute;visibility: hidden;height: auto;width: auto;");
+      lengthDiv.text(lengthStr);
+      $(document.body).append(lengthDiv);
+
+      colWidth = (userColumnWidth || lengthDiv.innerWidth());
+
+      lengthDiv.remove();
+    }
+    else
+    {
+      // Buffer the checkbox.
+      colWidth = col.width + 15;
+    }
+
+    totalWidth += colWidth;
+  }
+
+  if (totalWidth > 0)
+  {
+    $(viewer.getTargetNodeSelector()).css("width", totalWidth + "px");
+
+    if (viewer.usePager())
+    {
+      $(viewer.getPagerNodeSelector()).css("width", totalWidth + "px");
+    }
+
+    $(viewer.getHeaderNodeSelector()).css("width", totalWidth + "px");
+    g.resizeCanvas();
+  }
+};
 
 /**
  * Initialize this VOViewer.
@@ -667,8 +730,10 @@ cadc.vot.Viewer.prototype.init = function ()
       && (viewer.getColumnManager().forceFitColumnMode
       == "max"));
   var checkboxSelector;
+  var enableSelection = !viewer.getOptions().enableSelection
+                        || viewer.getOptions().enableSelection == true;
 
-  if (Slick.CheckboxSelectColumn)
+  if (Slick.CheckboxSelectColumn && enableSelection)
   {
     checkboxSelector = new Slick.CheckboxSelectColumn({
                                                         cssClass: "slick-cell-checkboxsel",
@@ -791,77 +856,13 @@ cadc.vot.Viewer.prototype.init = function ()
     var columnPicker;
     var pickerStyle = columnPickerConfig.style;
 
-    // Used for resetting the force fit column widths.
-    var resetColumnWidths = function (e, args)
-    {
-      var g = args.grid;
-      var gridColumns = g.getColumns();
-      var totalWidth = 0;
-      var tabData = viewer.getVOTableData();
-
-      for (var c in gridColumns)
-      {
-        var col = gridColumns[c];
-        var colWidth;
-
-        // Do not calculate with checkbox column.
-        if (!checkboxSelector
-            || (col.id != checkboxSelector.getColumnDefinition().id))
-        {
-          var colOpts = viewer.getOptionsForColumn(col.name);
-          var minWidth = col.name.length + 3;
-          var longestCalculatedWidth = tabData.getLongestValueLength(col.id);
-          var textWidthToUse = (longestCalculatedWidth > minWidth)
-              ? longestCalculatedWidth : minWidth;
-
-          var lengthDiv = $("<div></div>");
-          var lengthStr = "";
-          var userColumnWidth = colOpts.width;
-
-          for (var v = 0; v < textWidthToUse; v++)
-          {
-            lengthStr += "a";
-          }
-
-          lengthDiv.addClass("lengthFinder");
-          lengthDiv.prop("style", "position: absolute;visibility: hidden;height: auto;width: auto;");
-          lengthDiv.text(lengthStr);
-          $(document.body).append(lengthDiv);
-
-          colWidth = (userColumnWidth || lengthDiv.innerWidth());
-
-          lengthDiv.remove();
-        }
-        else
-        {
-          // Buffer the checkbox.
-          colWidth = col.width + 15;
-        }
-
-        totalWidth += colWidth;
-      }
-
-      if (totalWidth > 0)
-      {
-        $(viewer.getTargetNodeSelector()).css("width", totalWidth + "px");
-
-        if (viewer.usePager())
-        {
-          $(viewer.getPagerNodeSelector()).css("width", totalWidth + "px");
-        }
-
-        $(viewer.getHeaderNodeSelector()).css("width", totalWidth + "px");
-        g.resizeCanvas();
-      }
-    };
-
     if (pickerStyle == "header")
     {
       columnPicker = new Slick.Controls.ColumnPicker(viewer.getColumns(),
                                                      grid, viewer.getOptions());
       if (forceFitMax)
       {
-        columnPicker.onColumnAddOrRemove.subscribe(resetColumnWidths);
+        columnPicker.onColumnAddOrRemove.subscribe(viewer.resetColumnWidths);
       }
     }
     else if (pickerStyle == "tooltip")
@@ -874,10 +875,10 @@ cadc.vot.Viewer.prototype.init = function ()
 
       if (forceFitMax)
       {
-        columnPicker.onSort.subscribe(resetColumnWidths);
-        columnPicker.onResetColumnOrder.subscribe(resetColumnWidths);
-        columnPicker.onShowAllColumns.subscribe(resetColumnWidths);
-        columnPicker.onSortAlphabetically.subscribe(resetColumnWidths);
+        columnPicker.onSort.subscribe(viewer.resetColumnWidths);
+        columnPicker.onResetColumnOrder.subscribe(viewer.resetColumnWidths);
+        columnPicker.onShowAllColumns.subscribe(viewer.resetColumnWidths);
+        columnPicker.onSortAlphabetically.subscribe(viewer.resetColumnWidths);
       }
 
       columnPicker.onColumnAddOrRemove.subscribe(function(e, args)
@@ -1112,10 +1113,10 @@ cadc.vot.Viewer.prototype.init = function ()
     grid.registerPlugin(unitSelectionPlugin);
   }
 
-  grid.onColumnsReordered.subscribe(function (e, args)
-                                    {
+//  grid.onColumnsReordered.subscribe(function (e, args)
+//                                    {
 //                                      grid.invalidateRows();
-                                    });
+//                                    });
 
   viewer.setDataView(dataView);
   viewer.setGrid(grid);
@@ -1217,40 +1218,19 @@ cadc.vot.Viewer.prototype.refreshColumns = function (table)
 
     if (forceFitMax)
     {
-      // Buffer the length of the column header.
-      var minWidth = colOpts.width ? colOpts.width : (field.getLabel().length + 3);
-      var longestCalculatedWidth = tableData.getLongestValueLength(fieldKey);
-      var textWidthToUse = (longestCalculatedWidth > minWidth)
-          ? longestCalculatedWidth : minWidth;
-      var lengthDiv = $("<div></div>");
-      var lengthStr = "";
-      var userColumnWidth = colOpts.width;
-
-      for (var v = 0; v < textWidthToUse; v++)
+      columnProperties.width = viewer.getOptions().defaultColumnWidth;
+    }
+    else if (!columnManager.forceFitColumns)
+    {
+      if (colOpts.width)
       {
-        lengthStr += "a";
+        columnProperties.width = colOpts.width;
       }
-
-      lengthDiv.prop("style", "position: absolute;visibility: hidden;height: auto;width: auto;");
-      lengthDiv.text(lengthStr);
-      $(document.body).append(lengthDiv);
-
-      columnProperties.width = userColumnWidth || lengthDiv.innerWidth();
-
-      lengthDiv.remove();
-    }
-    else if (colOpts.width)
-    {
-      columnProperties.width = colOpts.width;
-    }
-    // Here to handle XTypes like the adql:timestamp xtype.
-    else if (field.getXType() && field.getXType().match(/timestamp/i))
-    {
-      columnProperties.width = 140;
-    }
-    else if (colOpts.width)
-    {
-      columnProperties.width = colOpts.width;
+      // Here to handle XTypes like the adql:timestamp xtype.
+      else if (field.getXType() && field.getXType().match(/timestamp/i))
+      {
+        columnProperties.width = 140;
+      }
     }
 
     viewer.addColumn(columnProperties);
