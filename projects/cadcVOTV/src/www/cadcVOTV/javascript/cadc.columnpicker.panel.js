@@ -22,10 +22,10 @@
         "li.slick-column-picker-tooltip-threshold";
     var self = this;
 
-    if (!jQuery.fn.tooltip)
+    if (!jQuery.fn.tooltip && !!jQuery.fn.powerTip)
     {
       throw "CADC Panel Tooltip Column Picker requires a tooltip library "
-          + "(jQuery.tools or jQuery.ui) module to be loaded";
+          + "(jQuery.tools or jQuery.ui), or the powerTip library to be loaded.";
     }
 
     var defaults =
@@ -103,7 +103,36 @@
 
       $showAllSpan.click(function(e)
                          {
-                           grid.setColumns(columns.slice(0));
+                           var colIDs = [];
+                           var gridCols = grid.getColumns().slice(0);
+                           var allCols = [];
+
+                           $.each(gridCols, function(gcKey, gColDef)
+                           {
+                             colIDs.push(gColDef.id);
+                             allCols.push(gColDef);
+                           });
+
+                           $.each(columns, function(colKey, colDef)
+                           {
+                             var colID = colDef.id;
+                             var isInGrid = false;
+
+                             $.each(colIDs, function(ccKey, cColID)
+                             {
+                               if (cColID == colID)
+                               {
+                                 isInGrid = true;
+                               }
+                             });
+
+                             if (!isInGrid)
+                             {
+                               allCols.push(colDef);
+                             }
+                           });
+
+                           grid.setColumns(allCols);
                            grid.invalidate();
                            grid.resizeCanvas();
                            buildTooltipPicker(e);
@@ -334,6 +363,7 @@
       if (visibleColumns.length)
       {
         grid.setColumns(visibleColumns);
+        grid.invalidate();
       }
 
       var nextItems = $(thresholdListItemSelector).nextAll();
@@ -356,6 +386,19 @@
 
     $.extend(this,
              {
+               "updateColumnData": function(_colID, _dataKey, _dataObject)
+               {
+                 $.each(columns, function(cI, cO)
+                 {
+                   if (cO.id == _colID)
+                   {
+                     $(cO).data(_dataKey, _dataObject);
+                   }
+                 });
+
+                 self.updateColumns();
+               },
+               "updateColumns": updateColumns,
                "onColumnAddOrRemove": new Slick.Event(),
                "onSort": new Slick.Event(),
                "onResetColumnOrder": new Slick.Event(),

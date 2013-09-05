@@ -161,6 +161,8 @@
       var unitValue = $(e.target).val();
       var handler = $(this).data("unitChangeHandler");
 
+      $(columnDef).data("unitValue", unitValue);
+
       _self.onUnitChange.notify({
                                "grid": _grid,
                                "column": columnDef,
@@ -168,6 +170,8 @@
                                "unitPullDown": unitPullDown,
                                "handler": handler
                              }, e, _self);
+
+      _grid.invalidate();
 
       // Update the header in case the user updated the button definition in the handler.
       _grid.updateColumnHeader(columnDef.id);

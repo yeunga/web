@@ -1,3 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
 <!--
 This build file constructs JavaScript packages for using the VOView classes, 
 and installs them and other needed files on a Web server.  This includes a 
@@ -5,27 +7,58 @@ Perl script for running a proxy, which is needed for VOTABLE files that are
 not local to the server.  If you will only be accessing tables local to the 
 server, you can set the PROXY_URL filter token value to "".
 -->
-<project name="VOView" default="install" basedir=".">
+
+<!DOCTYPE project>
+
+<project default="build" basedir=".">
   <description>Canadian Astronomy Data Center Virtual Observatory Table Viewer 1.0</description>
 
-  <property name="proj_root" value="."/>
+  <property environment="env" />
+  <property file="local.build.properties" />
 
-  <!-- Destination of the install -->
-  <property name="dest_root" value="${proj_root}/www"/>
+  <!-- site-specific build properties or overrides of values in opencadc.properties -->
+  <property file="${env.CADC_PREFIX}/etc/local.properties" />
 
-  <property name="dest_html" value="${dest_root}"/>
-  <property name="dest_js" value="${dest_root}/javascript"/>
-  <property name="dest_img" value="${dest_root}/images"/>
-  <property name="dest_css" value="${dest_root}/css"/>
+  <!-- site-specific targets, e.g. install, cannot duplicate those in opencadc.targets.xml -->
+  <import file="${env.CADC_PREFIX}/etc/local.targets.xml" optional="true" />
 
-  <!-- In general the user should not modify values below here -->
-  <property name="proj_version" value="1.0"/>
-  <property name="srcdir" value="./src" />
-  <property name="testdir" value="./test"/>
+  <!-- default properties and targets -->
+  <property file="${env.CADC_PREFIX}/etc/opencadc.properties" />
+  <import file="${env.CADC_PREFIX}/etc/opencadc.targets.xml"/>
 
-  <target name="install">
-    <tstamp/>
-    <touch file="${proj_root}/LASTINSTALL.${DSTAMP}_${TSTAMP}_v${proj_version}"/>
+  <!-- developer convenience: place for extra targets and properties -->
+  <import file="extras.xml" optional="true" />
+
+  <target name="install" depends="build, install_www">
+    <tstamp />
+    <touch file="${build}/LASTINSTALL.${DSTAMP}_${TSTAMP}" />
+  </target>
+
+  <target name="build">
+
+    <copy todir="${build}/www">
+      <fileset dir="src/www" />
+    </copy>
+
+  </target>
+
+  <target name="install_www">
+
+    <chmod perm="644">
+      <fileset dir="${build}/www"/> <!-- files -->
+    </chmod>
+    <chmod perm="755">
+      <dirset dir="${build}/www" /> <!-- directories -->
+    </chmod>
+
+    <echo message="Copying using '${copy_cmd} ${copy_args} ${build}/www/ ${www}/" />
+
+    <exec executable="${copy_cmd}">
+      <arg value="${copy_args}" />
+      <arg value="${build}/www/" />
+      <arg value="${www}/" />
+    </exec>
+
   </target>
 
   <target name="test" depends="install" description="Runs QUnit Tests using PhantomJS">

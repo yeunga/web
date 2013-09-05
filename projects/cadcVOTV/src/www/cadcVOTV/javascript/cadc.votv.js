@@ -1099,11 +1099,14 @@ cadc.vot.Viewer.prototype.init = function ()
 
     unitSelectionPlugin.onUnitChange.subscribe(function (e, args)
                                                {
-                                                 $(args.column).data("unitValue", args.unitValue);
+                                                 if (columnPicker.updateColumnData)
+                                                 {
+                                                   columnPicker.updateColumnData(args.column.id, "unitValue", args.unitValue);
+                                                 }
 
                                                  // Invalidate to force column
                                                  // reformatting.
-                                                 grid.invalidate();
+//                                                 grid.invalidate();
                                                });
 
     grid.registerPlugin(unitSelectionPlugin);
