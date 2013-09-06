@@ -3,6 +3,7 @@ var xmlData =
         + "<VOTABLE xmlns=\"http://www.ivoa.net/xml/VOTable/v1.2\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" version=\"1.2\">\n"
         + "  <RESOURCE>\n"
         + "    <TABLE>\n"
+        + "      <DESCRIPTION>TEST VOTABLE</DESCRIPTION>\n"
         + "      <FIELD name=\"Job ID\" datatype=\"char\" arraysize=\"*\" />\n"
         + "      <FIELD name=\"Project\" datatype=\"char\" arraysize=\"*\" />\n"
         + "      <FIELD name=\"User\" datatype=\"char\" arraysize=\"*\" />\n"
