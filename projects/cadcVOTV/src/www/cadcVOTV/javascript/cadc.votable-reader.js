@@ -17,6 +17,8 @@ else if (typeof cadc.vot != "object")
   throw new Error("cadc.vot already exists and is not an object");
 }
 
+cadc.vot.VOTABLE_NS = "http://www.ivoa.net/xml/VOTable/v1.2";
+
 cadc.vot.Builder = function(input, readyCallback, errorCallback)
 {
   this.voTable = null;
@@ -166,13 +168,27 @@ cadc.vot.XMLBuilder.prototype.evaluateXPath = function(_node, _expression)
 //  // Mozilla XPath Evaluator
 ////  var xpe = new XPathEvaluator();
   var xpe = _node.ownerDocument || _node;
+  var pathItems = _expression.split("/");
+  var path = "./*";
+
+  for (var i = 0; i < pathItems.length; i++)
+  {
+    var pathItem = pathItems[i];
+    path += "[local-name()='" + pathItem + "']";
+
+    if (i < (pathItems.length - 1))
+    {
+      path += "/*";
+    }
+  }
+
 //  var nsResolver = xpe.createNSResolver(_node.ownerDocument == null ?
 //      _node.documentElement
 //                                            : _node.ownerDocument.documentElement);
 //  var nsResolver = _node.createNSResolver(_node.documentElement);
 
-  var result = xpe.evaluate(_expression, _node, null,
-                              XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
+  var result = xpe.evaluate(path, _node, null,
+                            XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
   var found = [];
   var res;
 
@@ -195,14 +211,13 @@ cadc.vot.XMLBuilder.prototype.build = function()
   // This little bit will use regex to remove all of the xmlns attributes.
   // jenkinsd 2013.01.21
   //
-  var xmlString = (new XMLSerializer()).serializeToString(this.getData());
-  xmlString = xmlString.replace(/<([a-zA-Z0-9 ]+)(?:xml)ns=\".*\"(.*)>/g,
-                                "<" + $.trim("$1$2") + ">");
-  var xmlDOM = (new DOMParser()).parseFromString(xmlString, "text/xml");
+//  var xmlString = (new XMLSerializer()).serializeToString(this.getData());
+//  xmlString = xmlString.replace(/<([a-zA-Z0-9 ]+)(?:xml)ns=\".*\"(.*)>/g,
+//                                "<" + $.trim("$1$2") + ">");
+//  var xmlDOM = (new DOMParser()).parseFromString(xmlString, "text/xml");
 
-  var xmlVOTableDOM = this.evaluateXPath(xmlDOM, "VOTABLE[1]");
-  var xmlVOTableResourceDOM = this.evaluateXPath(xmlVOTableDOM[0],
-                                                 "RESOURCE[1]");
+  var xmlVOTableDOM = this.evaluateXPath(this.getData(), "VOTABLE");
+  var xmlVOTableResourceDOM = this.evaluateXPath(xmlVOTableDOM[0], "RESOURCE");
 
   var voTableParameters = [];
   var voTableResources = [];
@@ -221,7 +236,7 @@ cadc.vot.XMLBuilder.prototype.build = function()
   }
 
   var votableResourceDescriptionDOM =
-      this.evaluateXPath(xmlVOTableResourceDOM[0], "DESCRIPTION[1]");
+      this.evaluateXPath(xmlVOTableResourceDOM[0], "DESCRIPTION");
 
   var resourceDescription =
       votableResourceDescriptionDOM.length > 0
@@ -229,7 +244,8 @@ cadc.vot.XMLBuilder.prototype.build = function()
   var resourceMetadata = new cadc.vot.VOTable.Metadata(null, resourceInfos,
                                                    resourceDescription, null,
                                                    null, null);
-  var xmlVOTableResourceTableDOM = this.evaluateXPath(xmlVOTableResourceDOM[0], "TABLE");
+  var xmlVOTableResourceTableDOM = this.evaluateXPath(xmlVOTableResourceDOM[0],
+                                                      "TABLE");
 
   // Iterate over tables.
   for (var tableIndex in xmlVOTableResourceTableDOM)
@@ -238,7 +254,7 @@ cadc.vot.XMLBuilder.prototype.build = function()
 
     var tableFields = [];
     var resourceTableDescriptionDOM = this.evaluateXPath(resourceTableDOM,
-                                                         "DESCRIPTION[1]");
+                                                         "DESCRIPTION");
     var resourceTableDescription =
         resourceTableDescriptionDOM.length > 0
             ? resourceTableDescriptionDOM[0].value : "";
@@ -276,7 +292,7 @@ cadc.vot.XMLBuilder.prototype.build = function()
 
       longestValues[fieldID] = -1;
 
-      var fieldDescriptionDOM = this.evaluateXPath(fieldDOM, "DESCRIPTION[1]");
+      var fieldDescriptionDOM = this.evaluateXPath(fieldDOM, "DESCRIPTION");
 
       var fieldDescription = ((fieldDescriptionDOM.length > 0)
                               && fieldDescriptionDOM[0].childNodes
@@ -305,7 +321,7 @@ cadc.vot.XMLBuilder.prototype.build = function()
 
     var tableDataRows = [];
     var tableDataRowsDOM = this.evaluateXPath(resourceTableDOM,
-                                         "DATA[1]/TABLEDATA[1]/TR");
+                                              "DATA/TABLEDATA/TR");
 
     for (var rowIndex in tableDataRowsDOM)
     {
@@ -383,7 +399,7 @@ cadc.vot.XMLBuilder.prototype.build = function()
                                 resourceMetadata, resourceTables));
 
   var xmlVOTableDescription = this.evaluateXPath(xmlVOTableDOM[0],
-                                                 "DESCRIPTION[1]");
+                                                 "DESCRIPTION");
   var voTableDescription = xmlVOTableDescription.length > 0
                            ? xmlVOTableDescription[0].value : "";
   var voTableMetadata = new cadc.vot.VOTable.Metadata(voTableParameters,
