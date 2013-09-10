@@ -1350,6 +1350,8 @@
                "getGrid": getGrid,
                "getDataView": getDataView,
                "getColumn": getColumn,
+               "getSelectedRows": getSelectedRows,
+               "getRow": getRow,
                "clearColumnFilters": clearColumnFilters,
                "getColumnFilters": getColumnFilters,
                "setDisplayColumns": setDisplayColumns,
