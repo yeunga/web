@@ -171,8 +171,6 @@
                                "handler": handler
                              }, e, _self);
 
-      _grid.invalidate();
-
       // Update the header in case the user updated the button definition in the handler.
       _grid.updateColumnHeader(columnDef.id);
 

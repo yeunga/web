@@ -99,7 +99,12 @@ test("Filter number columns.", 72, function ()
    */
   var doTestJobIDMatch = function (viewer, columnValue)
   {
-    var match = viewer.searchFilter({"Job ID": columnValue});
+    var match = viewer.searchFilter({"Job ID": columnValue},
+                                    {
+                                      grid: viewer.getGrid(),
+                                      columnFilters: viewer.getColumnFilters(),
+                                      doFilter: viewer.valueFilters
+                                    });
     equal(match, true, "Should match on [Job ID]=[" + columnValue + "].");
   };
 
@@ -111,7 +116,12 @@ test("Filter number columns.", 72, function ()
    */
   var doTestJobIDNotMatch = function (viewer, columnValue)
   {
-    var match = viewer.searchFilter({"Job ID": columnValue});
+    var match = viewer.searchFilter({"Job ID": columnValue},
+                                    {
+                                      grid: viewer.getGrid(),
+                                      columnFilters: viewer.getColumnFilters(),
+                                      doFilter: viewer.valueFilters
+                                    });
     equal(match, false, "Should not match on [Job ID]=[" + columnValue + "].");
   };
 
@@ -323,19 +333,34 @@ test("Filter string columns.", 80, function ()
    */
   var doTestUserMatch = function (viewer, columnValue)
   {
-    var match = viewer.searchFilter({"User": columnValue});
+    var match = viewer.searchFilter({"User": columnValue},
+                                    {
+                                      grid: viewer.getGrid(),
+                                      columnFilters: viewer.getColumnFilters(),
+                                      doFilter: viewer.valueFilters
+                                    });
     equal(match, true, "Should match for [User]=[" + columnValue + "].");
   };
 
   var doTestProjectMatch = function (viewer, columnValue)
   {
-    var match = viewer.searchFilter({"Project": columnValue});
+    var match = viewer.searchFilter({"Project": columnValue},
+                                    {
+                                      grid: viewer.getGrid(),
+                                      columnFilters: viewer.getColumnFilters(),
+                                      doFilter: viewer.valueFilters
+                                    });
     equal(match, true, "Should match for [Project]=[" + columnValue + "].");
   };
 
   var doTestProjectNotMatch = function (viewer, columnValue)
   {
-    var match = viewer.searchFilter({"Project": columnValue});
+    var match = viewer.searchFilter({"Project": columnValue},
+                                    {
+                                      grid: viewer.getGrid(),
+                                      columnFilters: viewer.getColumnFilters(),
+                                      doFilter: viewer.valueFilters
+                                    });
     equal(match, false, "Should not match for [Project]=[" + columnValue + "].");
   };
 
@@ -347,7 +372,12 @@ test("Filter string columns.", 80, function ()
    */
   var doTestUserNotMatch = function (viewer, columnValue)
   {
-    var match = viewer.searchFilter({"User": columnValue});
+    var match = viewer.searchFilter({"User": columnValue},
+                                    {
+                                      grid: viewer.getGrid(),
+                                      columnFilters: viewer.getColumnFilters(),
+                                      doFilter: viewer.valueFilters
+                                    });
     equal(match, false, "Should not match for [User]=[" + columnValue + "].");
   };
 

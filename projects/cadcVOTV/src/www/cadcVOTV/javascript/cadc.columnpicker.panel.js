@@ -40,6 +40,18 @@
       targetSelector: ".tooltip_content"
     };
 
+    function s4()
+    {
+      return Math.floor((1 + Math.random()) * 0x10000).
+          toString(16).substring(1);
+    }
+
+    function guid()
+    {
+      return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+             s4() + '-' + s4() + s4() + s4();
+    }
+
     function init()
     {
       options = $.extend({}, defaults, options);
@@ -164,7 +176,10 @@
                               trigger(self.onSortAlphabetically, null, null);
                             });
 
-      $menu = $("<ul class='slick-columnpicker slick-columnpicker-tooltip' />").appendTo(tooltipOptions.targetSelector);
+      $menu = $("<ul class='slick-columnpicker slick-columnpicker-tooltip' />").
+          appendTo(tooltipOptions.targetSelector);
+
+      $menu.prop("id", guid());
 
       $menu.sortable({
                        opacity: 0.8,
@@ -207,43 +222,7 @@
         ui.helper.css('margin-top', 0);
       });
 
-
       $menu.disableSelection();
-    }
-
-    function buildTooltipPicker(e)
-    {
-      $menu.empty();
-      var displayedColumns = grid.getColumns();
-
-      addColumns(displayedColumns);
-
-      $("<li class='slick-column-picker-tooltip-threshold'><hr class='slick-column-picker-tooltip-threshold-line' /></li>").appendTo($menu);
-
-      // What's left after the displayed columns.
-      var remainingCols = [];
-
-      $.each(columns, function(index, col)
-      {
-        var isDisplayed = false;
-
-        $.each(displayedColumns, function(dIndex, dCol)
-        {
-          if (dCol.id == col.id)
-          {
-            isDisplayed = true;
-          }
-        });
-
-        if (!isDisplayed)
-        {
-          remainingCols.push(col);
-        }
-      });
-
-      addColumns(remainingCols);
-
-      $menu.parent().css("top", e.pageY).css("left", e.pageX);
     }
 
     function addColumns(cols)
@@ -261,30 +240,30 @@
         }
 
         var $input = $("<input type='checkbox' name='column-picker-"
-                       + nextCol.id + "' />").data("column-id", nextCol.id);
+                           + nextCol.id + "' />").data("column-id", nextCol.id);
 
         // Occurrs after the actual checkbox is checked.
         $input.change(function (e)
-                     {
-                       var $checkbox = $(this);
-                       var $listItem = $checkbox.parent().parent();
+                      {
+                        var $checkbox = $(this);
+                        var $listItem = $checkbox.parent().parent();
 
-                       if (!$checkbox.is(":checked"))
-                       {
-                         $(thresholdListItemSelector).after($listItem);
-                         $listItem.find(":checkbox").prop("checked", false);
-                       }
-                       else
-                       {
-                         $(thresholdListItemSelector).before($listItem);
-                         $listItem.find(":checkbox").prop("checked", true);
-                       }
+                        if (!$checkbox.is(":checked"))
+                        {
+                          $menu.find(thresholdListItemSelector).after($listItem);
+                          $listItem.find(":checkbox").prop("checked", false);
+                        }
+                        else
+                        {
+                          $menu.find(thresholdListItemSelector).before($listItem);
+                          $listItem.find(":checkbox").prop("checked", true);
+                        }
 
-                       // Refresh the list.
-                       $menu.sortable("refresh");
+                        // Refresh the list.
+                        $menu.sortable("refresh");
 
-                       updateColumns();
-                     });
+                        updateColumns();
+                      });
 
         if (grid.getColumnIndex(nextCol.id))
         {
@@ -320,6 +299,42 @@
       });
     }
 
+    function buildTooltipPicker(e)
+    {
+      $menu.empty();
+
+      var displayedColumns = grid.getColumns();
+
+      addColumns(displayedColumns);
+
+      $("<li class='slick-column-picker-tooltip-threshold'><hr class='slick-column-picker-tooltip-threshold-line' /></li>").appendTo($menu);
+
+      // What's left after the displayed columns.
+      var remainingCols = [];
+
+      $.each(columns, function(index, col)
+      {
+        var isDisplayed = false;
+
+        $.each(displayedColumns, function(dIndex, dCol)
+        {
+          if (dCol.id == col.id)
+          {
+            isDisplayed = true;
+          }
+        });
+
+        if (isDisplayed === false)
+        {
+          remainingCols.push(col);
+        }
+      });
+
+      addColumns(remainingCols);
+
+      $menu.parent().css("top", e.pageY).css("left", e.pageX);
+    }
+
     /**
      * Fire an event.  Taken from the slick.grid Object.
      *
@@ -338,7 +353,15 @@
 
     function updateColumns()
     {
-      var previousItems = $(thresholdListItemSelector).prevAll();
+      var previousItems = $menu.find(thresholdListItemSelector).prevAll("li");
+//      var previousItems = $menu.find("li").filter(
+//          function(index)
+//          {
+//            var threshIndex = $menu.find("li").index(thresholdListItemSelector);
+//
+//            return (index < threshIndex);
+//          });
+
       var previousItemCount = previousItems.length;
       var visibleColumns = [];
 
