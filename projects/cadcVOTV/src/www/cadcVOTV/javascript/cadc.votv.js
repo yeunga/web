@@ -159,7 +159,7 @@
 
     function comparer(a, b)
     {
-      var x = a[sortcol], y = b[sortcol];
+      var x = a[_self.sortcol], y = b[_self.sortcol];
       return (x == y ? 0 : (x > y ? 1 : -1));
     }
 
@@ -1356,7 +1356,8 @@
                "getColumnFilters": getColumnFilters,
                "setDisplayColumns": setDisplayColumns,
                "valueFilters": valueFilters,
-               "searchFilter": searchFilter
+               "searchFilter": searchFilter,
+               "comparer": comparer
              });
   }
 })(jQuery);
