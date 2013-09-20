@@ -7,9 +7,6 @@
       }
     }
   });
-//var sortAsc;
-//var sortcol;
-
 
   /**
    * Create a VOView object.  This is here to package everything together.
@@ -40,7 +37,7 @@
     this.grid = null;
     this.columnManager = options.columnManager ? options.columnManager : {};
     this.rowManager = options.rowManager ? options.rowManager : {};
-    this.data = [];
+
     this.columns = [];
     this.displayColumns = [];  // Columns that are actually in the Grid.
     this.columnFilters = {};
@@ -52,7 +49,7 @@
         : false;
 
     // This is the TableData for a VOTable.  Will be set on load.
-    this.voTableData = null;
+    this.longestValues = {};
 
     this.sortcol = options.sortColumn;
     this.sortAsc = options.sortDir == "asc";
@@ -168,12 +165,12 @@
 
     function addRow(rowData, rowIndex)
     {
-      getGridData()[rowIndex] = rowData;
+      getDataView().getItems()[rowIndex] = rowData;
     }
 
     function clearRows()
     {
-      _self.data.length = 0;
+      getDataView().setItems([]);
     }
 
     function setDataView(dataViewObject)
@@ -194,11 +191,6 @@
     function getSelectedRows()
     {
       return getGrid().getSelectedRows();
-    }
-
-    function getRowByIndex(_index)
-    {
-      return getDataView().getItemByIdx(_index);
     }
 
     function getRow(_index)
@@ -229,13 +221,14 @@
     {
       if (_self.sortcol)
       {
-        getGrid().setSortColumn(_self.sortcol, (_self.sortAsc || (_self.sortAsc == 1)));
+        getGrid().setSortColumn(_self.sortcol,
+                                (_self.sortAsc || (_self.sortAsc == 1)));
       }
     }
 
     function getGridData()
     {
-      return _self.data;
+      return getDataView().getItems();
     }
 
     function getOptions()
@@ -253,19 +246,19 @@
       return getOptions() && getOptions().pager;
     }
 
-    /**
-     * Obtain the TableData instance for this VOTable representation.
-     *
-     * @returns {*}   TableData instance.
-     */
-    function getVOTableData()
+    function getLongestValues()
     {
-      return _self.voTableData;
+      return _self.longestValues;
     }
 
-    function setVOTableData(__voTableData)
+    function getLongestValue(_columnID)
     {
-      _self.voTableData = __voTableData;
+      return getLongestValues()[_columnID];
+    }
+
+    function setLongestValues(_longestValues)
+    {
+      _self.longestValues = _longestValues;
     }
 
     /**
@@ -337,59 +330,6 @@
 
       return cols;
     }
-
-    /**
-     * This function is passed to SlickGrid, so be careful when using 'this'.
-     *
-     * @param item        The item to filter on.
-     * @return {boolean}   True if passes the filter, false otherwise.
-     */
-//    function searchFilter(item)
-//    {
-//      var filters = _self.getColumnFilters();
-//      for (var columnId in filters)
-//      {
-//        var filterValue = filters[columnId];
-//        if ((columnId !== undefined) && (filterValue !== ""))
-//        {
-//          var column = _self.getColumn(columnId);
-//          var cellValue = item[column.field];
-//          var rowID = item["id"];
-//          var columnFormatter = column.formatter;
-//
-//          // Reformatting the cell value could potentially be quite exensive!
-//          // This may require some re-thinking.
-//          // jenkinsd 2013.04.30
-//          if (columnFormatter)
-//          {
-//            var cell = _self.getGrid().getColumnIndex(column.id);
-//            var row = _self.getDataView().getIdxById(rowID);
-//            var formattedCellValue =
-//                columnFormatter(row, cell, cellValue, column, item);
-//
-//            cellValue = formattedCellValue && $(formattedCellValue).text
-//                ? $(formattedCellValue).text() : formattedCellValue;
-//          }
-//
-//          filterValue = $.trim(filterValue);
-//          var negate = filterValue.indexOf("!") == 0;
-//
-//          if (negate)
-//          {
-//            filterValue = filterValue.substring(1);
-//          }
-//
-//          var filterOut = _self.valueFilters(filterValue, cellValue);
-//
-//          if ((!negate && filterOut) || (!filterOut && negate))
-//          {
-//            return false;
-//          }
-//        }
-//      }
-//
-//      return true;
-//    }
 
     /**
      * @param filter    The filter value as entered by the user.
@@ -641,7 +581,6 @@
       var g = getGrid();
       var gridColumns = g.getColumns();
       var totalWidth = 0;
-      var tabData = getVOTableData();
 
       for (var c in gridColumns)
       {
@@ -653,7 +592,7 @@
         {
           var colOpts = getOptionsForColumn(col.name);
           var minWidth = col.name.length + 3;
-          var longestCalculatedWidth = tabData.getLongestValueLength(col.id);
+          var longestCalculatedWidth = getLongestValue(col.id);
           var textWidthToUse = (longestCalculatedWidth > minWidth)
               ? longestCalculatedWidth : minWidth;
 
@@ -703,7 +642,7 @@
      */
     function init()
     {
-      var dataView = new Slick.Data.DataView({ inlineFilters: true });
+      var dataView = getDataView();
       var forceFitMax = (getColumnManager().forceFitColumns
                          && getColumnManager().forceFitColumnMode
           && (getColumnManager().forceFitColumnMode
@@ -930,18 +869,11 @@
                               _self.sortAsc = args.sortAsc;
                               _self.sortcol = args.sortCol.field;
 
-    //                          if ($.browser.msie && ($.browser.version <= 8))
-    //                          {
-                                // use numeric sort of % and lexicographic for everything else
-    //                            dataView.fastSort(sortcol, args.sortAsc);
-    //                          }
-    //                          else
-    //                          {
-                                // using native sort with comparer
-                                // preferred method but can be very slow in IE with huge datasets
+                              // using native sort with comparer
+                              // preferred method but can be very slow in IE
+                              // with huge datasets
                               dataView.sort(_self.comparer, args.sortAsc);
                               dataView.refresh();
-    //                          }
                             });
 
       // wire up model events to drive the grid
@@ -958,7 +890,7 @@
                                                function(rowIndexIndex, rowIndex)
                                                {
                                                  var $rowItem =
-                                                     dataView.getItemByIdx(rowIndex);
+                                                     dataView.getItem(rowIndex);
                                                  getRowManager().onRowRendered($rowItem);
                                                });
                                       });
@@ -1075,8 +1007,6 @@
         var unitSelectionPlugin = new Slick.Plugins.UnitSelection();
 
         // Extend the filter row to include the pulldown menu.
-    //    $(".slick-headerrow-columns").css("height", "50px");
-
         unitSelectionPlugin.onUnitChange.subscribe(function (e, args)
                                                    {
                                                      if (columnPicker.updateColumnData)
@@ -1094,11 +1024,6 @@
 
         grid.registerPlugin(unitSelectionPlugin);
       }
-
-    //  grid.onColumnsReordered.subscribe(function (e, args)
-    //                                    {
-    //                                      grid.invalidateRows();
-    //                                    });
 
       setDataView(dataView);
       setGrid(grid);
@@ -1135,7 +1060,7 @@
         throw new Error("No table available.");
       }
 
-      setVOTableData(table.getTableData());
+      setLongestValues(table.getTableData().getLongestValues());
 
       if (_refreshColumns)
       {
@@ -1149,14 +1074,13 @@
     }
 
     /**
-     * Refresh this VOViewer's columns.
+     * Refresh this Viewer's columns.
      *
      * @param table   A Table in the VOTable.
      */
     function refreshColumns(table)
     {
       clearColumns();
-//      var tableData = table.getTableData();
       var columnManager = getColumnManager();
 //      var forceFitMax = (columnManager.forceFitColumns
 //                             && columnManager.forceFitColumnMode
@@ -1186,7 +1110,6 @@
           sortable: colOpts.sortable ? colOpts.sortable : true,
 
           // VOTable attributes.
-    //      filterable: colOpts.filterable,
           unit: field.getUnit(),
           utype: field.getUType(),
           filterable: filterable
@@ -1295,7 +1218,7 @@
       clearRows();
 
       // Make a copy of the array so as not to disturb the original.
-      var allRows = table.getTableData().getRows().slice(0);
+      var allRows = table.getTableData().getRows();
 
       $.each(allRows, function (rowIndex, row)
       {
@@ -1315,23 +1238,23 @@
     function render()
     {
       var dataView = getDataView();
-      var grid = getGrid();
+      var g = getGrid();
 
       // initialize the model after all the events have been hooked up
       dataView.beginUpdate();
       dataView.setFilterArgs({
                                columnFilters: getColumnFilters(),
-                               grid: getGrid(),
+                               grid: g,
                                doFilter: valueFilters
                              });
       dataView.setFilter(searchFilter);
       dataView.endUpdate();
 
-      if (grid.getSelectionModel())
+      if (g.getSelectionModel())
       {
         // If you don't want the items that are not visible (due to being filtered out
         // or being on a different page) to stay selected, pass 'false' to the second arg
-        dataView.syncGridSelection(grid, true);
+        dataView.syncGridSelection(g, true);
       }
 
       var gridContainer = $(getTargetNodeSelector());
@@ -1341,7 +1264,7 @@
         gridContainer.resizable();
       }
 
-      grid.init();
+      g.init();
     }
 
     $.extend(this,
