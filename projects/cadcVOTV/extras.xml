@@ -5,7 +5,6 @@
 <project default="build" basedir=".">
 
   <!-- JavaScript minification. -->
-  <property name="lib.compressor"
-            value="/data/local/jenkinsd/projects/sandbox/thirdparty/yuicompressor/yuicompressor-2.4.8.jar" />
+  <property name="lib.compressor" value="${ext.dev}/yuicompressor.jar" />
 
 </project>
