@@ -15,6 +15,7 @@ server, you can set the PROXY_URL filter token value to "".
 
   <property environment="env" />
   <property file="local.build.properties" />
+  <property name="project" value="cadcVOTV" />
 
   <!-- site-specific build properties or overrides of values in opencadc.properties -->
   <property file="${env.CADC_PREFIX}/etc/local.properties" />
@@ -34,15 +35,29 @@ server, you can set the PROXY_URL filter token value to "".
     <touch file="${build}/LASTINSTALL.${DSTAMP}_${TSTAMP}" />
   </target>
 
-  <target name="build">
+  <target name="build" depends="clientBuild" />
 
+  <target name="resourceCopy">
     <copy todir="${build}/www">
       <fileset dir="src/www" />
     </copy>
-
   </target>
 
-  <target name="install_www">
+  <target name="clientBuild" depends="resourceCopy">
+    <apply executable="java" parallel="false" dest="${build}/www/${project}/javascript">
+
+      <fileset dir="${build}/www/${project}/javascript" includes="cadc.*.js, slick.*.js" />
+      <arg line="-jar" />
+      <arg path="${lib.compressor}" />
+      <srcfile />
+      <arg line="-o" />
+      <mapper type="glob" from="*.js" to="*.min.js" />
+
+      <targetfile />
+    </apply>
+  </target>
+
+  <target name="install_www" depends="clientBuild">
 
     <chmod perm="644">
       <fileset dir="${build}/www"/> <!-- files -->

@@ -33,7 +33,10 @@
   function Viewer(targetNodeSelector, options)
   {
     var _self = this;
-    this.dataView = null;
+    var $_lengthFinder = $("#lengthFinder")
+                         || $("<div id='lengthFinder'></div>").appendTo(
+                                                          $(document.body));
+    this.dataView = new Slick.Data.DataView({ inlineFilters: true });
     this.grid = null;
     this.columnManager = options.columnManager ? options.columnManager : {};
     this.rowManager = options.rowManager ? options.rowManager : {};
@@ -633,7 +636,7 @@
     }
 
     // Used for resetting the force fit column widths.
-    function resetColumnWidths(checkboxSelector)
+    function resetColumnWidths()
     {
       var g = getGrid();
       var gridColumns = g.getColumns();
@@ -646,8 +649,7 @@
         var colWidth;
 
         // Do not calculate with checkbox column.
-        if (!checkboxSelector
-            || (col.id != checkboxSelector.getColumnDefinition().id))
+        if (col.id != "_checkbox_selector")
         {
           var colOpts = getOptionsForColumn(col.name);
           var minWidth = col.name.length + 3;
@@ -655,7 +657,6 @@
           var textWidthToUse = (longestCalculatedWidth > minWidth)
               ? longestCalculatedWidth : minWidth;
 
-          var lengthDiv = $("<div></div>");
           var lengthStr = "";
           var userColumnWidth = colOpts.width;
 
@@ -664,19 +665,20 @@
             lengthStr += "a";
           }
 
-          lengthDiv.addClass("lengthFinder");
-          lengthDiv.prop("style", "position: absolute;visibility: hidden;height: auto;width: auto;");
-          lengthDiv.text(lengthStr);
-          $(document.body).append(lengthDiv);
+          $_lengthFinder.prop("class", col.name);
+          $_lengthFinder.text(lengthStr);
 
-          colWidth = (userColumnWidth || lengthDiv.innerWidth());
+          var width = ($_lengthFinder.width() + 1);
 
-          lengthDiv.remove();
+          colWidth = (userColumnWidth || width);
+
+          $_lengthFinder.empty();
+
+          col.width = colWidth;
         }
         else
         {
-          // Buffer the checkbox.
-          colWidth = col.width + 15;
+          colWidth = col.width;
         }
 
         totalWidth += colWidth;
@@ -684,15 +686,15 @@
 
       if (totalWidth > 0)
       {
-        $(getTargetNodeSelector()).css("width", totalWidth + "px");
+        $(getTargetNodeSelector()).css("width", (totalWidth + 15) + "px");
 
         if (usePager())
         {
-          $(getPagerNodeSelector()).css("width", totalWidth + "px");
+          $(getPagerNodeSelector()).css("width", (totalWidth + 15) + "px");
         }
 
-        $(getHeaderNodeSelector()).css("width", totalWidth + "px");
-        g.resizeCanvas();
+        $(getHeaderNodeSelector()).css("width", (totalWidth + 15) + "px");
+        _self.refreshGrid();
       }
     }
 
@@ -703,7 +705,7 @@
     {
       var dataView = new Slick.Data.DataView({ inlineFilters: true });
       var forceFitMax = (getColumnManager().forceFitColumns
-                             && getColumnManager().forceFitColumnMode
+                         && getColumnManager().forceFitColumnMode
           && (getColumnManager().forceFitColumnMode
           == "max"));
       var checkboxSelector;
@@ -1100,6 +1102,12 @@
 
       setDataView(dataView);
       setGrid(grid);
+
+      if (forceFitMax)
+      {
+        resetColumnWidths();
+      }
+
       sort();
     }
 
@@ -1150,9 +1158,9 @@
       clearColumns();
 //      var tableData = table.getTableData();
       var columnManager = getColumnManager();
-      var forceFitMax = (columnManager.forceFitColumns
-                             && columnManager.forceFitColumnMode
-          && (columnManager.forceFitColumnMode == "max"));
+//      var forceFitMax = (columnManager.forceFitColumns
+//                             && columnManager.forceFitColumnMode
+//          && (columnManager.forceFitColumnMode == "max"));
 
       $.each(table.getFields(), function (fieldIndex, field)
       {
@@ -1196,11 +1204,11 @@
 
         columnProperties.header = colOpts.header;
 
-        if (forceFitMax)
-        {
-          columnProperties.width = getOptions().defaultColumnWidth;
-        }
-        else if (!columnManager.forceFitColumns)
+//        if (forceFitMax)
+//        {
+//          columnProperties.width = getOptions().defaultColumnWidth;
+//        }
+        if (!columnManager.forceFitColumns)
         {
           if (colOpts.width)
           {
@@ -1249,7 +1257,7 @@
           if (columnFormatter)
           {
             var cell = grid.getColumnIndex(column.id);
-            var row = this.getIdxById(rowID);
+            var row = grid.getData().getIdxById(rowID);
             var formattedCellValue =
                 columnFormatter(row, cell, cellValue, column, item);
 
@@ -1311,7 +1319,6 @@
 
       // initialize the model after all the events have been hooked up
       dataView.beginUpdate();
-      dataView.setItems(getGridData());
       dataView.setFilterArgs({
                                columnFilters: getColumnFilters(),
                                grid: getGrid(),
@@ -1350,11 +1357,14 @@
                "getGrid": getGrid,
                "getDataView": getDataView,
                "getColumn": getColumn,
+               "getColumns": getColumns,
+               "clearColumns": clearColumns,
                "getSelectedRows": getSelectedRows,
                "getRow": getRow,
                "clearColumnFilters": clearColumnFilters,
                "getColumnFilters": getColumnFilters,
                "setDisplayColumns": setDisplayColumns,
+               "getDisplayedColumns": getDisplayedColumns,
                "valueFilters": valueFilters,
                "searchFilter": searchFilter,
                "comparer": comparer

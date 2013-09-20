@@ -116,7 +116,7 @@
           {
             nextOption.prop("selected", true);
           }
-          else if (!selectedUnit && unitDefinition.default)
+          else if (!selectedUnit && unitDefinition["default"])
           {
             $(column).data("unitValue", unitDefinition.value);
             nextOption.prop("selected", true);
