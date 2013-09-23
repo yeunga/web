@@ -51,17 +51,21 @@ div.slick-column-picker-label-text
   border-right: 1px solid #718BB7;
 }
 
+div.slick-column-picker-unit-label-text
+{
+  display: table-cell;
+  width: 25px;
+  padding-left: 5px;
+  vertical-align: middle;
+  border-right: 1px solid #718BB7;
+}
+
 div.slick-column-picker-description-label-text
 {
   display: table-cell;
   padding-left: 5px;
   /*word-wrap: break-word;*/
   /*word-break: normal;*/
-}
-
-span.slick-column-picker-unit-label-text
-{
-  font-weight: bolder;
 }
 
 div.slick-column-picker-tooltip-button-holder
