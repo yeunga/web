@@ -1281,6 +1281,7 @@
                "getDataView": getDataView,
                "getColumn": getColumn,
                "getColumns": getColumns,
+               "setColumns": setColumns,
                "clearColumns": clearColumns,
                "getSelectedRows": getSelectedRows,
                "getRow": getRow,
