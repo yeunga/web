@@ -156,4 +156,19 @@ select.slick-header-unit-pulldown
     outline: 0;
 }
 
+/**
+  Used to determine column widths.
+*/
+#lengthFinder
+{
+  position: absolute;
+  visibility: hidden;
+  height: auto;
+  width: auto;
+  white-space: nowrap;
+
+  /* Be generous with spacing. */
+  font-size: 1.2em;
+}
+
 /* End */
