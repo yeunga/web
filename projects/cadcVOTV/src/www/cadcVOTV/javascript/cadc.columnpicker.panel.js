@@ -275,26 +275,20 @@
                 nextCol.name);
         $columnLabel.prop("id", "LABEL_" + nextCol.id);
 
+        var $columnUnit =
+            $("<div class='slick-column-picker-unit-label-text'></div>").text(
+                nextCol.unit);
+        $columnUnit.prop("id", "_UNIT_" + nextCol.id);
+
         var $columnDescription =
             $("<div class='slick-column-picker-description-label-text'></div>").text(
                 nextCol.description);
-
-        if (nextCol.unit)
-        {
-          var $columnUnitDescriptionContainer = $("<span></span>");
-          var $columnUnitDescription =
-              $("<span class='slick-column-picker-unit-label-text'></span>");
-          $columnUnitDescription.text(nextCol.unit);
-
-          $columnUnitDescriptionContainer.append(" (Default unit '").append(
-              $columnUnitDescription).append("')");
-          $columnDescription.append($columnUnitDescriptionContainer);
-          $columnDescription.prop("id", "_DESC_" + nextCol.id);
-        }
+        $columnDescription.prop("id", "_DESC_" + nextCol.id);
 
         $columnLabel.prepend($input);
 
         $columnLabel.appendTo($li);
+        $columnUnit.appendTo($li);
         $columnDescription.appendTo($li);
       });
     }
