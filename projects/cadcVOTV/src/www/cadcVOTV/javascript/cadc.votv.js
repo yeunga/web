@@ -36,8 +36,8 @@
   {
     var _self = this;
     var $_lengthFinder = $("#lengthFinder")
-                         || $("<div id='lengthFinder'></div>").appendTo(
-                                                          $(document.body));
+        || $("<div id='lengthFinder'></div>").appendTo(
+        $(document.body));
     this.dataView = new Slick.Data.DataView({ inlineFilters: true });
     this.grid = null;
     this.columnManager = options.columnManager ? options.columnManager : {};
@@ -59,7 +59,7 @@
     this.sortcol = options.sortColumn;
     this.sortAsc = options.sortDir == "asc";
 
-  //  viewer = this;
+    //  viewer = this;
 
     /**
      * @param input  Object representing the input.
@@ -162,10 +162,66 @@
       _self.columns.length = 0;
     }
 
+    /**
+     * During a sort, this is the comparer that is used.  This comparer is used
+     * by the DataView object, so it expects the comparison items to be pulled
+     * from the datacontext (a{}, b{}).
+     *
+     * @param a           The left dataset to compare.
+     * @param b           The right dataset to compare.
+     * @returns {number}
+     */
     function comparer(a, b)
     {
       var x = a[_self.sortcol], y = b[_self.sortcol];
-      return (x == y ? 0 : (x > y ? 1 : -1));
+
+      return sortComparer(x, y);
+    }
+
+    /**
+     * The actual array comparer.  Used for unit testing.
+     *
+     * @param x           The left dataset to compare.
+     * @param y           The right dataset to compare.
+     * @returns {number}
+     */
+    function sortComparer(x, y)
+    {
+      var vx = x;
+      var vy = y;
+
+      if (!areStrings(vx, vy))
+      {
+        if (isNumber(vx))
+        {
+          vx = parseFloat(vx);
+
+          if (!isNumber(vy))
+          {
+            vy = Number.NaN;
+          }
+        }
+        else if (isNumber(vy))
+        {
+          vy = parseFloat(vy);
+
+          if (!isNumber(vx))
+          {
+            vx = Number.NaN;
+          }
+        }
+
+        if (isNaN(parseFloat(vx)))
+        {
+          vx = -Infinity;
+        }
+        else if (isNaN(parseFloat(vy)))
+        {
+          vy = -Infinity;
+        }
+      }
+
+      return (vx == vy ? 0 : (vx > vy ? 1 : -1));
     }
 
     function addRow(rowData, rowIndex)
@@ -229,6 +285,16 @@
         getGrid().setSortColumn(_self.sortcol,
                                 (_self.sortAsc || (_self.sortAsc == 1)));
       }
+    }
+
+    /**
+     * Set the sort column.  Here mainly for testing.
+     *
+     * @param _sortColumn   The column ID to use.
+     */
+    function setSortColumn(_sortColumn)
+    {
+      _self.sortcol = _sortColumn;
     }
 
     function getGridData()
@@ -337,8 +403,8 @@
     }
 
     /**
-     * @param filter    The filter value as entered by the user.
-     * @param value     The value to be filtered or not
+     * @param filter             The filter value as entered by the user.
+     * @param value              The value to be filtered or not
      * @returns {Boolean} true if value is filtered-out by filter.
      */
     function valueFilters(filter, value)
@@ -418,7 +484,17 @@
 
       // act on the operator and value
       value = $.trim(value);
-      if (operator === 'gt')
+
+      var isFilterNumber = isNumber(filter);
+
+      // Special case for those number filter expectations where the data is
+      // absent.
+      if (isFilterNumber
+          && ((value == "") || (value == "NaN") || (value == Number.NaN)))
+      {
+        return true;
+      }
+      else if (operator === 'gt')
       {
         // greater than operator
         if (areNumbers(value, filter))
@@ -635,12 +711,12 @@
     {
       var dataView = getDataView();
       var forceFitMax = (getColumnManager().forceFitColumns
-                         && getColumnManager().forceFitColumnMode
+                             && getColumnManager().forceFitColumnMode
           && (getColumnManager().forceFitColumnMode
           == "max"));
       var checkboxSelector;
       var enableSelection = !getOptions().enableSelection
-                            || getOptions().enableSelection == true;
+          || getOptions().enableSelection == true;
 
       if (Slick.CheckboxSelectColumn && enableSelection)
       {
@@ -652,7 +728,7 @@
 
         var checkboxColumn = checkboxSelector.getColumnDefinition();
         var colsToCheck = (getDisplayColumns().length == 0)
-                          ? getColumns() : getDisplayColumns();
+            ? getColumns() : getDisplayColumns();
 
         var checkboxColumnIndex = -1;
 
@@ -709,16 +785,16 @@
         if (CADC.RowSelectionModel)
         {
           rowSelectionModel =
-              new CADC.RowSelectionModel({
-                                           selectActiveRow: getOptions().selectActiveRow
-                                         });
+          new CADC.RowSelectionModel({
+                                       selectActiveRow: getOptions().selectActiveRow
+                                     });
         }
         else if (Slick.RowSelectionModel)
         {
           rowSelectionModel =
-              new Slick.RowSelectionModel({
-                                            selectActiveRow: getOptions().selectActiveRow
-                                          });
+          new Slick.RowSelectionModel({
+                                        selectActiveRow: getOptions().selectActiveRow
+                                      });
         }
         else
         {
@@ -777,10 +853,10 @@
         else if (pickerStyle == "tooltip")
         {
           columnPicker = new Slick.Controls.PanelTooltipColumnPicker(getColumns(),
-                                                              grid,
-                                                              columnPickerConfig.panel,
-                                                              columnPickerConfig.tooltipOptions,
-                                                              columnPickerConfig.options);
+                                                                     grid,
+                                                                     columnPickerConfig.panel,
+                                                                     columnPickerConfig.tooltipOptions,
+                                                                     columnPickerConfig.options);
 
           if (forceFitMax)
           {
@@ -942,7 +1018,7 @@
                                         if (columnId)
                                         {
                                           columnFilters[columnId] =
-                                                    $.trim($thisInput.val());
+                                          $.trim($thisInput.val());
                                           dataView.refresh();
                                         }
                                       });
@@ -1083,8 +1159,8 @@
         var cssClass = colOpts.cssClass;
         var datatype = field.getDatatype();
         var filterable = columnManager.filterable
-                         && (((colOpts.filterable != undefined) && (colOpts.filterable != null))
-                              ? colOpts.filterable : columnManager.filterable);
+            && (((colOpts.filterable != undefined) && (colOpts.filterable != null))
+            ? colOpts.filterable : columnManager.filterable);
 
         // We're extending the column properties a little here.
         var columnProperties =
@@ -1107,8 +1183,8 @@
 
         // Default is to be sortable.
         columnProperties.sortable =
-          ((colOpts.sortable != null) && (colOpts.sortable != undefined))
-              ? colOpts.sortable : true;
+        ((colOpts.sortable != null) && (colOpts.sortable != undefined))
+            ? colOpts.sortable : true;
 
         if (datatype)
         {
@@ -1277,7 +1353,9 @@
                "getDisplayedColumns": getDisplayedColumns,
                "valueFilters": valueFilters,
                "searchFilter": searchFilter,
-               "comparer": comparer
+               "comparer": comparer,
+               "sortComparer": sortComparer,
+               "setSortColumn": setSortColumn
              });
   }
 })(jQuery);

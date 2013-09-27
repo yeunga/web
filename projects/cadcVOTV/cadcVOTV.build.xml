@@ -102,13 +102,35 @@ server, you can set the PROXY_URL filter token value to "".
       </fileset>
       <srcfile/>
     </apply>
+
+    <echo message="CADC VOTV Value Filter tests"/>
+    <apply executable="test/phantomjs" failonerror="true">
+      <arg value="test/qunit-runner.js" />
+      <arg line="--qunit test/qunit-1.10.0.js --package test/src/value_filter/package.json --tests test/src/value_filter/cadc.votv.value-filter.js --junit test/src/value_filter/qunit-results.xml" />
+      <fileset dir="test/src/value_filter">
+        <include name="cadc.votv.value-filter.js" />
+        <exclude name="package.json" />
+      </fileset>
+      <srcfile/>
+    </apply>
       
-    <echo message="votable reader tests"/>
+    <echo message="VOTable reader tests"/>
     <apply executable="test/phantomjs" failonerror="true">
       <arg value="test/qunit-runner.js" />
       <arg line="--qunit test/qunit-1.10.0.js --package test/src/xml_reader/package.json --tests test/src/xml_reader/cadc.votable.xml-reader.js --junit test/src/xml_reader/qunit-results.xml" />
       <fileset dir="test/src/xml_reader">
         <include name="cadc.votable.xml-reader.js" />
+        <exclude name="package.json" />
+      </fileset>
+      <srcfile/>
+    </apply>
+
+    <echo message="Sort comparer tests"/>
+    <apply executable="test/phantomjs" failonerror="true">
+      <arg value="test/qunit-runner.js" />
+      <arg line="--qunit test/qunit-1.10.0.js --package test/src/comparer/package.json --tests test/src/comparer/cadc.votv.comparer.js --junit test/src/comparer/qunit-results.xml" />
+      <fileset dir="test/src/comparer">
+        <include name="cadc.votv.comparer.js" />
         <exclude name="package.json" />
       </fileset>
       <srcfile/>
