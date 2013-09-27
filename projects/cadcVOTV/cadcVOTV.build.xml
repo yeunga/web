@@ -46,7 +46,7 @@ server, you can set the PROXY_URL filter token value to "".
   <target name="clientBuild" depends="resourceCopy">
     <apply executable="java" parallel="false" dest="${build}/www/${project}/javascript">
 
-      <fileset dir="${build}/www/${project}/javascript" includes="cadc.*.js, slick.*.js" />
+      <fileset dir="${build}/www/${project}/javascript" includes="cadc.v*.js" />
       <arg line="-jar" />
       <arg path="${lib.compressor}" />
       <srcfile />

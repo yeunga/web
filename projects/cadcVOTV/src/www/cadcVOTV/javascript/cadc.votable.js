@@ -5,6 +5,7 @@
       "vot": {
         "VOTable": VOTable,
         "Metadata": Metadata,
+        "Datatype": Datatype,
         "Field": Field,
         "Parameter": Parameter,
         "Resource": Resource,
@@ -175,6 +176,45 @@
              });
   }
 
+  function Datatype(_datatypeValue)
+  {
+    var _selfDatatype = this;
+
+    _selfDatatype.datatypeValue = _datatypeValue || "";
+
+
+    function getDatatypeValue()
+    {
+      return _selfDatatype.datatypeValue;
+    }
+
+    function isNumeric()
+    {
+      return isIntegerNumeric() || isFloatingPointNumeric();
+    }
+
+    function isFloatingPointNumeric()
+    {
+      var dataTypeVal = getDatatypeValue();
+      return (dataTypeVal == "float") || (dataTypeVal == "double");
+    }
+
+    function isIntegerNumeric()
+    {
+      var dataTypeVal = getDatatypeValue();
+      return (dataTypeVal == "int") || (dataTypeVal == "long")
+              || (dataTypeVal == "short");
+    }
+
+    $.extend(this,
+             {
+               "getDatatypeValue": getDatatypeValue,
+               "isNumeric": isNumeric,
+               "isIntegerNumeric": isIntegerNumeric,
+               "isFloatingPointNumeric": isFloatingPointNumeric
+             });
+  }
+
   /**
    * 
    * @param _name
@@ -183,13 +223,13 @@
    * @param _utype
    * @param _unit
    * @param _xtype
-   * @param _datatype
+   * @param __datatype    Datatype object.
    * @param _arraysize
    * @param _description
    * @param label
    * @constructor
    */
-  function Field(_name, _id, _ucd, _utype, _unit, _xtype, _datatype, 
+  function Field(_name, _id, _ucd, _utype, _unit, _xtype, __datatype,
                  _arraysize, _description, label)
   {
     var _selfField = this;
@@ -200,7 +240,7 @@
     _selfField.utype = _utype;
     _selfField.unit = _unit;
     _selfField.xtype = _xtype;
-    _selfField.datatype = _datatype;
+    _selfField.datatype = __datatype || {};
     _selfField.arraysize = _arraysize;
     _selfField.description = _description;
     _selfField.label = label;
@@ -272,13 +312,13 @@
    * @param _utype
    * @param _unit
    * @param _xtype
-   * @param _datatype
+   * @param __datatype
    * @param _arraysize
    * @param _description
    * @param _value
    * @constructor
    */
-  function Parameter(_name, _id, _ucd, _utype, _unit, _xtype, _datatype, 
+  function Parameter(_name, _id, _ucd, _utype, _unit, _xtype, __datatype,
                      _arraysize, _description, _value)
   {
     var _selfParameter = this;
@@ -289,7 +329,7 @@
     _selfParameter.utype = _utype;
     _selfParameter.unit = _unit;
     _selfParameter.xtype = _xtype;
-    _selfParameter.datatype = _datatype;
+    _selfParameter.datatype = __datatype || {};
     _selfParameter.arraysize = _arraysize;
     _selfParameter.description = _description;
     _selfParameter.value = _value;

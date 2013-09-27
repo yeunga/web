@@ -13,6 +13,8 @@ var xmlData =
         + "      <FIELD name=\"CPUs\" datatype=\"int\" />\n"
         + "      <FIELD name=\"Memory\" datatype=\"long\" />\n"
         + "      <FIELD name=\"Job Starts\" datatype=\"int\" />\n"
+        + "      <FIELD name=\"DEC\" />\n"
+        + "      <FIELD name=\"Calibration Level\" datatype=\"int\" />\n"
         + "      <DATA>\n"
         + "        <TABLEDATA>\n"
         + "          <TR>\n"
@@ -26,6 +28,8 @@ var xmlData =
         + "            <TD>1</TD>\n"
         + "            <TD>3072</TD>\n"
         + "            <TD>0</TD>\n"
+        + "            <TD>41.0</TD>\n"
+        + "            <TD>1</TD>\n"
         + "          </TR>\n"
         + "          <TR>\n"
         + "            <TD>734.0</TD>\n"
@@ -38,6 +42,8 @@ var xmlData =
         + "            <TD>1</TD>\n"
         + "            <TD>3072</TD>\n"
         + "            <TD>0</TD>\n"
+        + "            <TD>47.1</TD>\n"
+        + "            <TD>2</TD>\n"
         + "          </TR>\n"
         + "          <TR>\n"
         + "            <TD>733.0</TD>\n"
@@ -49,6 +55,22 @@ var xmlData =
         + "            <TD>Tomcat</TD>\n"
         + "            <TD>1</TD>\n"
         + "            <TD>3072</TD>\n"
+        + "            <TD>0</TD>\n"
+        + "            <TD>9.76</TD>\n"
+        + "            <TD>3</TD>\n"
+        + "          </TR>\n"
+        + "          <TR>\n"
+        + "            <TD>733.0</TD>\n"
+        + "            <TD>2011.03.66.10.N</TD>\n"
+        + "            <TD>there</TD>\n"
+        + "            <TD />\n"
+        + "            <TD>Idle</TD>\n"
+        + "            <TD>sleep</TD>\n"
+        + "            <TD>Tomcat</TD>\n"
+        + "            <TD>1</TD>\n"
+        + "            <TD>3072</TD>\n"
+        + "            <TD>0</TD>\n"
+        + "            <TD>-3.59</TD>\n"
         + "            <TD>0</TD>\n"
         + "          </TR>\n"
         + "        </TABLEDATA>\n"
@@ -590,7 +612,7 @@ test("Filter string columns.", 80, function ()
                        var colFilters = {};
                        colFilters["Project"] = "!*10*";
                        return colFilters;
-                     }
+                     };
                      doTestProjectMatch(viewer, "2011.03.66.8.N");
                      doTestProjectNotMatch(viewer, "2011.03.66.10.N");
                      doTestProjectNotMatch(viewer, "2010.03.66.99.N");
@@ -625,24 +647,77 @@ test("Are numbers.", 6, function ()
 
 });
 
+test("Numeric filter.", 2, function ()
+{
+  var viewer = new cadc.vot.Viewer("#myGrid", options);
+  viewer.build(
+      {
+        xmlDOM: xmlDOM
+      },
+      function ()
+      {
+        var match = viewer.searchFilter({"Calibration Level": ">= 2"},
+                                        {
+                                          grid: viewer.getGrid(),
+                                          columnFilters: viewer.getColumnFilters(),
+                                          doFilter: viewer.valueFilters
+                                        });
+        equal(match, true, "Should match for [Calibration Level]=[>= 2].");
+
+        var match2 = viewer.searchFilter({"Calibration Level": "< 0"},
+                                        {
+                                          grid: viewer.getGrid(),
+                                          columnFilters: viewer.getColumnFilters(),
+                                          doFilter: viewer.valueFilters
+                                        });
+        equal(match2, true, "Should not match for [Calibration Level]=[< 0].");
+      },
+      function (jqXHR, status, message)
+      {
+        console.log("Error while building.");
+      });
+});
+
 test("Are strings.", 6, function ()
 {
   var viewer = new cadc.vot.Viewer("#myGrid", options);
 
   viewer.build({
-                     xmlDOM: xmlDOM
-                   },
-                   function ()
-                   {
-                     equal(viewer.areStrings('a'), true, "Should be strings.");
-                     equal(viewer.areStrings("a"), true, "Should be strings.");
-                     equal(viewer.areStrings("a", String("b")), true, "Should be strings.");
-                     equal(viewer.areStrings(String("a")), true, "Should be strings.");
-                     equal(viewer.areStrings(1), false, "Should not be strings.");
-                     equal(viewer.areStrings("a", 1), false, "Should not be strings.");
-                   },
-                   function (jqXHR, status, message)
-                   {
-                     console.log("Error while building.");
-                   });
+                 xmlDOM: xmlDOM
+               },
+               function ()
+               {
+                 equal(viewer.areStrings('a'), true, "Should be strings.");
+                 equal(viewer.areStrings("a"), true, "Should be strings.");
+                 equal(viewer.areStrings("a", String("b")), true, "Should be strings.");
+                 equal(viewer.areStrings(String("a")), true, "Should be strings.");
+                 equal(viewer.areStrings(1), false, "Should not be strings.");
+                 equal(viewer.areStrings("a", 1), false, "Should not be strings.");
+               },
+               function (jqXHR, status, message)
+               {
+                 console.log("Error while building.");
+               });
+});
+
+test("Performance.", 0, function()
+{
+  var viewer = new cadc.vot.Viewer("#myGrid", options);
+
+  viewer.build({
+                 xmlDOM: xmlDOM
+               },
+               function ()
+               {
+                 viewer.searchFilter({"Calibration Level": "< 3"},
+                                     {
+                                       grid: viewer.getGrid(),
+                                       columnFilters: viewer.getColumnFilters(),
+                                       doFilter: viewer.valueFilters
+                                     });
+               },
+               function (jqXHR, status, message)
+               {
+                 console.log("Error while building.");
+               });
 });

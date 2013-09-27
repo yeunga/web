@@ -3,7 +3,12 @@
   $.extend(true, window, {
     "cadc": {
       "vot": {
-        "Viewer": Viewer
+        "Viewer": Viewer,
+        "datatype": {
+          "NUMERIC": "NUMERIC",
+          "STRING": "STRING",
+          "DATETIME": "DATETIME"
+        }
       }
     }
   });
@@ -507,32 +512,18 @@
           }
         }
       }
-
     }
 
-    function isFloatDatatype(datatype)
+    function isNumber(val)
     {
-      return (datatype
-          && ((datatype == "float") || (datatype == "double")));
-    }
-
-    function isIntegerDatatype(datatype)
-    {
-      return (datatype
-          && ((datatype == "int") || (datatype == "short")
-          || (datatype == "long")));
-    }
-
-    function isNumericDatatype(datatype)
-    {
-      return (isFloatDatatype(datatype) || isIntegerDatatype(datatype));
+      return !isNaN(parseFloat(val)) && isFinite(val);
     }
 
     function areNumbers()
     {
       for (var i = 0; i < arguments.length; i++)
       {
-        if (isNaN(arguments[i]))
+        if (!isNumber(arguments[i]))
         {
           return false;
         }
@@ -945,11 +936,13 @@
       $(grid.getHeaderRow()).delegate(":input", "change keyup",
                                       function (e)
                                       {
-                                        var columnId = $(this).data("columnId");
-                                        if (columnId != null)
+                                        var $thisInput = $(this);
+                                        var columnId =
+                                            $thisInput.data("columnId");
+                                        if (columnId)
                                         {
                                           columnFilters[columnId] =
-                                          $.trim($(this).val());
+                                                    $.trim($thisInput.val());
                                           dataView.refresh();
                                         }
                                       });
@@ -983,7 +976,7 @@
                                                        args.column.datatype;
                                                    var tooltipTitle;
 
-                                                   if (isNumericDatatype(datatype))
+                                                   if (datatype.isNumeric())
                                                    {
                                                      tooltipTitle = "Number: 10 or >=10 or 10..20 for a range , ! to negate";
                                                    }
@@ -1082,9 +1075,6 @@
     {
       clearColumns();
       var columnManager = getColumnManager();
-//      var forceFitMax = (columnManager.forceFitColumns
-//                             && columnManager.forceFitColumnMode
-//          && (columnManager.forceFitColumnMode == "max"));
 
       $.each(table.getFields(), function (fieldIndex, field)
       {
@@ -1127,10 +1117,6 @@
 
         columnProperties.header = colOpts.header;
 
-//        if (forceFitMax)
-//        {
-//          columnProperties.width = getOptions().defaultColumnWidth;
-//        }
         if (!columnManager.forceFitColumns)
         {
           if (colOpts.width)
@@ -1162,27 +1148,27 @@
     function searchFilter(item, args)
     {
       var filters = args.columnFilters;
+      var grid = args.grid;
+
       for (var columnId in filters)
       {
         var filterValue = filters[columnId];
-        var grid = args.grid;
         if ((columnId !== undefined) && (filterValue !== ""))
         {
-          var column =
-              grid.getColumns()[grid.getColumnIndex(columnId)];
+          var columnIndex = grid.getColumnIndex(columnId);
+          var column = grid.getColumns()[columnIndex];
           var cellValue = item[column.field];
           var rowID = item["id"];
           var columnFormatter = column.formatter;
 
-          // Reformatting the cell value could potentially be quite exensive!
+          // Reformatting the cell value could potentially be quite expensive!
           // This may require some re-thinking.
           // jenkinsd 2013.04.30
           if (columnFormatter)
           {
-            var cell = grid.getColumnIndex(column.id);
             var row = grid.getData().getIdxById(rowID);
             var formattedCellValue =
-                columnFormatter(row, cell, cellValue, column, item);
+                columnFormatter(row, columnIndex, cellValue, column, item);
 
             cellValue = formattedCellValue && $(formattedCellValue).text
                 ? $(formattedCellValue).text() : formattedCellValue;

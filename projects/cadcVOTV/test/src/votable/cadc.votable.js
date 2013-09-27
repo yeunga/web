@@ -83,9 +83,9 @@ test("Test table functions.", 2, function()
                            for (var t in tables)
                            {
                              var tableData = tables[t].getTableData();
-                             equal(tableData.getLongestValueLength("Command"),
+                             equal(tableData.getLongestValues()["Command"],
                                    3, "Longest value for Command should be 3");
-                             equal(tableData.getLongestValueLength("VM Type"),
+                             equal(tableData.getLongestValues()["VM Type"],
                                    10, "Longest value for VM Type should be 10");
                            }
                          }
