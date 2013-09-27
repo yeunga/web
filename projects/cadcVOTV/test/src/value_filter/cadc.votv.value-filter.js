@@ -3,7 +3,6 @@ var xmlData =
         + "<VOTABLE xmlns=\"http://www.ivoa.net/xml/VOTable/v1.2\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" version=\"1.2\">\n"
         + "  <RESOURCE>\n"
         + "    <TABLE>\n"
-        + "      <DESCRIPTION>TEST VOTABLE</DESCRIPTION>\n"
         + "      <FIELD name=\"Job ID\" datatype=\"char\" arraysize=\"*\" />\n"
         + "      <FIELD name=\"Project\" datatype=\"char\" arraysize=\"*\" />\n"
         + "      <FIELD name=\"User\" datatype=\"char\" arraysize=\"*\" />\n"
@@ -14,6 +13,8 @@ var xmlData =
         + "      <FIELD name=\"CPUs\" datatype=\"int\" />\n"
         + "      <FIELD name=\"Memory\" datatype=\"long\" />\n"
         + "      <FIELD name=\"Job Starts\" datatype=\"int\" />\n"
+        + "      <FIELD name=\"DEC\" />\n"
+        + "      <FIELD name=\"Calibration Level\" datatype=\"int\" />\n"
         + "      <DATA>\n"
         + "        <TABLEDATA>\n"
         + "          <TR>\n"
@@ -22,11 +23,13 @@ var xmlData =
         + "            <TD>m</TD>\n"
         + "            <TD />\n"
         + "            <TD>Idle</TD>\n"
-        + "            <TD>ls</TD>\n"
-        + "            <TD>Tomcattime</TD>\n"
+        + "            <TD>sleep</TD>\n"
+        + "            <TD>Tomcat</TD>\n"
         + "            <TD>1</TD>\n"
         + "            <TD>3072</TD>\n"
         + "            <TD>0</TD>\n"
+        + "            <TD>41.0</TD>\n"
+        + "            <TD>1</TD>\n"
         + "          </TR>\n"
         + "          <TR>\n"
         + "            <TD>734.0</TD>\n"
@@ -34,11 +37,13 @@ var xmlData =
         + "            <TD>hello</TD>\n"
         + "            <TD />\n"
         + "            <TD>Idle</TD>\n"
-        + "            <TD>sle</TD>\n"
+        + "            <TD>sleep</TD>\n"
         + "            <TD>Tomcat</TD>\n"
         + "            <TD>1</TD>\n"
         + "            <TD>3072</TD>\n"
         + "            <TD>0</TD>\n"
+        + "            <TD>47.1</TD>\n"
+        + "            <TD>2</TD>\n"
         + "          </TR>\n"
         + "          <TR>\n"
         + "            <TD>733.0</TD>\n"
@@ -46,10 +51,26 @@ var xmlData =
         + "            <TD>there</TD>\n"
         + "            <TD />\n"
         + "            <TD>Idle</TD>\n"
-        + "            <TD>s</TD>\n"
-        + "            <TD>t</TD>\n"
+        + "            <TD>sleep</TD>\n"
+        + "            <TD>Tomcat</TD>\n"
         + "            <TD>1</TD>\n"
         + "            <TD>3072</TD>\n"
+        + "            <TD>0</TD>\n"
+        + "            <TD>9.76</TD>\n"
+        + "            <TD>3</TD>\n"
+        + "          </TR>\n"
+        + "          <TR>\n"
+        + "            <TD>733.0</TD>\n"
+        + "            <TD>2011.03.66.10.N</TD>\n"
+        + "            <TD>there</TD>\n"
+        + "            <TD />\n"
+        + "            <TD>Idle</TD>\n"
+        + "            <TD>sleep</TD>\n"
+        + "            <TD>Tomcat</TD>\n"
+        + "            <TD>1</TD>\n"
+        + "            <TD>3072</TD>\n"
+        + "            <TD>0</TD>\n"
+        + "            <TD>-3.59</TD>\n"
         + "            <TD>0</TD>\n"
         + "          </TR>\n"
         + "        </TABLEDATA>\n"
@@ -65,33 +86,43 @@ var targetNode = document.createElement("div");
 targetNode.setAttribute("id", "myGrid");
 document.body.appendChild(targetNode);
 
-test("Test table functions.", 2, function()
+// Create the options for the Grid.
+var options = {
+  editable: false,
+  enableAddRow: false,
+  showHeaderRow: true,
+  enableCellNavigation: true,
+  asyncEditorLoading: true,
+  forceFitColumns: true,
+  explicitInitialization: true,
+  topPanelHeight: 45,
+  headerRowHeight: 45,
+  showTopPanel: false,
+  sortColumn: "Job ID",
+  sortDir: "asc",
+  columnOptions: {
+    "User": {
+      cssClass: "user_column"
+    },
+    "Started on": {
+      cssClass: "started_on_column"
+    }
+  }
+};
+
+test("Numeric filter 30000 times.", 0, function ()
 {
-  new cadc.vot.Builder({
-                         xmlDOM: xmlDOM
-                       },
-                       function(voTableBuilder)
-                       {
-                         voTableBuilder.build();
+  var viewer = new cadc.vot.Viewer("#myGrid", options);
 
-                         var voTable = voTableBuilder.getVOTable();
-                         var resources = voTable.getResources();
+  var start = new Date();
+  var mockUserFilterValue = "< 3";
+  for (var i = 0; i < 30000; i++)
+  {
+    viewer.valueFilters(mockUserFilterValue,
+                        Math.floor((Math.random() * 10) + 1));
+  }
 
-                         for (var r in resources)
-                         {
-                           var tables = resources[r].getTables();
-                           for (var t in tables)
-                           {
-                             var tableData = tables[t].getTableData();
-                             equal(tableData.getLongestValues()["Command"],
-                                   3, "Longest value for Command should be 3");
-                             equal(tableData.getLongestValues()["VM Type"],
-                                   10, "Longest value for VM Type should be 10");
-                           }
-                         }
-                       },
-                       function()
-                       {
+  var end = new Date();
 
-                       });
+  console.log("Took " + (end.getTime() - start.getTime()) / 1000 + " seconds.");
 });

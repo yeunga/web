@@ -1,4 +1,5 @@
-(function ($) {
+(function ($)
+{
   // register namespace
   $.extend(true, window, {
     "cadc": {
@@ -55,7 +56,7 @@
         }
         else
         {
-          errorCallbackFunction = function(jqXHR, status, message)
+          errorCallbackFunction = function (jqXHR, status, message)
           {
             var outputMessage =
                 "VOView: Unable to read from URL (" + input.url + ").";
@@ -69,7 +70,7 @@
           };
         }
 
-        $.get(input.url, {}, function(data, textStatus, jqXHR)
+        $.get(input.url, {},function (data, textStatus, jqXHR)
         {
           var contentType = jqXHR.getResponseHeader("Content-Type");
 
@@ -217,8 +218,6 @@
 
     function build()
     {
-      var startD = new Date();
-
       var xmlVOTableDOM = evaluateXPath(this.getData(), "VOTABLE");
       var xmlVOTableResourceDOM = evaluateXPath(xmlVOTableDOM[0], "RESOURCE");
 
@@ -257,7 +256,7 @@
 
         var tableFields = [];
         var resourceTableDescriptionDOM = evaluateXPath(resourceTableDOM,
-                                                             "DESCRIPTION");
+                                                        "DESCRIPTION");
         var resourceTableDescription =
             resourceTableDescriptionDOM.length > 0
                 ? resourceTableDescriptionDOM[0].value : "";
@@ -306,7 +305,7 @@
               xmlFieldUType,
               fieldDOM.getAttribute("unit"),
               fieldDOM.getAttribute("xtype"),
-              fieldDOM.getAttribute("datatype"),
+              new cadc.vot.Datatype(fieldDOM.getAttribute("datatype")),
               fieldDOM.getAttribute("arraysize"),
               fieldDescription,
               fieldDOM.getAttribute("name"));
@@ -332,9 +331,9 @@
           {
             var cellDataDOM = rowCellsDOM[cellIndex];
             var cellField = tableFields[cellIndex];
-            var dataType = cellField.getDatatype()
-                ? cellField.getDatatype().toLowerCase() : "";
-            var stringValue = (cellDataDOM.childNodes && cellDataDOM.childNodes[0])
+            var dataType = cellField.getDatatype();
+            var stringValue = (cellDataDOM.childNodes
+                && cellDataDOM.childNodes[0])
                 ? cellDataDOM.childNodes[0].nodeValue : "";
             var stringValueLength = (stringValue && stringValue.length)
                 ? stringValue.length : -1;
@@ -347,17 +346,15 @@
 
             var cellValue;
 
-            if ((dataType == "double") || (dataType == "int")
-                    || (dataType == "long") || (dataType == "float")
-                || (dataType == "short"))
+            if (!$.isEmptyObject(dataType) && dataType.isNumeric())
             {
               var num;
 
               if (!stringValue || ($.trim(stringValue) == ""))
               {
-                num = "";
+                num = Number.NaN;
               }
-              else if ((dataType == "double") || (dataType == "float"))
+              else if (dataType.isFloatingPointNumeric())
               {
                 num = parseFloat(stringValue);
                 num.toFixed(2);
@@ -407,10 +404,6 @@
 
       _selfXMLBuilder.voTable = new cadc.vot.VOTable(voTableMetadata,
                                                      voTableResources);
-
-      var endD = new Date();
-      console.log("TOTAL BUILD: " + ((endD.getTime() - startD.getTime()) / 1000)
-                  + " seconds");
     }
 
     $.extend(this,
@@ -422,6 +415,7 @@
 
     init();
   }
+
   // End XML.
 
   /**
