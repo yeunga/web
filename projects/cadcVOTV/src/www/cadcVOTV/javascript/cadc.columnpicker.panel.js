@@ -277,7 +277,7 @@
 
         var $columnUnit =
             $("<div class='slick-column-picker-unit-label-text'></div>").text(
-                nextCol.unit);
+                nextCol.unit || "");
         $columnUnit.prop("id", "_UNIT_" + nextCol.id);
 
         var $columnDescription =
