@@ -90,7 +90,7 @@
       }
       else
       {
-        tooltipOptions.tooltipInit($link);
+        tooltipOptions.tooltipInit($link, tooltipOptions);
       }
 
       // Clean up existing button holder.
