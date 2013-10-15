@@ -79,7 +79,7 @@
       new cadc.vot.Builder(input,
                            function (voTableBuilder)
                            {
-                             voTableBuilder.build();
+                             voTableBuilder.build(voTableBuilder.buildRowData);
 
                              var voTable = voTableBuilder.getVOTable();
                              var hasDisplayColumns =

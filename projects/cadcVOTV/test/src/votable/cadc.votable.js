@@ -65,33 +65,40 @@ var targetNode = document.createElement("div");
 targetNode.setAttribute("id", "myGrid");
 document.body.appendChild(targetNode);
 
-test("Test table functions.", 2, function()
+test("Test table functions.", 2, function ()
 {
-  new cadc.vot.Builder({
-                         xmlDOM: xmlDOM
-                       },
-                       function(voTableBuilder)
-                       {
-                         voTableBuilder.build();
-
-                         var voTable = voTableBuilder.getVOTable();
-                         var resources = voTable.getResources();
-
-                         for (var r in resources)
+  try
+  {
+    new cadc.vot.Builder({
+                           xmlDOM: xmlDOM
+                         },
+                         function (voTableBuilder)
                          {
-                           var tables = resources[r].getTables();
-                           for (var t in tables)
-                           {
-                             var tableData = tables[t].getTableData();
-                             equal(tableData.getLongestValues()["Command"],
-                                   3, "Longest value for Command should be 3");
-                             equal(tableData.getLongestValues()["VM Type"],
-                                   10, "Longest value for VM Type should be 10");
-                           }
-                         }
-                       },
-                       function()
-                       {
+                           voTableBuilder.build(voTableBuilder.buildRowData);
 
-                       });
+                           var voTable = voTableBuilder.getVOTable();
+                           var resources = voTable.getResources();
+
+                           for (var r in resources)
+                           {
+                             var tables = resources[r].getTables();
+                             for (var t in tables)
+                             {
+                               var tableData = tables[t].getTableData();
+                               equal(tableData.getLongestValues()["Command"],
+                                     3, "Longest value for Command should be 3");
+                               equal(tableData.getLongestValues()["VM Type"],
+                                     10, "Longest value for VM Type should be 10");
+                             }
+                           }
+                         },
+                         function ()
+                         {
+
+                         });
+  }
+  catch (error)
+  {
+    console.log(error.stack);
+  }
 });

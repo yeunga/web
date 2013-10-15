@@ -6,7 +6,8 @@
       "vot": {
         "Builder": Builder,
         "XMLBuilder": XMLBuilder,
-        "JSONBuilder": JSONBuilder
+        "JSONBuilder": JSONBuilder,
+        "CSVBuilder": CSVBuilder
       }
     }
   });
@@ -40,6 +41,15 @@
       else if (input.json)
       {
         _selfBuilder._builder = new cadc.vot.JSONBuilder(input.json);
+
+        if (readyCallback)
+        {
+          readyCallback(_selfBuilder);
+        }
+      }
+      else if (input.csv)
+      {
+        _selfBuilder._builder = new cadc.vot.CSVBuilder(input.csv, input.tableMetadata);
 
         if (readyCallback)
         {
@@ -92,16 +102,28 @@
               readyCallback(_selfBuilder);
             }
           }
+          else if (contentType.indexOf("csv") > 0)
+          {
+            _selfBuilder._builder = new cadc.vot.CSVBuilder(
+                data, input.tableMetadata);
+
+            if (readyCallback)
+            {
+              readyCallback(_selfBuilder);
+            }
+          }
           else
           {
-            alert("cadcVOTV: Unable to obtain XML or JSON VOTable from URL ("
+            console.log("cadcVOTV: Unable to obtain XML, JSON, or CSV VOTable from URL");
+            alert("cadcVOTV: Unable to obtain XML, JSON, or CSV VOTable from URL ("
                       + input.url + ").");
           }
         }).error(errorCallbackFunction);
       }
       else
       {
-        alert("cadcVOTV: input object is not set or not recognizeable. \n\n"
+        console.log("cadcVOTV: input object is not set or not recognizable");
+        alert("cadcVOTV: input object is not set or not recognizable. \n\n"
                   + input);
       }
     }
@@ -128,18 +150,73 @@
       }
     }
 
-    function build()
+    function build(buildRowData)
     {
       if (getInternalBuilder())
       {
-        getInternalBuilder().build();
+        getInternalBuilder().build(buildRowData);
         _selfBuilder.voTable = getInternalBuilder().getVOTable();
       }
     }
 
+    function setLongest(longestValues, cellID, newValue)
+    {
+      var stringLength = (newValue && newValue.length) ? newValue.length : -1;
+      if (longestValues[cellID] === undefined)
+      {
+        longestValues[cellID] = -1;
+      }
+      if (stringLength > longestValues[cellID])
+      {
+        longestValues[cellID] = stringLength;
+      }
+    }
+
+    function buildRowData(tableMetadata, rowID, rowData, longestValues, extract)
+    {
+      var rowCells = [];
+      var tableFields = tableMetadata.getFields();
+      for (var cellIndex in rowData)
+      {
+        var cellMetadata = tableFields[cellIndex];
+        var cellDatatype = cellMetadata.getDatatype();
+        var stringValue = extract(cellIndex);
+        setLongest(longestValues, cellMetadata.getID(), stringValue);
+
+        var cellValue;
+        if (!$.isEmptyObject(cellDatatype) && cellDatatype.isNumeric())
+        {
+          var num;
+
+          if (!stringValue || ($.trim(stringValue) == ""))
+          {
+            num = Number.NaN;
+          }
+          else if (cellDatatype.isFloatingPointNumeric())
+          {
+            num = parseFloat(stringValue);
+            num.toFixed(2);
+          }
+          else
+          {
+            num = parseInt(stringValue);
+          }
+          cellValue = num;
+        }
+        else
+        {
+          cellValue = stringValue;
+        }
+        rowCells.push(new cadc.vot.Cell(cellValue, cellMetadata));
+      }
+      return new cadc.vot.Row(rowID, rowCells);
+    }
+
+
     $.extend(this,
              {
                "build": build,
+               "buildRowData": buildRowData,
                "getVOTable": getVOTable,
                "getData": getData
              });
@@ -216,8 +293,10 @@
       return _selfXMLBuilder.xmlDOM;
     }
 
-    function build()
+    function build(buildRowData)
     {
+      console.log("Entering XMLBuilder::build");
+
       var xmlVOTableDOM = evaluateXPath(this.getData(), "VOTABLE");
       var xmlVOTableResourceDOM = evaluateXPath(xmlVOTableDOM[0], "RESOURCE");
 
@@ -327,53 +406,6 @@
 
           var rowCellsDOM = evaluateXPath(rowDataDOM, "TD");
 
-          for (var cellIndex in rowCellsDOM)
-          {
-            var cellDataDOM = rowCellsDOM[cellIndex];
-            var cellField = tableFields[cellIndex];
-            var dataType = cellField.getDatatype();
-            var stringValue = (cellDataDOM.childNodes
-                && cellDataDOM.childNodes[0])
-                ? cellDataDOM.childNodes[0].nodeValue : "";
-            var stringValueLength = (stringValue && stringValue.length)
-                ? stringValue.length : -1;
-            var currLongestValue = longestValues[cellField.getID()];
-
-            if (stringValueLength > currLongestValue)
-            {
-              longestValues[cellField.getID()] = stringValueLength;
-            }
-
-            var cellValue;
-
-            if (!$.isEmptyObject(dataType) && dataType.isNumeric())
-            {
-              var num;
-
-              if (!stringValue || ($.trim(stringValue) == ""))
-              {
-                num = Number.NaN;
-              }
-              else if (dataType.isFloatingPointNumeric())
-              {
-                num = parseFloat(stringValue);
-                num.toFixed(2);
-              }
-              else
-              {
-                num = parseInt(stringValue);
-              }
-
-              cellValue = num;
-            }
-            else
-            {
-              cellValue = stringValue;
-            }
-
-            rowCells.push(new cadc.vot.Cell(cellValue, cellField));
-          }
-
           var rowID = rowDataDOM.getAttribute("id");
 
           if (!rowID)
@@ -381,11 +413,17 @@
             rowID = "vov_" + rowIndex;
           }
 
-          tableDataRows.push(new cadc.vot.Row(rowID, rowCells));
+          var rowData = buildRowData(tableMetadata, rowID, rowCellsDOM,
+                                     longestValues, function (index)
+              {
+                var cellDataDOM = rowCellsDOM[index];
+                return (cellDataDOM.childNodes && cellDataDOM.childNodes[0]) ?
+                       cellDataDOM.childNodes[0].nodeValue : "";
+              });
+          tableDataRows.push(rowData);
         }
 
         var tableData = new cadc.vot.TableData(tableDataRows, longestValues);
-
         resourceTables.push(new cadc.vot.Table(tableMetadata, tableData));
       }
 
@@ -445,6 +483,74 @@
     {
       // Does nothing yet.
     }
+  }
+
+  /**
+   * The CSV plugin reader.
+   *
+   * @param csvData       The CSV VOTable.
+   * @param tableMetadata The VOTable Metadata, for confirming CSV correctness.
+   * @constructor
+   */
+  function CSVBuilder(csvData, tableMetadata)
+  {
+    var _selfCSVBuilder = this;
+
+    this.voTable = null;
+    this.csvData = csvData;
+
+    function getVOTable()
+    {
+      return _selfCSVBuilder.voTable;
+    }
+
+    function getData()
+    {
+      return _selfCSVBuilder.csvData;
+    }
+
+    function build(buildRowData)
+    {
+      var csvResult = $.csv.toArrays(getData());
+      var parsedCSV = csvResult.slice(1);
+
+      var voTableResources = [];
+      var resourceTables = [];
+      var longestValues = [];
+
+      var tableDataRows = [];
+
+      for (var rowData in parsedCSV)
+      {
+        var rowData = buildRowData(tableMetadata, "vov_" + rowData,
+                                   parsedCSV[rowData],
+                                   longestValues,
+                                   function (index)
+                                   {
+                                     return parsedCSV[rowData][index].trim();
+                                   });
+        tableDataRows.push(rowData);
+      }
+
+      var tableData = new cadc.vot.TableData(tableDataRows, longestValues);
+      resourceTables.push(new cadc.vot.Table(tableMetadata, tableData));
+      voTableResources.push(new cadc.vot.Resource(null, null, resourceTables));
+
+      var voTableMetadata = new cadc.vot.Metadata(null, null,
+                                                  null, null,
+                                                  null, null);
+      _selfCSVBuilder.voTable = new cadc.vot.VOTable(voTableMetadata,
+                                                     voTableResources);
+
+    }
+
+    $.extend(this,
+             {
+               "build": build,
+               "getData": getData,
+               "getVOTable": getVOTable
+             });
+
   }
 
 })(jQuery);
