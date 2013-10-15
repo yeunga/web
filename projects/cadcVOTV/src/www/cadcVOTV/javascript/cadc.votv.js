@@ -1027,21 +1027,20 @@
                                              {
                                                $(args.node).empty();
 
-                                               // Do not display for the checkbox column.
-                                               if (args.column.filterable)
+                                               // Display the label for the checkbox column filter row.
+                                               if (checkboxSelector
+                                                   && (args.column.id == checkboxSelector.getColumnDefinition().id))
                                                {
-                                                 $(args.node).empty();
+                                                 $("<div class='filter-boxes-label' "
+                                                       + "title='Enter values into the boxes to further filter results.'>Filter:</div>").
+                                                     appendTo(args.node);
+                                               }
 
-                                                 // Display the label for the checkbox column filter row.
-                                                 if (checkboxSelector
-                                                     && (args.column.id == checkboxSelector.getColumnDefinition().id))
-                                                 {
-                                                   $("<div class='filter-boxes-label' "
-                                                         + "title='Enter values into the boxes to further filter results.'>Filter:</div>").
-                                                       appendTo(args.node);
-                                                 }
+                                               // Do not display for the checkbox column.
+                                               else if (args.column.filterable)
+                                               {
                                                  // Allow for overrides per column.
-                                                 else if (args.column.filterable == false)
+                                                 if (args.column.filterable == false)
                                                  {
                                                    $("<span class=\"empty\"></span>").
                                                        appendTo(args.node);
