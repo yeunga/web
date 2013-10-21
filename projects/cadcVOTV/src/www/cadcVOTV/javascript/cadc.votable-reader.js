@@ -49,7 +49,8 @@
       }
       else if (input.csv)
       {
-        _selfBuilder._builder = new cadc.vot.CSVBuilder(input.csv, input.tableMetadata);
+        _selfBuilder._builder = new cadc.vot.CSVBuilder(input.csv,
+                                                        input.tableMetadata);
 
         if (readyCallback)
         {
@@ -309,7 +310,8 @@
       var votableResourceInfoDOM = evaluateXPath(xmlVOTableResourceDOM[0],
                                                  "INFO");
 
-      for (var infoIndex in votableResourceInfoDOM)
+      for (var infoIndex = 0; infoIndex < votableResourceInfoDOM.length;
+           infoIndex++)
       {
         var nextInfo = votableResourceInfoDOM[infoIndex];
         resourceInfos.push(new cadc.vot.Info(nextInfo.getAttribute("name"),
@@ -329,7 +331,8 @@
                                                      "TABLE");
 
       // Iterate over tables.
-      for (var tableIndex in xmlVOTableResourceTableDOM)
+      for (var tableIndex = 0; tableIndex < xmlVOTableResourceTableDOM.length;
+           tableIndex++)
       {
         var resourceTableDOM = xmlVOTableResourceTableDOM[tableIndex];
 
@@ -350,7 +353,8 @@
         // Born from User Story 1103.
         var longestValues = {};
 
-        for (var fieldIndex in resourceTableFieldDOM)
+        for (var fieldIndex = 0; fieldIndex < resourceTableFieldDOM.length;
+             fieldIndex++)
         {
           var fieldDOM = resourceTableFieldDOM[fieldIndex];
           var fieldID;
