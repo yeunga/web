@@ -49,8 +49,7 @@
       }
       else if (input.csv)
       {
-        _selfBuilder._builder = new cadc.vot.CSVBuilder(input.csv,
-                                                        input.tableMetadata);
+        _selfBuilder._builder = new cadc.vot.CSVBuilder(input, buildRowData);
 
         if (readyCallback)
         {
@@ -106,7 +105,7 @@
           else if (contentType.indexOf("csv") > 0)
           {
             _selfBuilder._builder = new cadc.vot.CSVBuilder(
-                data, input.tableMetadata);
+                input.tableMetadata);
 
             if (readyCallback)
             {
@@ -173,10 +172,9 @@
       }
     }
 
-    function buildRowData(tableMetadata, rowID, rowData, longestValues, extract)
+    function buildRowData(tableFields, rowID, rowData, longestValues, extract)
     {
       var rowCells = [];
-      var tableFields = tableMetadata.getFields();
       for (var cellIndex in rowData)
       {
         var cellMetadata = tableFields[cellIndex];
@@ -403,13 +401,12 @@
         var tableDataRows = [];
         var tableDataRowsDOM = evaluateXPath(resourceTableDOM,
                                              "DATA/TABLEDATA/TR");
+        var tableFieldsMetadata = tableMetadata.getFields();
+
         for (var rowIndex in tableDataRowsDOM)
         {
           var rowDataDOM = tableDataRowsDOM[rowIndex];
-          var rowCells = [];
-
           var rowCellsDOM = evaluateXPath(rowDataDOM, "TD");
-
           var rowID = rowDataDOM.getAttribute("id");
 
           if (!rowID)
@@ -417,7 +414,7 @@
             rowID = "vov_" + rowIndex;
           }
 
-          var rowData = buildRowData(tableMetadata, rowID, rowCellsDOM,
+          var rowData = buildRowData(tableFieldsMetadata, rowID, rowCellsDOM,
                                      longestValues, function (index)
               {
                 var cellDataDOM = rowCellsDOM[index];
@@ -492,67 +489,84 @@
   /**
    * The CSV plugin reader.
    *
-   * @param csvData       The CSV VOTable.
-   * @param tableMetadata The VOTable Metadata, for confirming CSV correctness.
+   * @param input         The CSV type and table metadata.
+   * @param buildRowData  The function to make something vo-consistent from the row data.
    * @constructor
    */
-  function CSVBuilder(csvData, tableMetadata)
+  function CSVBuilder(input, buildRowData)
   {
+
     var _selfCSVBuilder = this;
 
-    this.voTable = null;
-    this.csvData = csvData;
+    var longestValues = [];
+    var events = [];
+    var chunk = {lastMatch: 0,
+      rowCount: 0};
 
-    function getVOTable()
+
+    function append(asChunk)
     {
-      return _selfCSVBuilder.voTable;
-    }
+      var found = findRowEnd(asChunk, chunk.lastMatch);
 
-    function getData()
-    {
-      return _selfCSVBuilder.csvData;
-    }
-
-    function build(buildRowData)
-    {
-      var csvResult = $.csv.toArrays(getData());
-      var parsedCSV = csvResult.slice(1);
-
-      var voTableResources = [];
-      var resourceTables = [];
-      var longestValues = [];
-
-      var tableDataRows = [];
-
-      for (var rowData in parsedCSV)
+      // skip the first row - it contains facsimiles of column names
+      if (chunk.rowCount === 0 &&
+          found > 0)
       {
-        var rowData = buildRowData(tableMetadata, "vov_" + rowData,
-                                   parsedCSV[rowData],
-                                   longestValues,
-                                   function (index)
-                                   {
-                                     return parsedCSV[rowData][index].trim();
-                                   });
-        tableDataRows.push(rowData);
+        found = advanceToNextRow(asChunk, found);
       }
 
-      var tableData = new cadc.vot.TableData(tableDataRows, longestValues);
-      resourceTables.push(new cadc.vot.Table(tableMetadata, tableData));
-      voTableResources.push(new cadc.vot.Resource(null, null, resourceTables));
+      while (found > 0 && found !== chunk.lastMatch)
+      {
+        nextRow(asChunk.slice(chunk.lastMatch, found));
+        found = advanceToNextRow(asChunk, found);
+      }
+    }
 
-      var voTableMetadata = new cadc.vot.Metadata(null, null,
-                                                  null, null,
-                                                  null, null);
-      _selfCSVBuilder.voTable = new cadc.vot.VOTable(voTableMetadata,
-                                                     voTableResources);
+    function getCurrent()
+    {
+      // this is for testing support only
+      return chunk;
+    }
 
+    function subscribe(eName, eHandler)
+    {
+      events.push([eName, eHandler]);
+    }
+
+    function advanceToNextRow(asChunk, lastFound)
+    {
+      chunk.rowCount++;
+      chunk.lastMatch = lastFound;
+      return findRowEnd(asChunk, chunk.lastMatch);
+    }
+
+    function findRowEnd(inChunk, lastFound)
+    {
+      return inChunk.indexOf("\n", lastFound + 1);
+    }
+
+    function nextRow(entry)
+    {
+      var entryAsArray = $.csv.toArray(entry);
+      var tableFields = input.tableMetadata.getFields();
+      var rowData = buildRowData(tableFields, "vov_" + chunk.rowCount,
+                                 entryAsArray,
+                                 longestValues,
+                                 function (index)
+                                 {
+                                   return entryAsArray[index].trim();
+                                 });
+      for(var ii = 0; ii < events.length; ii++)
+      {
+        $.event.trigger(events[ii][0], events[ii][1](rowData));
+      }
     }
 
     $.extend(this,
              {
-               "build": build,
-               "getData": getData,
-               "getVOTable": getVOTable
+               "append": append,
+               "getCurrent": getCurrent,
+               "subscribe": subscribe
              });
 
   }
