@@ -7,7 +7,12 @@
         "Builder": Builder,
         "XMLBuilder": XMLBuilder,
         "JSONBuilder": JSONBuilder,
-        "CSVBuilder": CSVBuilder
+        "CSVBuilder": CSVBuilder,
+        "StreamBuilder": StreamBuilder,
+
+        // Events
+        "onRowAdd": new jQuery.Event("onRowAdd"),
+        "onLoadEnd": new jQuery.Event("onLoadEnd")
       }
     }
   });
@@ -58,67 +63,11 @@
       }
       else if (input.url)
       {
-        var errorCallbackFunction;
+        var streamBuilder = new cadc.vot.StreamBuilder(input, readyCallback,
+                                                       errorCallback,
+                                                       _selfBuilder);
 
-        if (errorCallback)
-        {
-          errorCallbackFunction = errorCallback;
-        }
-        else
-        {
-          errorCallbackFunction = function (jqXHR, status, message)
-          {
-            var outputMessage =
-                "VOView: Unable to read from URL (" + input.url + ").";
-
-            if (message && ($.trim(message) != ""))
-            {
-              outputMessage += "\n\nMessage from server: " + message;
-            }
-
-            alert(outputMessage);
-          };
-        }
-
-        $.get(input.url, {},function (data, textStatus, jqXHR)
-        {
-          var contentType = jqXHR.getResponseHeader("Content-Type");
-
-          if (contentType.indexOf("xml") > 0)
-          {
-            _selfBuilder._builder = new cadc.vot.XMLBuilder(data);
-
-            if (readyCallback)
-            {
-              readyCallback(_selfBuilder);
-            }
-          }
-          else if (contentType.indexOf("json") > 0)
-          {
-            _selfBuilder._builder = new cadc.vot.JSONBuilder(data);
-
-            if (readyCallback)
-            {
-              readyCallback(_selfBuilder);
-            }
-          }
-          else if (contentType.indexOf("csv") > 0)
-          {
-            _selfBuilder._builder = new cadc.vot.CSVBuilder(
-                input.tableMetadata);
-
-            if (readyCallback)
-            {
-              readyCallback(_selfBuilder);
-            }
-          }
-          else
-          {
-            console.log("cadcVOTV: Unable to obtain XML, JSON, or CSV VOTable from URL");
-            alert("cadcVOTV: Unable to obtain XML, JSON, or CSV VOTable from URL ("
-                      + input.url + ").");
-          }
-        }).error(errorCallbackFunction);
+        streamBuilder.start();
       }
       else
       {
@@ -133,9 +82,23 @@
       return _selfBuilder.voTable;
     }
 
+    /**
+     * For those builders that support streaming.
+     * @param _responseData   More data.
+     */
+    function appendToBuilder(_responseData)
+    {
+      getInternalBuilder().append(_responseData)
+    }
+
     function getInternalBuilder()
     {
       return _selfBuilder._builder;
+    }
+
+    function setInternalBuilder(_internalBuilder)
+    {
+      _selfBuilder._builder = _internalBuilder;
     }
 
     function getData()
@@ -152,10 +115,18 @@
 
     function build(buildRowData)
     {
-      if (getInternalBuilder())
+      if (getInternalBuilder() && getInternalBuilder().build)
       {
         getInternalBuilder().build(buildRowData);
         _selfBuilder.voTable = getInternalBuilder().getVOTable();
+      }
+    }
+
+    function subscribe(builderEvent, handler)
+    {
+      if (getInternalBuilder().subscribe)
+      {
+        getInternalBuilder().subscribe(builderEvent.type, handler);
       }
     }
 
@@ -175,12 +146,15 @@
     function buildRowData(tableFields, rowID, rowData, longestValues, extract)
     {
       var rowCells = [];
-      for (var cellIndex in rowData)
+      for (var cellIndex = 0; cellIndex < rowData.length; cellIndex++)
       {
-        var cellMetadata = tableFields[cellIndex];
-        var cellDatatype = cellMetadata.getDatatype();
+        console.log("Looking at index " + cellIndex + " of field length " + tableFields.length);
+
+        var cellField = tableFields[cellIndex];
+        var cellDatatype = cellField.getDatatype();
         var stringValue = extract(cellIndex);
-        setLongest(longestValues, cellMetadata.getID(), stringValue);
+
+        setLongest(longestValues, cellField.getID(), stringValue);
 
         var cellValue;
         if (!$.isEmptyObject(cellDatatype) && cellDatatype.isNumeric())
@@ -206,8 +180,10 @@
         {
           cellValue = stringValue;
         }
-        rowCells.push(new cadc.vot.Cell(cellValue, cellMetadata));
+
+        rowCells.push(new cadc.vot.Cell(cellValue, cellField));
       }
+
       return new cadc.vot.Row(rowID, rowCells);
     }
 
@@ -217,7 +193,12 @@
                "build": build,
                "buildRowData": buildRowData,
                "getVOTable": getVOTable,
-               "getData": getData
+               "getData": getData,
+               "setInternalBuilder": setInternalBuilder,
+               "appendToBuilder": appendToBuilder,
+
+               // Event management
+               "subscribe": subscribe
              });
 
     init();
@@ -403,7 +384,7 @@
                                              "DATA/TABLEDATA/TR");
         var tableFieldsMetadata = tableMetadata.getFields();
 
-        for (var rowIndex in tableDataRowsDOM)
+        for (var rowIndex = 0; rowIndex < tableDataRowsDOM.length; rowIndex++)
         {
           var rowDataDOM = tableDataRowsDOM[rowIndex];
           var rowCellsDOM = evaluateXPath(rowDataDOM, "TD");
@@ -499,9 +480,7 @@
     var _selfCSVBuilder = this;
 
     var longestValues = [];
-    var events = [];
-    var chunk = {lastMatch: 0,
-      rowCount: 0};
+    var chunk = {lastMatch: 0, rowCount: 0};
 
 
     function append(asChunk)
@@ -530,7 +509,7 @@
 
     function subscribe(eName, eHandler)
     {
-      events.push([eName, eHandler]);
+      $(document).on(eName, eHandler);
     }
 
     function advanceToNextRow(asChunk, lastFound)
@@ -549,6 +528,7 @@
     {
       var entryAsArray = $.csv.toArray(entry);
       var tableFields = input.tableMetadata.getFields();
+
       var rowData = buildRowData(tableFields, "vov_" + chunk.rowCount,
                                  entryAsArray,
                                  longestValues,
@@ -556,10 +536,8 @@
                                  {
                                    return entryAsArray[index].trim();
                                  });
-      for(var ii = 0; ii < events.length; ii++)
-      {
-        $.event.trigger(events[ii][0], events[ii][1](rowData));
-      }
+
+      $.event.trigger(cadc.vot.onRowAdd, rowData);
     }
 
     $.extend(this,
@@ -569,6 +547,123 @@
                "subscribe": subscribe
              });
 
+  }
+
+  /**
+   *
+   * @param input
+   * @param readyCallback
+   * @param errorCallback
+   * @param __MAIN_BUILDER
+   * @constructor
+   */
+  function StreamBuilder(input, readyCallback, errorCallback, __MAIN_BUILDER)
+  {
+    var _selfStreamBuilder = this;
+
+    this.errorCallbackFunction = null;
+    this.url = input.url;
+
+    function init()
+    {
+      if (errorCallback)
+      {
+        _selfStreamBuilder.errorCallbackFunction = errorCallback;
+      }
+      else
+      {
+        _selfStreamBuilder.errorCallbackFunction =
+        function (jqXHR, status, message)
+        {
+          var outputMessage =
+              "cadcVOTV: Unable to read from URL (" + input.url + ").";
+
+          if (message && ($.trim(message) != ""))
+          {
+            outputMessage += "\n\nMessage from server: " + message;
+          }
+
+          alert(outputMessage);
+        };
+      }
+    }
+
+    function getErrorCallbackFunction()
+    {
+      return _selfStreamBuilder.errorCallbackFunction;
+    }
+
+    function getURL()
+    {
+      return _selfStreamBuilder.url;
+    }
+
+    function start()
+    {
+      $.ajax({
+               url: getURL(),
+               type: "GET",
+               xhr: createRequest
+             }).fail(getErrorCallbackFunction());
+    }
+
+    /**
+     * Create the internal builder once the request has been established.
+     */
+    function initializeInternalBuilder()
+    {
+      if (this.readyState == this.HEADERS_RECEIVED)
+      {
+        var contentType = this.getResponseHeader("Content-Type");
+
+        // Only CSV supports streaming!
+        if (contentType.indexOf("csv") >= 0)
+        {
+          __MAIN_BUILDER.setInternalBuilder(
+                new cadc.vot.CSVBuilder(input, __MAIN_BUILDER.buildRowData));
+
+          if (readyCallback)
+          {
+            readyCallback(__MAIN_BUILDER);
+          }
+        }
+        else
+        {
+          console.log("cadcVOTV: Unable to obtain XML, JSON, or CSV VOTable from URL");
+          alert("cadcVOTV: Unable to obtain XML, JSON, or CSV VOTable from URL ("
+                + input.url + ").");
+        }
+      }
+    }
+
+    function handleProgress()
+    {
+      __MAIN_BUILDER.appendToBuilder(this.responseText);
+    }
+
+    function loadEnd()
+    {
+      $.event.trigger(cadc.vot.onLoadEnd);
+    }
+
+    function createRequest()
+    {
+      var request = new XMLHttpRequest();
+
+      request.addEventListener("readystatechange", initializeInternalBuilder,
+                               false);
+      request.addEventListener("progress", handleProgress, false);
+      request.addEventListener("loadend", loadEnd, false);
+
+      return request;
+    }
+
+    $.extend(this,
+             {
+               "start": start
+             });
+
+    init();
   }
 
 })(jQuery);

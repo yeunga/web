@@ -132,7 +132,7 @@
     _selfMetadata.infos = __infos;
     _selfMetadata.description = _description;
     _selfMetadata.links = __links;
-    _selfMetadata.fields = __fields;
+    _selfMetadata.fields = __fields || [];
     _selfMetadata.groups = __groups;
 
     function getInfos()
@@ -165,6 +165,26 @@
       return _selfMetadata.groups;
     }
 
+    function addField(_field)
+    {
+      getFields().push(_field);
+    }
+
+    function hasFieldWithID(_fieldID)
+    {
+      var currFields = getFields();
+    	
+    	for (var f in currFields)
+    	{
+    		if (currFields[f].getID() == _fieldID)
+    		{
+    			return true;
+    		}    	
+    	}
+    
+      return false;
+    }
+
     $.extend(this,
              {
                "getInfos": getInfos,
@@ -172,7 +192,9 @@
                "getParameters": getParameters,
                "getFields": getFields,
                "getLinks": getLinks,
-               "getGroups": getGroups
+               "getGroups": getGroups,
+               "addField": addField,
+               "hasFieldWithID": hasFieldWithID
              });
   }
 
@@ -290,6 +312,11 @@
       return _selfField.description;
     }
 
+    function getArraySize()
+    {
+      return _selfField.arraysize;
+    }
+
 
     $.extend(this,
              {
@@ -300,7 +327,8 @@
                "getUType": getUType,
                "getXType": getXType,
                "getDescription": getDescription,
-               "getUCD": getUCD
+               "getUCD": getUCD,
+               "getArraySize": getArraySize
              });
   }
 

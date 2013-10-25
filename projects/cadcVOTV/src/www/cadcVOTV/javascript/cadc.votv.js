@@ -59,8 +59,6 @@
     this.sortcol = options.sortColumn;
     this.sortAsc = options.sortDir == "asc";
 
-    //  viewer = this;
-
     /**
      * @param input  Object representing the input.
      *
@@ -68,8 +66,9 @@
      *
      * input.xmlDOM = The XML DOM Object
      * input.json = The JSON Object
+     * input.csv = The CSV text
      * input.url = The URL of the input.  The Content-Type will dictate how to
-     *             build it.
+     *             build it.  This is the only way to stream CSV.
      * @param completeCallback  Callback function when complete.
      * @param errorCallBack     Callback function with jqXHR, status, message
      *                    (Conforms to jQuery error callback for $.ajax calls).
@@ -80,13 +79,30 @@
                            function (voTableBuilder)
                            {
                              voTableBuilder.build(voTableBuilder.buildRowData);
-
-                             var voTable = voTableBuilder.getVOTable();
                              var hasDisplayColumns =
                                  (_self.displayColumns
                                      && (_self.displayColumns.length > 0));
 
-                             _self.load(voTable, !hasDisplayColumns, true);
+                             // Set up to stream.
+                             if (input.url)
+                             {
+                             	 if (!hasDisplayColumns)
+                             	 {
+                             	 	refreshColumns(input.tableMetadata.getFields());
+                             	 }                       
+                             	       	 
+                               voTableBuilder.subscribe(cadc.vot.onRowAdd,
+                                                        function (event, row)
+                                                        {
+                                                          addRow(row, null);
+                                                        });
+                             }
+                             else
+                             {
+                               _self.load(voTableBuilder.getVOTable(),
+                                          !hasDisplayColumns, true);
+                             }
+
                              _self.init();
 
                              if (completeCallback)
@@ -224,9 +240,36 @@
       return (vx == vy ? 0 : (vx > vy ? 1 : -1));
     }
 
-    function addRow(rowData, rowIndex)
+    /**
+     * Add a VOTable Row.
+     *
+     * @param row       The cadc.vot.Row object.
+     * @param rowIndex  The optional row index.
+     */
+    function addRow(row, rowIndex)
     {
-      getDataView().getItems()[rowIndex] = rowData;
+      var dataRow = {};
+
+      dataRow["id"] = row.getID();
+      $.each(row.getCells(), function (cellIndex, cell)
+      {
+        var cellFieldID = cell.getField().getID();
+        dataRow[cellFieldID] = cell.getValue();
+      });
+
+      getDataView().beginUpdate();
+
+      if (rowIndex)
+      {
+        getDataView().getItems()[rowIndex] = dataRow;
+      }
+      else
+      {
+        getDataView().getItems().push(dataRow);
+      }
+
+      getDataView().endUpdate();
+      getDataView().refresh();
     }
 
     function clearRows()
@@ -257,6 +300,11 @@
     function getRow(_index)
     {
       return getDataView().getItem(_index);
+    }
+
+    function getRows()
+    {
+      return getDataView().getItems();
     }
 
     function getGrid()
@@ -1132,7 +1180,7 @@
 
       if (_refreshColumns)
       {
-        refreshColumns(table);
+        refreshColumns(table.getFields());
       }
 
       if (_refreshData)
@@ -1144,14 +1192,14 @@
     /**
      * Refresh this Viewer's columns.
      *
-     * @param table   A Table in the VOTable.
+     * @param _fields   A Table in the VOTable.
      */
-    function refreshColumns(table)
+    function refreshColumns(_fields)
     {
       clearColumns();
       var columnManager = getColumnManager();
 
-      $.each(table.getFields(), function (fieldIndex, field)
+      $.each(_fields, function (fieldIndex, field)
       {
         var fieldKey = field.getID();
         var colOpts = getOptionsForColumn(fieldKey);
@@ -1283,16 +1331,7 @@
 
       $.each(allRows, function (rowIndex, row)
       {
-        var d = {};
-
-        d["id"] = row.getID();
-        $.each(row.getCells(), function (cellIndex, cell)
-        {
-          var cellFieldID = cell.getField().getID();
-          d[cellFieldID] = cell.getValue();
-        });
-
-        addRow(d, rowIndex);
+        addRow(row, rowIndex);
       });
     }
 
@@ -1328,6 +1367,30 @@
       g.init();
     }
 
+//    function getEventHandlers()
+//    {
+//      return _self.eventHandlers;
+//    }
+//
+//    function addEventHandler(event, handler)
+//    {
+//      var handlers = getEventHandlers()[event.type] || [];
+//
+//      handlers.push(handler);
+//
+//      getEventHandlers()[event.type] = handlers;
+//    }
+
+    function subscribe(event, handler)
+    {
+      $(getTargetNodeSelector()).on(event, handler);
+    }
+
+    function trigger(event, args)
+    {
+      $(getTargetNodeSelector()).trigger(event, args);
+    }
+
     $.extend(this,
              {
                "init": init,
@@ -1346,6 +1409,8 @@
                "clearColumns": clearColumns,
                "getSelectedRows": getSelectedRows,
                "getRow": getRow,
+               "getRows": getRows,
+               "addRow": addRow,
                "clearColumnFilters": clearColumnFilters,
                "getColumnFilters": getColumnFilters,
                "setDisplayColumns": setDisplayColumns,
@@ -1354,7 +1419,10 @@
                "searchFilter": searchFilter,
                "comparer": comparer,
                "sortComparer": sortComparer,
-               "setSortColumn": setSortColumn
+               "setSortColumn": setSortColumn,
+
+               // Event subscription
+               "subscribe": subscribe
              });
   }
 })(jQuery);

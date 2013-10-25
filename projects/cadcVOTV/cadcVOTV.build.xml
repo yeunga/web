@@ -76,76 +76,69 @@ server, you can set the PROXY_URL filter token value to "".
 
   </target>
 
-  <target name="test" depends="install" description="Runs QUnit Tests using PhantomJS">
+  <target name="test" depends="install"
+          description="Runs QUnit Tests using PhantomJS">
       
     <!-- QUnit Javascript Unit Tests -->
     <echo message="Executing QUnit Javascript Unit Tests..."/>
 
+    <echo message="Dynamic row adding tests"/>
+    <antcall target="js-test">
+      <param name="js-test-dir" value="test/src/row_add" />
+      <param name="js-test-name" value="cadc.votv-row-add.js" />
+    </antcall>
+
     <echo message="VOTable Tests"/>
-    <apply executable="test/phantomjs" failonerror="true">
-      <arg value="test/qunit-runner.js" />
-      <arg line="--qunit test/qunit-1.10.0.js --package test/src/votable/package.json --tests test/src/votable/cadc.votable.js --junit test/src/votable/qunit-results.xml" />
-      <fileset dir="test/src/votable">
-        <include name="cadc.votable.js" />
-        <exclude name="package.json" />
-      </fileset>
-      <srcfile/>
-    </apply>
+    <antcall target="js-test">
+      <param name="js-test-dir" value="test/src/votable" />
+      <param name="js-test-name" value="cadc.votable.js" />
+    </antcall>
 
     <echo message="CADC VOTV Search Filter tests"/>
-    <apply executable="test/phantomjs" failonerror="true">
-      <arg value="test/qunit-runner.js" />
-      <arg line="--qunit test/qunit-1.10.0.js --package test/src/search_filter/package.json --tests test/src/search_filter/cadc.votv.search-filter.js --junit test/src/search_filter/qunit-results.xml" />
-      <fileset dir="test/src/search_filter">
-        <include name="cadc.votv.search-filter.js" />
-        <exclude name="package.json" />
-      </fileset>
-      <srcfile/>
-    </apply>
+    <antcall target="js-test">
+      <param name="js-test-dir" value="test/src/search_filter" />
+      <param name="js-test-name" value="cadc.votv.search-filter.js" />
+    </antcall>
 
     <echo message="CADC VOTV Value Filter tests"/>
-    <apply executable="test/phantomjs" failonerror="true">
-      <arg value="test/qunit-runner.js" />
-      <arg line="--qunit test/qunit-1.10.0.js --package test/src/value_filter/package.json --tests test/src/value_filter/cadc.votv.value-filter.js --junit test/src/value_filter/qunit-results.xml" />
-      <fileset dir="test/src/value_filter">
-        <include name="cadc.votv.value-filter.js" />
-        <exclude name="package.json" />
-      </fileset>
-      <srcfile/>
-    </apply>
+    <antcall target="js-test">
+      <param name="js-test-dir" value="test/src/value_filter" />
+      <param name="js-test-name" value="cadc.votv.value-filter.js" />
+    </antcall>
 
     <echo message="VOTable XML reader tests"/>
-    <apply executable="test/phantomjs" failonerror="true">
-      <arg value="test/qunit-runner.js" />
-      <arg line="--qunit test/qunit-1.10.0.js --package test/src/xml_reader/package.json --tests test/src/xml_reader/cadc.votable.xml-reader.js --junit test/src/xml_reader/qunit-results.xml" />
-      <fileset dir="test/src/xml_reader">
-        <include name="cadc.votable.xml-reader.js" />
-        <exclude name="package.json" />
-      </fileset>
-      <srcfile/>
-    </apply>
+    <antcall target="js-test">
+      <param name="js-test-dir" value="test/src/xml_reader" />
+      <param name="js-test-name" value="cadc.votable.xml-reader.js" />
+    </antcall>
 
-      <echo message="VOTable CSV reader tests"/>
-      <apply executable="test/phantomjs" failonerror="true">
-          <arg value="test/qunit-runner.js" />
-          <arg line="--qunit test/qunit-1.10.0.js --package test/src/csv_reader/package.json --tests test/src/csv_reader/cadc.votable.csv-reader.js --junit test/src/csv_reader/qunit-results.xml" />
-          <fileset dir="test/src/csv_reader">
-              <include name="cadc.votable.csv-reader.js" />
-              <exclude name="package.json" />
-          </fileset>
-          <srcfile/>
-      </apply>
+    <echo message="VOTable CSV reader tests"/>
+    <antcall target="js-test">
+      <param name="js-test-dir" value="test/src/csv_reader" />
+      <param name="js-test-name" value="cadc.votable.csv-reader.js" />
+    </antcall>
 
     <echo message="Sort comparer tests"/>
+    <antcall target="js-test">
+      <param name="js-test-dir" value="test/src/comparer" />
+      <param name="js-test-name" value="cadc.votv.comparer.js" />
+    </antcall>
+
+  </target>
+
+  <target name="js-test">
+    <property name="js-test-dir" value="" />
+    <property name="js-test-name" value="" />
+
     <apply executable="test/phantomjs" failonerror="true">
       <arg value="test/qunit-runner.js" />
-      <arg line="--qunit test/qunit-1.10.0.js --package test/src/comparer/package.json --tests test/src/comparer/cadc.votv.comparer.js --junit test/src/comparer/qunit-results.xml" />
-      <fileset dir="test/src/comparer">
-        <include name="cadc.votv.comparer.js" />
+      <arg line="--qunit test/qunit-1.10.0.js --package ${js-test-dir}/package.json --tests ${js-test-dir}/${js-test-name} --junit ${js-test-dir}/qunit-results.xml" />
+      <fileset dir="${js-test-dir}">
+        <include name="${js-test-name}" />
         <exclude name="package.json" />
       </fileset>
       <srcfile/>
     </apply>
-      
   </target>
+
 </project>
