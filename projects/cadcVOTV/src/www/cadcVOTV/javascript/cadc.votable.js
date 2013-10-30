@@ -123,8 +123,8 @@
    * @param __groups
    * @constructor
    */
-  function Metadata(__parameters, __infos, _description, __links,
-                    __fields, __groups)
+  function Metadata(__parameters, __infos, _description, __links, __fields,
+                    __groups)
   {
     var _selfMetadata = this;
 
@@ -170,6 +170,11 @@
       getFields().push(_field);
     }
 
+    function insertField(_fieldIndex, _field)
+    {
+      getFields()[_fieldIndex] = _field;
+    }
+
     function hasFieldWithID(_fieldID)
     {
       var currFields = getFields();
@@ -194,6 +199,7 @@
                "getLinks": getLinks,
                "getGroups": getGroups,
                "addField": addField,
+               "insertField": insertField,
                "hasFieldWithID": hasFieldWithID
              });
   }

@@ -5,6 +5,7 @@
     "cadc": {
       "vot": {
         "Builder": Builder,
+        "RowBuilder": RowBuilder,
         "XMLBuilder": XMLBuilder,
         "JSONBuilder": JSONBuilder,
         "CSVBuilder": CSVBuilder,
@@ -12,10 +13,78 @@
 
         // Events
         "onRowAdd": new jQuery.Event("onRowAdd"),
-        "onLoadEnd": new jQuery.Event("onLoadEnd")
+
+        // For batch row adding.
+        "onPageAddStart": new jQuery.Event("onPageAddStart"),
+        "onPageAddEnd": new jQuery.Event("onPageAddEnd"),
+
+        "onDataLoadComplete": new jQuery.Event("onDataLoadComplete")
       }
     }
   });
+  
+  function RowBuilder()
+  {
+    function setLongest(longestValues, cellID, newValue)
+    {
+      var stringLength = (newValue && newValue.length) ? newValue.length : -1;
+      if (longestValues[cellID] === undefined)
+      {
+        longestValues[cellID] = -1;
+      }
+      if (stringLength > longestValues[cellID])
+      {
+        longestValues[cellID] = stringLength;
+      }
+    }  	
+  	
+	 function buildRowData(tableFields, rowID, rowData, longestValues, extract)
+    {
+      var rowCells = [];
+      for (var cellIndex = 0; cellIndex < rowData.length; cellIndex++)
+      {
+        var cellField = tableFields[cellIndex];
+        var cellDatatype = cellField.getDatatype();
+        var stringValue = extract(cellIndex);
+
+        setLongest(longestValues, cellField.getID(), stringValue);
+
+        var cellValue;
+        if (!$.isEmptyObject(cellDatatype) && cellDatatype.isNumeric())
+        {
+          var num;
+
+          if (!stringValue || ($.trim(stringValue) == ""))
+          {
+            num = Number.NaN;
+          }
+          else if (cellDatatype.isFloatingPointNumeric())
+          {
+            num = parseFloat(stringValue);
+            num.toFixed(2);
+          }
+          else
+          {
+            num = parseInt(stringValue);
+          }
+          cellValue = num;
+        }
+        else
+        {
+          cellValue = stringValue;
+        }
+
+        rowCells.push(new cadc.vot.Cell(cellValue, cellField));
+      }
+
+      return new cadc.vot.Row(rowID, rowCells);
+    }  	
+    
+    $.extend(this,
+             {
+             	"buildRowData": buildRowData
+             })
+  }
 
   /**
    * Main builder class.  Uses an implementation of a certain kind of builder
@@ -130,61 +199,11 @@
       }
     }
 
-    function setLongest(longestValues, cellID, newValue)
-    {
-      var stringLength = (newValue && newValue.length) ? newValue.length : -1;
-      if (longestValues[cellID] === undefined)
-      {
-        longestValues[cellID] = -1;
-      }
-      if (stringLength > longestValues[cellID])
-      {
-        longestValues[cellID] = stringLength;
-      }
-    }
-
     function buildRowData(tableFields, rowID, rowData, longestValues, extract)
     {
-      var rowCells = [];
-      for (var cellIndex = 0; cellIndex < rowData.length; cellIndex++)
-      {
-        console.log("Looking at index " + cellIndex + " of field length " + tableFields.length);
-
-        var cellField = tableFields[cellIndex];
-        var cellDatatype = cellField.getDatatype();
-        var stringValue = extract(cellIndex);
-
-        setLongest(longestValues, cellField.getID(), stringValue);
-
-        var cellValue;
-        if (!$.isEmptyObject(cellDatatype) && cellDatatype.isNumeric())
-        {
-          var num;
-
-          if (!stringValue || ($.trim(stringValue) == ""))
-          {
-            num = Number.NaN;
-          }
-          else if (cellDatatype.isFloatingPointNumeric())
-          {
-            num = parseFloat(stringValue);
-            num.toFixed(2);
-          }
-          else
-          {
-            num = parseInt(stringValue);
-          }
-          cellValue = num;
-        }
-        else
-        {
-          cellValue = stringValue;
-        }
-
-        rowCells.push(new cadc.vot.Cell(cellValue, cellField));
-      }
-
-      return new cadc.vot.Row(rowID, rowCells);
+      return new cadc.vot.RowBuilder().buildRowData(tableFields, rowID, 
+                                                    rowData, longestValues, 
+                                                    extract);
     }
 
 
@@ -476,12 +495,22 @@
    */
   function CSVBuilder(input, buildRowData)
   {
-
-    var _selfCSVBuilder = this;
-
     var longestValues = [];
     var chunk = {lastMatch: 0, rowCount: 0};
+    var pageSize = input.pageSize || null;
 
+
+    function init()
+    {
+	   if (pageSize)
+	   {
+	     // Also issue a page end on load complete.
+	     subscribe("onDataLoadComplete", function(e)
+	     {
+	       trigger(cadc.vot.onPageAddEnd);
+	     });
+	   }    	
+    }
 
     function append(asChunk)
     {
@@ -512,6 +541,11 @@
       $(document).on(eName, eHandler);
     }
 
+    function trigger(event, eventData)
+    {
+      $.event.trigger(event, eventData);
+    }
+
     function advanceToNextRow(asChunk, lastFound)
     {
       chunk.rowCount++;
@@ -537,7 +571,23 @@
                                    return entryAsArray[index].trim();
                                  });
 
-      $.event.trigger(cadc.vot.onRowAdd, rowData);
+      if (pageSize)
+      {
+        // Used to calculate the page start and end based on the current row 
+        // count.
+        var moduloPage = (chunk.rowCount % pageSize);
+        
+        if (moduloPage == (pageSize - 1))
+        {
+          $.event.trigger(cadc.vot.onPageAddStart);
+        }
+        else if (moduloPage == 0)
+        {
+          $.event.trigger(cadc.vot.onPageAddEnd);
+        }
+      }
+
+      trigger(cadc.vot.onRowAdd, rowData);
     }
 
     $.extend(this,
@@ -546,7 +596,8 @@
                "getCurrent": getCurrent,
                "subscribe": subscribe
              });
-
+             
+    init();
   }
 
   /**
@@ -643,7 +694,7 @@
 
     function loadEnd()
     {
-      $.event.trigger(cadc.vot.onLoadEnd);
+      $.event.trigger(cadc.vot.onDataLoadComplete);
     }
 
     function createRequest()

@@ -89,8 +89,23 @@
                              	 if (!hasDisplayColumns)
                              	 {
                              	 	refreshColumns(input.tableMetadata.getFields());
-                             	 }                       
-                             	       	 
+                             	 }
+
+                               clearRows();
+                               _self.init();                               
+
+                               voTableBuilder.subscribe(cadc.vot.onPageAddStart,
+                                                        function(event)
+                                                        {
+                                                          getDataView().beginUpdate();
+                                                        });
+                                                        
+                               voTableBuilder.subscribe(cadc.vot.onPageAddEnd,
+                                                        function(event)
+                                                        {
+                                                          getDataView().endUpdate();                                                                                                                    
+                                                        });                                                        
+
                                voTableBuilder.subscribe(cadc.vot.onRowAdd,
                                                         function (event, row)
                                                         {
@@ -101,9 +116,8 @@
                              {
                                _self.load(voTableBuilder.getVOTable(),
                                           !hasDisplayColumns, true);
+                               _self.init();
                              }
-
-                             _self.init();
 
                              if (completeCallback)
                              {
@@ -257,8 +271,6 @@
         dataRow[cellFieldID] = cell.getValue();
       });
 
-      getDataView().beginUpdate();
-
       if (rowIndex)
       {
         getDataView().getItems()[rowIndex] = dataRow;
@@ -267,9 +279,6 @@
       {
         getDataView().getItems().push(dataRow);
       }
-
-      getDataView().endUpdate();
-      getDataView().refresh();
     }
 
     function clearRows()
