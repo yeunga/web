@@ -283,7 +283,9 @@
 
     function clearRows()
     {
+      getDataView().beginUpdate();
       getDataView().setItems([]);
+      getDataView().endUpdate();
     }
 
     function setDataView(dataViewObject)

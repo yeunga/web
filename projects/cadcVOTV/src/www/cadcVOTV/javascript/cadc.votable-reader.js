@@ -502,14 +502,26 @@
 
     function init()
     {
-	   if (pageSize)
-	   {
-	     // Also issue a page end on load complete.
-	     subscribe("onDataLoadComplete", function(e)
-	     {
-	       trigger(cadc.vot.onPageAddEnd);
-	     });
-	   }    	
+      clearEventSubscriptions();
+
+	    if (pageSize)
+	    {
+	      // Also issue a page end on load complete.
+	      subscribe("onDataLoadComplete", function(e)
+	      {
+	        trigger(cadc.vot.onPageAddEnd);
+	      });
+	    }
+    }
+
+    /**
+     * Necessary to avoid duplicate entries.
+     */
+    function clearEventSubscriptions()
+    {
+      $(document).unbind("onPageAddEnd");
+      $(document).unbind("onRowAdd");
+      $(document).unbind("onDataLoadComplete");
     }
 
     function append(asChunk)
@@ -694,7 +706,7 @@
 
     function loadEnd()
     {
-      $.event.trigger(cadc.vot.onDataLoadComplete);
+      $.event.trigger(cadc.vot.onDataLoadComplete, this);
     }
 
     function createRequest()
