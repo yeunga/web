@@ -680,7 +680,7 @@
         var contentType = this.getResponseHeader("Content-Type");
 
         // Only CSV supports streaming!
-        if (contentType.indexOf("csv") >= 0)
+        if (contentType && contentType.indexOf("csv") >= 0)
         {
           __MAIN_BUILDER.setInternalBuilder(
                 new cadc.vot.CSVBuilder(input, __MAIN_BUILDER.buildRowData));
