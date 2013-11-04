@@ -103,8 +103,8 @@
                                voTableBuilder.subscribe(cadc.vot.onPageAddEnd,
                                                         function(event)
                                                         {
-                                                          getDataView().endUpdate();                                                                                                                    
-                                                        });                                                        
+                                                          getDataView().endUpdate();
+                                                        });
 
                                voTableBuilder.subscribe(cadc.vot.onRowAdd,
                                                         function (event, row)
