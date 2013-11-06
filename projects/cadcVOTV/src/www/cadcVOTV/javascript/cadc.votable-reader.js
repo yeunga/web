@@ -132,11 +132,21 @@
       }
       else if (input.url)
       {
-        var streamBuilder = new cadc.vot.StreamBuilder(input, readyCallback,
-                                                       errorCallback,
-                                                       _selfBuilder);
+        try
+        {
+          var streamBuilder = new cadc.vot.StreamBuilder(input, readyCallback,
+                                                         errorCallback,
+                                                         _selfBuilder);
 
-        streamBuilder.start();
+          streamBuilder.start();
+        }
+        catch (e)
+        {
+          if (errorCallback)
+          {
+            errorCallback(null, null, e);
+          }
+        }
       }
       else
       {
@@ -613,19 +623,27 @@
   }
 
   /**
+   * Stream builder for URLs being input.  Relies on the cadc.uri.js to be
+   * imported.
    *
-   * @param input
-   * @param readyCallback
-   * @param errorCallback
-   * @param __MAIN_BUILDER
+   * @param input           The input options.
+   * @param readyCallback   Callback for ready.
+   * @param errorCallback   Callback for errors.
+   * @param __MAIN_BUILDER  The internal data-savvy builder.
    * @constructor
    */
   function StreamBuilder(input, readyCallback, errorCallback, __MAIN_BUILDER)
   {
+    if (!(cadc.web))
+    {
+      throw "URL results rely on the CADC uri js (cadc.uri.js) in the cadcJS "
+            + "module.";
+    }
+
     var _selfStreamBuilder = this;
 
     this.errorCallbackFunction = null;
-    this.url = input.url;
+    this.url = new cadc.web.util.URI(input.url);
 
     function init()
     {
@@ -661,10 +679,27 @@
       return _selfStreamBuilder.url;
     }
 
+    function getURLString()
+    {
+      var thisURL = getURL();
+      var urlToUse;
+
+      if (input.useRelativeURL)
+      {
+        urlToUse = thisURL.getRelativeURI();
+      }
+      else
+      {
+        urlToUse = thisURL.getURI();
+      }
+
+      return urlToUse;
+    }
+
     function start()
     {
       $.ajax({
-               url: getURL(),
+               url: getURLString(),
                type: "GET",
                xhr: createRequest
              }).fail(getErrorCallbackFunction());
@@ -723,7 +758,8 @@
 
     $.extend(this,
              {
-               "start": start
+               "start": start,
+               "getURLString": getURLString
              });
 
     init();

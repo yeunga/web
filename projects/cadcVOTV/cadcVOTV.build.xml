@@ -124,6 +124,12 @@ server, you can set the PROXY_URL filter token value to "".
       <param name="js-test-name" value="cadc.votv.comparer.js" />
     </antcall>
 
+    <echo message="VOTable Streaming builder tests"/>
+    <antcall target="js-test">
+      <param name="js-test-dir" value="test/src/streaming_reader" />
+      <param name="js-test-name" value="cadc.votable.streaming-reader.js" />
+    </antcall>
+
   </target>
 
   <target name="js-test">
