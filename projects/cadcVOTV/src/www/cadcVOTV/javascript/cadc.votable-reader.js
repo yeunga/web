@@ -521,6 +521,7 @@
 	      // Also issue a page end on load complete.
 	      subscribe("onDataLoadComplete", function(e)
 	      {
+          console.log("Data load complete.");
 	        trigger(cadc.vot.onPageAddEnd);
 	      });
 	    }
@@ -618,6 +619,7 @@
 
     function loadEnd()
     {
+      console.log("Load end.");
       trigger(cadc.vot.onDataLoadComplete);
     }
 
@@ -757,6 +759,11 @@
       }
     }
 
+    function loadEnd()
+    {
+      __MAIN_BUILDER.getInternalBuilder().loadEnd();
+    }
+
     function handleProgress()
     {
       __MAIN_BUILDER.appendToBuilder(this.responseText);
@@ -769,9 +776,7 @@
       request.addEventListener("readystatechange", initializeInternalBuilder,
                                false);
       request.addEventListener("progress", handleProgress, false);
-      request.addEventListener("loadend",
-                               __MAIN_BUILDER.getInternalBuilder().loadEnd,
-                               false);
+      request.addEventListener("loadend", loadEnd, false);
 
       return request;
     }
