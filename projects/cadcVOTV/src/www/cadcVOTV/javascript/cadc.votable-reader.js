@@ -224,6 +224,7 @@
                "getVOTable": getVOTable,
                "getData": getData,
                "setInternalBuilder": setInternalBuilder,
+               "getInternalBuilder": getInternalBuilder,
                "appendToBuilder": appendToBuilder,
 
                // Event management
@@ -505,6 +506,7 @@
    */
   function CSVBuilder(input, buildRowData)
   {
+    var _selfCSVBuilder = this;
     var longestValues = [];
     var chunk = {lastMatch: 0, rowCount: 0};
     var pageSize = input.pageSize || null;
@@ -529,9 +531,10 @@
      */
     function clearEventSubscriptions()
     {
-      $(document).unbind("onPageAddEnd");
-      $(document).unbind("onRowAdd");
-      $(document).unbind("onDataLoadComplete");
+//      $(document).unbind("onPageAddStart");
+//      $(document).unbind("onPageAddEnd");
+//      $(document).unbind("onRowAdd");
+//      $(document).unbind("onDataLoadComplete");
     }
 
     function append(asChunk)
@@ -560,12 +563,13 @@
 
     function subscribe(eName, eHandler)
     {
-      $(document).on(eName, eHandler);
+      $(_selfCSVBuilder).on(eName, eHandler);
     }
 
     function trigger(event, eventData)
     {
-      $.event.trigger(event, eventData);
+//      $.event.trigger(event, eventData);
+      $(_selfCSVBuilder).trigger(event, eventData);
     }
 
     function advanceToNextRow(asChunk, lastFound)
@@ -601,22 +605,28 @@
         
         if (moduloPage == (pageSize - 1))
         {
-          $.event.trigger(cadc.vot.onPageAddStart);
+          trigger(cadc.vot.onPageAddStart);
         }
         else if (moduloPage == 0)
         {
-          $.event.trigger(cadc.vot.onPageAddEnd);
+          trigger(cadc.vot.onPageAddEnd);
         }
       }
 
       trigger(cadc.vot.onRowAdd, rowData);
     }
 
+    function loadEnd()
+    {
+      trigger(cadc.vot.onDataLoadComplete);
+    }
+
     $.extend(this,
              {
                "append": append,
                "getCurrent": getCurrent,
-               "subscribe": subscribe
+               "subscribe": subscribe,
+               "loadEnd": loadEnd
              });
              
     init();
@@ -645,8 +655,21 @@
     this.errorCallbackFunction = null;
     this.url = new cadc.web.util.URI(input.url);
 
+    /**
+     * Necessary to avoid duplicate entries.
+     */
+    function clearEventSubscriptions()
+    {
+//      $(document).unbind("onPageAddStart");
+//      $(document).unbind("onPageAddEnd");
+//      $(document).unbind("onRowAdd");
+//      $(document).unbind("onDataLoadComplete");
+    }
+
     function init()
     {
+      clearEventSubscriptions();
+
       if (errorCallback)
       {
         _selfStreamBuilder.errorCallbackFunction = errorCallback;
@@ -739,11 +762,6 @@
       __MAIN_BUILDER.appendToBuilder(this.responseText);
     }
 
-    function loadEnd()
-    {
-      $.event.trigger(cadc.vot.onDataLoadComplete);
-    }
-
     function createRequest()
     {
       var request = new XMLHttpRequest();
@@ -751,7 +769,9 @@
       request.addEventListener("readystatechange", initializeInternalBuilder,
                                false);
       request.addEventListener("progress", handleProgress, false);
-      request.addEventListener("loadend", loadEnd, false);
+      request.addEventListener("loadend",
+                               __MAIN_BUILDER.getInternalBuilder().loadEnd,
+                               false);
 
       return request;
     }

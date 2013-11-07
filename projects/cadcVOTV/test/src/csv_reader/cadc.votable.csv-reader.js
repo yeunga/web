@@ -1,8 +1,8 @@
 function clearEventSubscriptions()
 {
-  $(document).unbind("onPageAddEnd");
-  $(document).unbind("onRowAdd");
-  $(document).unbind("onDataLoadComplete");
+//  $(document).unbind("onPageAddEnd");
+//  $(document).unbind("onRowAdd");
+//  $(document).unbind("onDataLoadComplete");
 }
 
 test("Read in simple CSV VOTable.", 32, function ()
@@ -42,7 +42,7 @@ test("Read in simple CSV VOTable.", 32, function ()
     var pageEventCounter = 0;
 
     var rowBuilder = new cadc.vot.RowBuilder();
-    var voTableBuilder = new cadc.vot.CSVBuilder(input,
+    var testSubject = new cadc.vot.CSVBuilder(input,
                                                  rowBuilder.buildRowData);
 
     var onRowAddEventHandler = function (rowData)
@@ -62,8 +62,8 @@ test("Read in simple CSV VOTable.", 32, function ()
       equal(builder.getCurrent().lastMatch, expectedLastMatch, "lastMatch wrong");
     };
 
-    voTableBuilder.subscribe("onRowAdd", onRowAddEventHandler);
-    voTableBuilder.subscribe("onPageAddEnd", onPageAddEventHandler);
+    testSubject.subscribe("onRowAdd", onRowAddEventHandler);
+    testSubject.subscribe("onPageAddEnd", onPageAddEventHandler);
 
     var firstReturn = csvData.indexOf("\n");
     var secondReturn = csvData.indexOf("\n", firstReturn + 1);
@@ -71,84 +71,84 @@ test("Read in simple CSV VOTable.", 32, function ()
     var secondLastReturn = csvData.lastIndexOf("\n", csvData.length - 1);
 
     console.log("test case - an in-complete starting chunk");
-    voTableBuilder.append(csvData.slice(0, 22));
+    testSubject.append(csvData.slice(0, 22));
     equal(eventCounter, 0, "eventHandler should not have been called yet.");
     equal(pageEventCounter, 0,
           "pageEventHandler should not have been called yet.");
-    testPrivate(voTableBuilder, 0, 0);
+    testPrivate(testSubject, 0, 0);
 
     console.log("test case - the starting chunk, but only headers are a valid chunk");
-    voTableBuilder.append(csvData.slice(0, firstReturn + 22));
+    testSubject.append(csvData.slice(0, firstReturn + 22));
     equal(eventCounter, 0, "eventHandler should not have been called yet.");
     equal(pageEventCounter, 0,
           "pageEventHandler should not have been called yet.");
-    testPrivate(voTableBuilder, 1, firstReturn);
+    testPrivate(testSubject, 1, firstReturn);
 
     console.log("test case - the starting chunk - first row");
-    voTableBuilder.append(csvData.slice(0, secondReturn + 22));
+    testSubject.append(csvData.slice(0, secondReturn + 22));
     equal(eventCounter, 1, "eventHandler should have been called once by now.");
     equal(pageEventCounter, 0,
           "pageEventHandler should not have been called yet.");
-    testPrivate(voTableBuilder, 2, secondReturn);
+    testPrivate(testSubject, 2, secondReturn);
 
     console.log("test case - another row");
-    voTableBuilder.append(csvData.slice(0, thirdReturn + 22));
+    testSubject.append(csvData.slice(0, thirdReturn + 22));
     equal(eventCounter, 2, "eventHandler should have been called twice by now.");
     equal(pageEventCounter, 0,
           "pageEventHandler should not have been called yet.");
-    testPrivate(voTableBuilder, 3, thirdReturn);
+    testPrivate(testSubject, 3, thirdReturn);
 
     console.log("test case - chunk-less");
-    voTableBuilder.append(csvData.slice(0, thirdReturn + 44));
+    testSubject.append(csvData.slice(0, thirdReturn + 44));
     equal(eventCounter, 2, "eventHandler should have been called twice by now.");
     equal(pageEventCounter, 0,
           "pageEventHandler should not have been called yet.");
-    testPrivate(voTableBuilder, 3, thirdReturn);
+    testPrivate(testSubject, 3, thirdReturn);
 
     console.log("test case - the ending chunk");
-    voTableBuilder.append(csvData);
-    $.event.trigger(cadc.vot.onDataLoadComplete);
+    testSubject.append(csvData);
+    testSubject.loadEnd();
     equal(eventCounter, 7,
           "eventHandler should have been called seven times by now.");
     equal(pageEventCounter, 3,
           "pageEventHandler should have been called three times.");
-    testPrivate(voTableBuilder, 8, secondLastReturn);
+    testPrivate(testSubject, 8, secondLastReturn);
 
     clearEventSubscriptions();
     console.log("test case - new with first row of data");
-    voTableBuilder = new cadc.vot.CSVBuilder(input,
+    testSubject = new cadc.vot.CSVBuilder(input,
                                              rowBuilder.buildRowData);
 
-    voTableBuilder.subscribe("onRowAdd", onRowAddEventHandler);
-    voTableBuilder.subscribe("onPageAddEnd", onPageAddEventHandler);
+    testSubject.subscribe("onRowAdd", onRowAddEventHandler);
+    testSubject.subscribe("onPageAddEnd", onPageAddEventHandler);
 
     eventCounter = 0;
     pageEventCounter = 0;
 
-    voTableBuilder.append(csvData.slice(0, secondReturn + 22));
+    testSubject.append(csvData.slice(0, secondReturn + 22));
     equal(eventCounter, 1, "eventHandler should have been called once by now.");
     equal(pageEventCounter, 0, "pageEventCounter should not have been called.");
-    testPrivate(voTableBuilder, 2, secondReturn);
+    testPrivate(testSubject, 2, secondReturn);
 
     clearEventSubscriptions();
 
     console.log("test case - new with all data");
-    voTableBuilder = new cadc.vot.CSVBuilder(input,
+    testSubject = new cadc.vot.CSVBuilder(input,
                                              rowBuilder.buildRowData);
 
-    voTableBuilder.subscribe("onRowAdd", onRowAddEventHandler);
-    voTableBuilder.subscribe("onPageAddEnd", onPageAddEventHandler);
+    testSubject.subscribe("onRowAdd", onRowAddEventHandler);
+    testSubject.subscribe("onPageAddEnd", onPageAddEventHandler);
 
     eventCounter = 0;
     pageEventCounter = 0;
 
-    voTableBuilder.append(csvData);
-    $.event.trigger(cadc.vot.onDataLoadComplete);
+    testSubject.append(csvData);
+    testSubject.loadEnd();
     equal(eventCounter, 7,
           "eventHandler should have been called seven times by now.");
     equal(pageEventCounter, 3,
           "pageEventHandler should have been called three times.");
-    testPrivate(voTableBuilder, 8, secondLastReturn);
+    testPrivate(testSubject, 8, secondLastReturn);
 
   }
   catch (error)
