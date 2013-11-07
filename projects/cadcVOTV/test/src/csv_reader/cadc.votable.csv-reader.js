@@ -42,8 +42,7 @@ test("Read in simple CSV VOTable.", 32, function ()
     var pageEventCounter = 0;
 
     var rowBuilder = new cadc.vot.RowBuilder();
-    var testSubject = new cadc.vot.CSVBuilder(input,
-                                                 rowBuilder.buildRowData);
+    var testSubject = new cadc.vot.CSVBuilder(input, rowBuilder.buildRowData);
 
     var onRowAddEventHandler = function (rowData)
     {
@@ -62,8 +61,8 @@ test("Read in simple CSV VOTable.", 32, function ()
       equal(builder.getCurrent().lastMatch, expectedLastMatch, "lastMatch wrong");
     };
 
-    testSubject.subscribe("onRowAdd", onRowAddEventHandler);
-    testSubject.subscribe("onPageAddEnd", onPageAddEventHandler);
+    testSubject.subscribe(cadc.vot.onRowAdd, onRowAddEventHandler);
+    testSubject.subscribe(cadc.vot.onPageAddEnd, onPageAddEventHandler);
 
     var firstReturn = csvData.indexOf("\n");
     var secondReturn = csvData.indexOf("\n", firstReturn + 1);
@@ -119,8 +118,8 @@ test("Read in simple CSV VOTable.", 32, function ()
     testSubject = new cadc.vot.CSVBuilder(input,
                                              rowBuilder.buildRowData);
 
-    testSubject.subscribe("onRowAdd", onRowAddEventHandler);
-    testSubject.subscribe("onPageAddEnd", onPageAddEventHandler);
+    testSubject.subscribe(cadc.vot.onRowAdd, onRowAddEventHandler);
+    testSubject.subscribe(cadc.vot.onPageAddEnd, onPageAddEventHandler);
 
     eventCounter = 0;
     pageEventCounter = 0;
@@ -136,8 +135,8 @@ test("Read in simple CSV VOTable.", 32, function ()
     testSubject = new cadc.vot.CSVBuilder(input,
                                              rowBuilder.buildRowData);
 
-    testSubject.subscribe("onRowAdd", onRowAddEventHandler);
-    testSubject.subscribe("onPageAddEnd", onPageAddEventHandler);
+    testSubject.subscribe(cadc.vot.onRowAdd, onRowAddEventHandler);
+    testSubject.subscribe(cadc.vot.onPageAddEnd, onPageAddEventHandler);
 
     eventCounter = 0;
     pageEventCounter = 0;

@@ -88,11 +88,12 @@
                              {
                              	 if (!hasDisplayColumns)
                              	 {
-                             	 	refreshColumns(input.tableMetadata.getFields());
+                             	 	 refreshColumns(
+                                     input.tableMetadata.getFields());
                              	 }
 
                                clearRows();
-                               _self.init();                               
+                               _self.init();
 
                                voTableBuilder.subscribe(cadc.vot.onPageAddStart,
                                                         function(event)
@@ -1392,15 +1393,15 @@
 //      getEventHandlers()[event.type] = handlers;
 //    }
 
-    function subscribe(event, handler)
-    {
-      $(getTargetNodeSelector()).on(event, handler);
-    }
-
-    function trigger(event, args)
-    {
-      $(getTargetNodeSelector()).trigger(event, args);
-    }
+//    function subscribe(event, handler)
+//    {
+//      $(getTargetNodeSelector()).on(event, handler);
+//    }
+//
+//    function trigger(event, args)
+//    {
+//      $(getTargetNodeSelector()).trigger(event, args);
+//    }
 
     $.extend(this,
              {
@@ -1430,10 +1431,10 @@
                "searchFilter": searchFilter,
                "comparer": comparer,
                "sortComparer": sortComparer,
-               "setSortColumn": setSortColumn,
+               "setSortColumn": setSortColumn
 
                // Event subscription
-               "subscribe": subscribe
+//               "subscribe": subscribe
              });
   }
 })(jQuery);

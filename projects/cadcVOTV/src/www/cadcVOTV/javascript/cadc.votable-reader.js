@@ -12,13 +12,13 @@
         "StreamBuilder": StreamBuilder,
 
         // Events
-        "onRowAdd": new jQuery.Event("onRowAdd"),
+        "onRowAdd": new jQuery.Event("cadcVOTV:onRowAdd"),
 
         // For batch row adding.
-        "onPageAddStart": new jQuery.Event("onPageAddStart"),
-        "onPageAddEnd": new jQuery.Event("onPageAddEnd"),
+        "onPageAddStart": new jQuery.Event("cadcVOTV:onPageAddStart"),
+        "onPageAddEnd": new jQuery.Event("cadcVOTV:onPageAddEnd"),
 
-        "onDataLoadComplete": new jQuery.Event("onDataLoadComplete")
+        "onDataLoadComplete": new jQuery.Event("cadcVOTV:onDataLoadComplete")
       }
     }
   });
@@ -205,7 +205,7 @@
     {
       if (getInternalBuilder().subscribe)
       {
-        getInternalBuilder().subscribe(builderEvent.type, handler);
+        getInternalBuilder().subscribe(builderEvent, handler);
       }
     }
 
@@ -305,8 +305,6 @@
 
     function build(buildRowData)
     {
-      console.log("Entering XMLBuilder::build");
-
       var xmlVOTableDOM = evaluateXPath(this.getData(), "VOTABLE");
       var xmlVOTableResourceDOM = evaluateXPath(xmlVOTableDOM[0], "RESOURCE");
 
@@ -514,15 +512,14 @@
 
     function init()
     {
-      clearEventSubscriptions();
+//      clearEventSubscriptions();
 
 	    if (pageSize)
 	    {
 	      // Also issue a page end on load complete.
-	      subscribe("onDataLoadComplete", function(e)
+	      subscribe(cadc.vot.onDataLoadComplete, function(e)
 	      {
-          console.log("Data load complete.");
-	        trigger(cadc.vot.onPageAddEnd);
+	        fireEvent(cadc.vot.onPageAddEnd);
 	      });
 	    }
     }
@@ -532,10 +529,12 @@
      */
     function clearEventSubscriptions()
     {
-//      $(document).unbind("onPageAddStart");
-//      $(document).unbind("onPageAddEnd");
-//      $(document).unbind("onRowAdd");
-//      $(document).unbind("onDataLoadComplete");
+      var $me = $(_selfCSVBuilder);
+
+      $me.unbind(cadc.vot.onPageAddStart);
+      $me.unbind(cadc.vot.onPageAddEnd);
+      $me.unbind(cadc.vot.onRowAdd);
+      $me.unbind(cadc.vot.onDataLoadComplete);
     }
 
     function append(asChunk)
@@ -562,12 +561,12 @@
       return chunk;
     }
 
-    function subscribe(eName, eHandler)
+    function subscribe(event, eHandler)
     {
-      $(_selfCSVBuilder).on(eName, eHandler);
+      $(_selfCSVBuilder).on(event.type, eHandler);
     }
 
-    function trigger(event, eventData)
+    function fireEvent(event, eventData)
     {
 //      $.event.trigger(event, eventData);
       $(_selfCSVBuilder).trigger(event, eventData);
@@ -606,21 +605,20 @@
         
         if (moduloPage == (pageSize - 1))
         {
-          trigger(cadc.vot.onPageAddStart);
+          fireEvent(cadc.vot.onPageAddStart);
         }
         else if (moduloPage == 0)
         {
-          trigger(cadc.vot.onPageAddEnd);
+          fireEvent(cadc.vot.onPageAddEnd);
         }
       }
 
-      trigger(cadc.vot.onRowAdd, rowData);
+      fireEvent(cadc.vot.onRowAdd, rowData);
     }
 
     function loadEnd()
     {
-      console.log("Load end.");
-      trigger(cadc.vot.onDataLoadComplete);
+      fireEvent(cadc.vot.onDataLoadComplete);
     }
 
     $.extend(this,
@@ -662,15 +660,17 @@
      */
     function clearEventSubscriptions()
     {
-//      $(document).unbind("onPageAddStart");
-//      $(document).unbind("onPageAddEnd");
-//      $(document).unbind("onRowAdd");
-//      $(document).unbind("onDataLoadComplete");
+      var $me = $(_selfStreamBuilder);
+
+      $me.unbind(cadc.vot.onPageAddStart);
+      $me.unbind(cadc.vot.onPageAddEnd);
+      $me.unbind(cadc.vot.onRowAdd);
+      $me.unbind(cadc.vot.onDataLoadComplete);
     }
 
     function init()
     {
-      clearEventSubscriptions();
+//      clearEventSubscriptions();
 
       if (errorCallback)
       {
