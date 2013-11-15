@@ -41,7 +41,8 @@
 	 function buildRowData(tableFields, rowID, rowData, longestValues, extract)
     {
       var rowCells = [];
-      for (var cellIndex = 0; cellIndex < rowData.length; cellIndex++)
+      for (var cellIndex = 0; (cellIndex < rowData.length)
+                              && (cellIndex < tableFields.length); cellIndex++)
       {
         var cellField = tableFields[cellIndex];
         var cellDatatype = cellField.getDatatype();
@@ -655,23 +656,8 @@
     this.errorCallbackFunction = null;
     this.url = new cadc.web.util.URI(input.url);
 
-    /**
-     * Necessary to avoid duplicate entries.
-     */
-    function clearEventSubscriptions()
-    {
-      var $me = $(_selfStreamBuilder);
-
-      $me.unbind(cadc.vot.onPageAddStart);
-      $me.unbind(cadc.vot.onPageAddEnd);
-      $me.unbind(cadc.vot.onRowAdd);
-      $me.unbind(cadc.vot.onDataLoadComplete);
-    }
-
     function init()
     {
-//      clearEventSubscriptions();
-
       if (errorCallback)
       {
         _selfStreamBuilder.errorCallbackFunction = errorCallback;
@@ -752,9 +738,9 @@
         }
         else
         {
-          console.log("cadcVOTV: Unable to obtain XML, JSON, or CSV VOTable from URL");
-          alert("cadcVOTV: Unable to obtain XML, JSON, or CSV VOTable from URL ("
-                + input.url + ").");
+          console.log(
+              "cadcVOTV: Unable to obtain XML, JSON, or CSV VOTable from URL");
+          alert("cadcVOTV: Unable to obtain XML, JSON, or CSV VOTable from URL (" + input.url + ").");
         }
       }
     }
