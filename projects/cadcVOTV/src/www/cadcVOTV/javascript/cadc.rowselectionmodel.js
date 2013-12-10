@@ -175,15 +175,23 @@
 
       var selection = rangesToRows(_ranges);
       var idx = $.inArray(cell.row, selection);
+      var activeCell = _grid.getActiveCell();
 
       if (_grid.getOptions().multiSelect)
       {
-        if (idx === -1)
+        if (idx === -1) // not selected
         {
-          selection.push(cell.row);
-          _grid.setActiveCell(cell.row, cell.cell);
+          if ((activeCell) && (activeCell.row === cell.row) && (cell.cell !== 0))
+          {
+            _grid.resetActiveCell();
+          }
+          else
+          {
+            selection.push(cell.row);
+            _grid.setActiveCell(cell.row, cell.cell);
+          }
         }
-        else if (idx !== -1)
+        else if (idx !== -1) // un-check the checkbox
         {
           selection = $.grep(selection, function (o, i)
           {
@@ -209,8 +217,11 @@
         }
       }
 
-      _ranges = rowsToRanges(selection);
-      setSelectedRanges(_ranges);
+      if (cell.cell === 0)
+      {
+        _ranges = rowsToRanges(selection);
+        setSelectedRanges(_ranges);
+      }
       e.stopImmediatePropagation();
 
       return true;
