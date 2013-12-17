@@ -28,6 +28,9 @@ TEST_URI_CMD = $(TEST_CMD) $(TEST_URI_PKG_ARGS)
 
 all: rsync makelinks changegr
 
+install:
+	${RSYNC} $(RSYNC_FLAGS) $(DEST)/www $(RPS)
+
 test:
 	$(TEST_URI_CMD)
 
