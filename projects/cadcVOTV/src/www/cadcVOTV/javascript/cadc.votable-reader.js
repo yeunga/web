@@ -5,11 +5,87 @@
     "cadc": {
       "vot": {
         "Builder": Builder,
+        "RowBuilder": RowBuilder,
         "XMLBuilder": XMLBuilder,
-        "JSONBuilder": JSONBuilder
+        "JSONBuilder": JSONBuilder,
+        "CSVBuilder": CSVBuilder,
+        "StreamBuilder": StreamBuilder,
+
+        // Events
+        "onRowAdd": new jQuery.Event("cadcVOTV:onRowAdd"),
+
+        // For batch row adding.
+        "onPageAddStart": new jQuery.Event("cadcVOTV:onPageAddStart"),
+        "onPageAddEnd": new jQuery.Event("cadcVOTV:onPageAddEnd"),
+
+        "onDataLoadComplete": new jQuery.Event("cadcVOTV:onDataLoadComplete")
       }
     }
   });
+  
+  function RowBuilder()
+  {
+    function setLongest(longestValues, cellID, newValue)
+    {
+      var stringLength = (newValue && newValue.length) ? newValue.length : -1;
+      if (longestValues[cellID] === undefined)
+      {
+        longestValues[cellID] = -1;
+      }
+      if (stringLength > longestValues[cellID])
+      {
+        longestValues[cellID] = stringLength;
+      }
+    }  	
+  	
+	 function buildRowData(tableFields, rowID, rowData, longestValues, extract)
+    {
+      var rowCells = [];
+      for (var cellIndex = 0; (cellIndex < rowData.length)
+                              && (cellIndex < tableFields.length); cellIndex++)
+      {
+        var cellField = tableFields[cellIndex];
+        var cellDatatype = cellField.getDatatype();
+        var stringValue = extract(cellIndex);
+
+        setLongest(longestValues, cellField.getID(), stringValue);
+
+        var cellValue;
+        if (!$.isEmptyObject(cellDatatype) && cellDatatype.isNumeric())
+        {
+          var num;
+
+          if (!stringValue || ($.trim(stringValue) == ""))
+          {
+            num = Number.NaN;
+          }
+          else if (cellDatatype.isFloatingPointNumeric())
+          {
+            num = parseFloat(stringValue);
+            num.toFixed(2);
+          }
+          else
+          {
+            num = parseInt(stringValue);
+          }
+          cellValue = num;
+        }
+        else
+        {
+          cellValue = stringValue;
+        }
+
+        rowCells.push(new cadc.vot.Cell(cellValue, cellField));
+      }
+
+      return new cadc.vot.Row(rowID, rowCells);
+    }  	
+    
+    $.extend(this,
+             {
+             	"buildRowData": buildRowData
+             })
+  }
 
   /**
    * Main builder class.  Uses an implementation of a certain kind of builder
@@ -46,62 +122,37 @@
           readyCallback(_selfBuilder);
         }
       }
+      else if (input.csv)
+      {
+        _selfBuilder._builder = new cadc.vot.CSVBuilder(input, buildRowData);
+
+        if (readyCallback)
+        {
+          readyCallback(_selfBuilder);
+        }
+      }
       else if (input.url)
       {
-        var errorCallbackFunction;
-
-        if (errorCallback)
+        try
         {
-          errorCallbackFunction = errorCallback;
+          var streamBuilder = new cadc.vot.StreamBuilder(input, readyCallback,
+                                                         errorCallback,
+                                                         _selfBuilder);
+
+          streamBuilder.start();
         }
-        else
+        catch (e)
         {
-          errorCallbackFunction = function (jqXHR, status, message)
+          if (errorCallback)
           {
-            var outputMessage =
-                "VOView: Unable to read from URL (" + input.url + ").";
-
-            if (message && ($.trim(message) != ""))
-            {
-              outputMessage += "\n\nMessage from server: " + message;
-            }
-
-            alert(outputMessage);
-          };
+            errorCallback(null, null, e);
+          }
         }
-
-        $.get(input.url, {},function (data, textStatus, jqXHR)
-        {
-          var contentType = jqXHR.getResponseHeader("Content-Type");
-
-          if (contentType.indexOf("xml") > 0)
-          {
-            _selfBuilder._builder = new cadc.vot.XMLBuilder(data);
-
-            if (readyCallback)
-            {
-              readyCallback(_selfBuilder);
-            }
-          }
-          else if (contentType.indexOf("json") > 0)
-          {
-            _selfBuilder._builder = new cadc.vot.JSONBuilder(data);
-
-            if (readyCallback)
-            {
-              readyCallback(_selfBuilder);
-            }
-          }
-          else
-          {
-            alert("cadcVOTV: Unable to obtain XML or JSON VOTable from URL ("
-                      + input.url + ").");
-          }
-        }).error(errorCallbackFunction);
       }
       else
       {
-        alert("cadcVOTV: input object is not set or not recognizeable. \n\n"
+        console.log("cadcVOTV: input object is not set or not recognizable");
+        alert("cadcVOTV: input object is not set or not recognizable. \n\n"
                   + input);
       }
     }
@@ -111,9 +162,23 @@
       return _selfBuilder.voTable;
     }
 
+    /**
+     * For those builders that support streaming.
+     * @param _responseData   More data.
+     */
+    function appendToBuilder(_responseData)
+    {
+      getInternalBuilder().append(_responseData)
+    }
+
     function getInternalBuilder()
     {
       return _selfBuilder._builder;
+    }
+
+    function setInternalBuilder(_internalBuilder)
+    {
+      _selfBuilder._builder = _internalBuilder;
     }
 
     function getData()
@@ -128,20 +193,43 @@
       }
     }
 
-    function build()
+    function build(buildRowData)
     {
-      if (getInternalBuilder())
+      if (getInternalBuilder() && getInternalBuilder().build)
       {
-        getInternalBuilder().build();
+        getInternalBuilder().build(buildRowData);
         _selfBuilder.voTable = getInternalBuilder().getVOTable();
       }
     }
 
+    function subscribe(builderEvent, handler)
+    {
+      if (getInternalBuilder().subscribe)
+      {
+        getInternalBuilder().subscribe(builderEvent, handler);
+      }
+    }
+
+    function buildRowData(tableFields, rowID, rowData, longestValues, extract)
+    {
+      return new cadc.vot.RowBuilder().buildRowData(tableFields, rowID, 
+                                                    rowData, longestValues, 
+                                                    extract);
+    }
+
+
     $.extend(this,
              {
                "build": build,
+               "buildRowData": buildRowData,
                "getVOTable": getVOTable,
-               "getData": getData
+               "getData": getData,
+               "setInternalBuilder": setInternalBuilder,
+               "getInternalBuilder": getInternalBuilder,
+               "appendToBuilder": appendToBuilder,
+
+               // Event management
+               "subscribe": subscribe
              });
 
     init();
@@ -216,7 +304,7 @@
       return _selfXMLBuilder.xmlDOM;
     }
 
-    function build()
+    function build(buildRowData)
     {
       var xmlVOTableDOM = evaluateXPath(this.getData(), "VOTABLE");
       var xmlVOTableResourceDOM = evaluateXPath(xmlVOTableDOM[0], "RESOURCE");
@@ -230,7 +318,8 @@
       var votableResourceInfoDOM = evaluateXPath(xmlVOTableResourceDOM[0],
                                                  "INFO");
 
-      for (var infoIndex in votableResourceInfoDOM)
+      for (var infoIndex = 0; infoIndex < votableResourceInfoDOM.length;
+           infoIndex++)
       {
         var nextInfo = votableResourceInfoDOM[infoIndex];
         resourceInfos.push(new cadc.vot.Info(nextInfo.getAttribute("name"),
@@ -250,7 +339,8 @@
                                                      "TABLE");
 
       // Iterate over tables.
-      for (var tableIndex in xmlVOTableResourceTableDOM)
+      for (var tableIndex = 0; tableIndex < xmlVOTableResourceTableDOM.length;
+           tableIndex++)
       {
         var resourceTableDOM = xmlVOTableResourceTableDOM[tableIndex];
 
@@ -271,7 +361,8 @@
         // Born from User Story 1103.
         var longestValues = {};
 
-        for (var fieldIndex in resourceTableFieldDOM)
+        for (var fieldIndex = 0; fieldIndex < resourceTableFieldDOM.length;
+             fieldIndex++)
         {
           var fieldDOM = resourceTableFieldDOM[fieldIndex];
           var fieldID;
@@ -320,60 +411,12 @@
         var tableDataRows = [];
         var tableDataRowsDOM = evaluateXPath(resourceTableDOM,
                                              "DATA/TABLEDATA/TR");
-        for (var rowIndex in tableDataRowsDOM)
+        var tableFieldsMetadata = tableMetadata.getFields();
+
+        for (var rowIndex = 0; rowIndex < tableDataRowsDOM.length; rowIndex++)
         {
           var rowDataDOM = tableDataRowsDOM[rowIndex];
-          var rowCells = [];
-
           var rowCellsDOM = evaluateXPath(rowDataDOM, "TD");
-
-          for (var cellIndex in rowCellsDOM)
-          {
-            var cellDataDOM = rowCellsDOM[cellIndex];
-            var cellField = tableFields[cellIndex];
-            var dataType = cellField.getDatatype();
-            var stringValue = (cellDataDOM.childNodes
-                && cellDataDOM.childNodes[0])
-                ? cellDataDOM.childNodes[0].nodeValue : "";
-            var stringValueLength = (stringValue && stringValue.length)
-                ? stringValue.length : -1;
-            var currLongestValue = longestValues[cellField.getID()];
-
-            if (stringValueLength > currLongestValue)
-            {
-              longestValues[cellField.getID()] = stringValueLength;
-            }
-
-            var cellValue;
-
-            if (!$.isEmptyObject(dataType) && dataType.isNumeric())
-            {
-              var num;
-
-              if (!stringValue || ($.trim(stringValue) == ""))
-              {
-                num = Number.NaN;
-              }
-              else if (dataType.isFloatingPointNumeric())
-              {
-                num = parseFloat(stringValue);
-                num.toFixed(2);
-              }
-              else
-              {
-                num = parseInt(stringValue);
-              }
-
-              cellValue = num;
-            }
-            else
-            {
-              cellValue = stringValue;
-            }
-
-            rowCells.push(new cadc.vot.Cell(cellValue, cellField));
-          }
-
           var rowID = rowDataDOM.getAttribute("id");
 
           if (!rowID)
@@ -381,11 +424,17 @@
             rowID = "vov_" + rowIndex;
           }
 
-          tableDataRows.push(new cadc.vot.Row(rowID, rowCells));
+          var rowData = buildRowData(tableFieldsMetadata, rowID, rowCellsDOM,
+                                     longestValues, function (index)
+              {
+                var cellDataDOM = rowCellsDOM[index];
+                return (cellDataDOM.childNodes && cellDataDOM.childNodes[0]) ?
+                       cellDataDOM.childNodes[0].nodeValue : "";
+              });
+          tableDataRows.push(rowData);
         }
 
         var tableData = new cadc.vot.TableData(tableDataRows, longestValues);
-
         resourceTables.push(new cadc.vot.Table(tableMetadata, tableData));
       }
 
@@ -445,6 +494,286 @@
     {
       // Does nothing yet.
     }
+  }
+
+  /**
+   * The CSV plugin reader.
+   *
+   * @param input         The CSV type and table metadata.
+   * @param buildRowData  The function to make something vo-consistent from the row data.
+   * @constructor
+   */
+  function CSVBuilder(input, buildRowData)
+  {
+    var _selfCSVBuilder = this;
+    var longestValues = [];
+    var chunk = {lastMatch: 0, rowCount: 0};
+    var pageSize = input.pageSize || null;
+
+
+    function init()
+    {
+//      clearEventSubscriptions();
+
+	    if (pageSize)
+	    {
+	      // Also issue a page end on load complete.
+	      subscribe(cadc.vot.onDataLoadComplete, function(e)
+	      {
+	        fireEvent(cadc.vot.onPageAddEnd);
+	      });
+	    }
+    }
+
+    /**
+     * Necessary to avoid duplicate entries.
+     */
+    function clearEventSubscriptions()
+    {
+      var $me = $(_selfCSVBuilder);
+
+      $me.unbind(cadc.vot.onPageAddStart);
+      $me.unbind(cadc.vot.onPageAddEnd);
+      $me.unbind(cadc.vot.onRowAdd);
+      $me.unbind(cadc.vot.onDataLoadComplete);
+    }
+
+    function append(asChunk)
+    {
+      var found = findRowEnd(asChunk, chunk.lastMatch);
+
+      // skip the first row - it contains facsimiles of column names
+      if (chunk.rowCount === 0 &&
+          found > 0)
+      {
+        found = advanceToNextRow(asChunk, found);
+      }
+
+      while (found > 0 && found !== chunk.lastMatch)
+      {
+        nextRow(asChunk.slice(chunk.lastMatch, found));
+        found = advanceToNextRow(asChunk, found);
+      }
+    }
+
+    function getCurrent()
+    {
+      // this is for testing support only
+      return chunk;
+    }
+
+    function subscribe(event, eHandler)
+    {
+      $(_selfCSVBuilder).on(event.type, eHandler);
+    }
+
+    function fireEvent(event, eventData)
+    {
+//      $.event.trigger(event, eventData);
+      $(_selfCSVBuilder).trigger(event, eventData);
+    }
+
+    function advanceToNextRow(asChunk, lastFound)
+    {
+      chunk.rowCount++;
+      chunk.lastMatch = lastFound;
+      return findRowEnd(asChunk, chunk.lastMatch);
+    }
+
+    function findRowEnd(inChunk, lastFound)
+    {
+      return inChunk.indexOf("\n", lastFound + 1);
+    }
+
+    function nextRow(entry)
+    {
+      var entryAsArray = $.csv.toArray(entry);
+      var tableFields = input.tableMetadata.getFields();
+
+      var rowData = buildRowData(tableFields, "vov_" + chunk.rowCount,
+                                 entryAsArray,
+                                 longestValues,
+                                 function (index)
+                                 {
+                                   return entryAsArray[index].trim();
+                                 });
+
+      if (pageSize)
+      {
+        // Used to calculate the page start and end based on the current row 
+        // count.
+        var moduloPage = (chunk.rowCount % pageSize);
+        
+        if (moduloPage == (pageSize - 1))
+        {
+          fireEvent(cadc.vot.onPageAddStart);
+        }
+        else if (moduloPage == 0)
+        {
+          fireEvent(cadc.vot.onPageAddEnd);
+        }
+      }
+
+      fireEvent(cadc.vot.onRowAdd, rowData);
+    }
+
+    function loadEnd()
+    {
+      fireEvent(cadc.vot.onDataLoadComplete);
+    }
+
+    $.extend(this,
+             {
+               "append": append,
+               "getCurrent": getCurrent,
+               "subscribe": subscribe,
+               "loadEnd": loadEnd
+             });
+             
+    init();
+  }
+
+  /**
+   * Stream builder for URLs being input.  Relies on the cadc.uri.js to be
+   * imported.
+   *
+   * @param input           The input options.
+   * @param readyCallback   Callback for ready.
+   * @param errorCallback   Callback for errors.
+   * @param __MAIN_BUILDER  The internal data-savvy builder.
+   * @constructor
+   */
+  function StreamBuilder(input, readyCallback, errorCallback, __MAIN_BUILDER)
+  {
+    if (!(cadc.web))
+    {
+      throw "URL results rely on the CADC uri js (cadc.uri.js) in the cadcJS "
+            + "module.";
+    }
+
+    var _selfStreamBuilder = this;
+
+    this.errorCallbackFunction = null;
+    this.url = new cadc.web.util.URI(input.url);
+
+    function init()
+    {
+      if (errorCallback)
+      {
+        _selfStreamBuilder.errorCallbackFunction = errorCallback;
+      }
+      else
+      {
+        _selfStreamBuilder.errorCallbackFunction =
+        function (jqXHR, status, message)
+        {
+          var outputMessage =
+              "cadcVOTV: Unable to read from URL (" + input.url + ").";
+
+          if (message && ($.trim(message) != ""))
+          {
+            outputMessage += "\n\nMessage from server: " + message;
+          }
+
+          alert(outputMessage);
+        };
+      }
+    }
+
+    function getErrorCallbackFunction()
+    {
+      return _selfStreamBuilder.errorCallbackFunction;
+    }
+
+    function getURL()
+    {
+      return _selfStreamBuilder.url;
+    }
+
+    function getURLString()
+    {
+      var thisURL = getURL();
+      var urlToUse;
+
+      if (input.useRelativeURL)
+      {
+        urlToUse = thisURL.getRelativeURI();
+      }
+      else
+      {
+        urlToUse = thisURL.getURI();
+      }
+
+      return urlToUse;
+    }
+
+    function start()
+    {
+      $.ajax({
+               url: getURLString(),
+               type: "GET",
+               xhr: createRequest
+             }).fail(getErrorCallbackFunction());
+    }
+
+    /**
+     * Create the internal builder once the request has been established.
+     */
+    function initializeInternalBuilder()
+    {
+      if (this.readyState == this.HEADERS_RECEIVED)
+      {
+        var contentType = this.getResponseHeader("Content-Type");
+
+        // Only CSV supports streaming!
+        if (contentType && (contentType.indexOf("csv") >= 0))
+        {
+          __MAIN_BUILDER.setInternalBuilder(
+                new cadc.vot.CSVBuilder(input, __MAIN_BUILDER.buildRowData));
+
+          if (readyCallback)
+          {
+            readyCallback(__MAIN_BUILDER);
+          }
+        }
+        else
+        {
+          console.log(
+              "cadcVOTV: Unable to obtain XML, JSON, or CSV VOTable from URL");
+          alert("cadcVOTV: Unable to obtain XML, JSON, or CSV VOTable from URL (" + input.url + ").");
+        }
+      }
+    }
+
+    function loadEnd()
+    {
+      __MAIN_BUILDER.getInternalBuilder().loadEnd();
+    }
+
+    function handleProgress()
+    {
+      __MAIN_BUILDER.appendToBuilder(this.responseText);
+    }
+
+    function createRequest()
+    {
+      var request = new XMLHttpRequest();
+
+      request.addEventListener("readystatechange", initializeInternalBuilder,
+                               false);
+      request.addEventListener("progress", handleProgress, false);
+      request.addEventListener("loadend", loadEnd, false);
+
+      return request;
+    }
+
+    $.extend(this,
+             {
+               "start": start,
+               "getURLString": getURLString
+             });
+
+    init();
   }
 
 })(jQuery);

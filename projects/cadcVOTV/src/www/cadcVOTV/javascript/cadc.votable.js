@@ -123,8 +123,8 @@
    * @param __groups
    * @constructor
    */
-  function Metadata(__parameters, __infos, _description, __links,
-                    __fields, __groups)
+  function Metadata(__parameters, __infos, _description, __links, __fields,
+                    __groups)
   {
     var _selfMetadata = this;
 
@@ -132,7 +132,7 @@
     _selfMetadata.infos = __infos;
     _selfMetadata.description = _description;
     _selfMetadata.links = __links;
-    _selfMetadata.fields = __fields;
+    _selfMetadata.fields = __fields || [];
     _selfMetadata.groups = __groups;
 
     function getInfos()
@@ -165,6 +165,31 @@
       return _selfMetadata.groups;
     }
 
+    function addField(_field)
+    {
+      getFields().push(_field);
+    }
+
+    function insertField(_fieldIndex, _field)
+    {
+      getFields()[_fieldIndex] = _field;
+    }
+
+    function hasFieldWithID(_fieldID)
+    {
+      var currFields = getFields();
+    	
+    	for (var f in currFields)
+    	{
+    		if (currFields[f].getID() == _fieldID)
+    		{
+    			return true;
+    		}    	
+    	}
+    
+      return false;
+    }
+
     $.extend(this,
              {
                "getInfos": getInfos,
@@ -172,7 +197,10 @@
                "getParameters": getParameters,
                "getFields": getFields,
                "getLinks": getLinks,
-               "getGroups": getGroups
+               "getGroups": getGroups,
+               "addField": addField,
+               "insertField": insertField,
+               "hasFieldWithID": hasFieldWithID
              });
   }
 
@@ -290,6 +318,11 @@
       return _selfField.description;
     }
 
+    function getArraySize()
+    {
+      return _selfField.arraysize;
+    }
+
 
     $.extend(this,
              {
@@ -300,7 +333,8 @@
                "getUType": getUType,
                "getXType": getXType,
                "getDescription": getDescription,
-               "getUCD": getUCD
+               "getUCD": getUCD,
+               "getArraySize": getArraySize
              });
   }
 

@@ -65,33 +65,68 @@ var targetNode = document.createElement("div");
 targetNode.setAttribute("id", "myGrid");
 document.body.appendChild(targetNode);
 
-test("Test table functions.", 2, function()
+test("Test table functions.", 2, function ()
 {
-  new cadc.vot.Builder({
-                         xmlDOM: xmlDOM
-                       },
-                       function(voTableBuilder)
-                       {
-                         voTableBuilder.build();
-
-                         var voTable = voTableBuilder.getVOTable();
-                         var resources = voTable.getResources();
-
-                         for (var r in resources)
+  try
+  {
+    new cadc.vot.Builder({
+                           xmlDOM: xmlDOM
+                         },
+                         function (voTableBuilder)
                          {
-                           var tables = resources[r].getTables();
-                           for (var t in tables)
-                           {
-                             var tableData = tables[t].getTableData();
-                             equal(tableData.getLongestValues()["Command"],
-                                   3, "Longest value for Command should be 3");
-                             equal(tableData.getLongestValues()["VM Type"],
-                                   10, "Longest value for VM Type should be 10");
-                           }
-                         }
-                       },
-                       function()
-                       {
+                           voTableBuilder.build(voTableBuilder.buildRowData);
 
-                       });
+                           var voTable = voTableBuilder.getVOTable();
+                           var resources = voTable.getResources();
+
+                           for (var r in resources)
+                           {
+                             var tables = resources[r].getTables();
+                             for (var t in tables)
+                             {
+                               var tableData = tables[t].getTableData();
+                               equal(tableData.getLongestValues()["Command"],
+                                     3, "Longest value for Command should be 3");
+                               equal(tableData.getLongestValues()["VM Type"],
+                                     10, "Longest value for VM Type should be 10");
+                             }
+                           }
+                         },
+                         function ()
+                         {
+
+                         });
+  }
+  catch (error)
+  {
+    console.log(error.stack);
+  }
+});
+
+test("Field insertions to Metadata.", 4, function()
+{
+  var testSubject = new cadc.vot.Metadata(null, null, null, null, null, null);
+
+  var f1 = new cadc.vot.Field("F1", "F1", "UCD1", "UTYPE1", "UNIT1",
+                              null, null, null, null, "F1");
+  var f2 = new cadc.vot.Field("F2", "F2", "UCD2", "UTYPE2", "UNIT2",
+                              null, null, null, null, "F2");
+  var f3 = new cadc.vot.Field("F3", "F3", "UCD3", "UTYPE3", "UNIT3",
+                              null, null, null, null, "F3");
+
+  testSubject.insertField(3, f1);
+  testSubject.insertField(13, f2);
+  testSubject.insertField(9, f3);
+
+  var fr1 = testSubject.getFields()[3];
+  equal(fr1.getID(), "F1", "Field should be F1 at index 3.");
+
+  var frNull = testSubject.getFields()[0];
+  equal(frNull, null, "Field frNull should be null at 0.");
+
+  var fr2 = testSubject.getFields()[13];
+  equal(fr2.getID(), "F2", "Field should be F1 at index 13.");
+
+  var fr3 = testSubject.getFields()[9];
+  equal(fr3.getID(), "F3", "Field should be F1 at index 9.");
 });
