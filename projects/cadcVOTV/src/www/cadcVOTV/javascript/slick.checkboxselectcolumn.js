@@ -82,7 +82,8 @@
       }
     }
 
-    function handleClick(e, args) {
+    function handleClick(e, args)
+    {
       // clicking on a row select checkbox
       if (_grid.getColumns()[args.cell].id === _options.columnId && $(e.target).is(":checkbox")) {
         // if editing, try to commit
@@ -98,10 +99,13 @@
       }
     }
 
-    function toggleRowSelection(row) {
-      if (_selectedRowsLookup[row]) {
-        _grid.setSelectedRows($.grep(_grid.getSelectedRows(), function (n) {
-          return n != row
+    function toggleRowSelection(row)
+    {
+      if (_selectedRowsLookup[row])
+      {
+        _grid.setSelectedRows($.grep(_grid.getSelectedRows(), function (n)
+        {
+          return n != row;
         }));
       } else {
         _grid.setSelectedRows(_grid.getSelectedRows().concat(row));
