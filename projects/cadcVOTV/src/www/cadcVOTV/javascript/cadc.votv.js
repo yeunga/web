@@ -702,7 +702,42 @@
       return false;
     }
 
-    // Used for resetting the force fit column widths.
+    /**
+     * Calculate the width of a column from its longest value.
+     * @param _column     The column to calculate for.
+     * @returns {number}  The integer width.
+     */
+    function calculateColumnWidth(_column)
+    {
+      var columnName = _column.name;
+      var colOpts = getOptionsForColumn(columnName);
+      var minWidth = columnName.length + 3;
+      var longestCalculatedWidth = getLongestValue(_column.id);
+      var textWidthToUse = (longestCalculatedWidth > minWidth)
+          ? longestCalculatedWidth : minWidth;
+
+      var lengthStr = "";
+      var userColumnWidth = colOpts.width;
+
+      for (var v = 0; v < textWidthToUse; v++)
+      {
+        lengthStr += "a";
+      }
+
+      $_lengthFinder.prop("class", _column.name);
+      $_lengthFinder.text(lengthStr);
+
+      var width = ($_lengthFinder.width() + 1);
+      var colWidth = (userColumnWidth || width);
+
+      $_lengthFinder.empty();
+
+      return colWidth;
+    }
+
+    /**
+     * Used for resetting the force fit column widths.
+     */
     function resetColumnWidths()
     {
       var g = getGrid();
@@ -717,30 +752,7 @@
         // Do not calculate with checkbox column.
         if (col.id != "_checkbox_selector")
         {
-          var colOpts = getOptionsForColumn(col.name);
-          var minWidth = col.name.length + 3;
-          var longestCalculatedWidth = getLongestValue(col.id);
-          var textWidthToUse = (longestCalculatedWidth > minWidth)
-              ? longestCalculatedWidth : minWidth;
-
-          var lengthStr = "";
-          var userColumnWidth = colOpts.width;
-
-          for (var v = 0; v < textWidthToUse; v++)
-          {
-            lengthStr += "a";
-          }
-
-          $_lengthFinder.prop("class", col.name);
-          $_lengthFinder.text(lengthStr);
-
-          var width = ($_lengthFinder.width() + 1);
-
-          colWidth = (userColumnWidth || width);
-
-          $_lengthFinder.empty();
-
-          col.width = colWidth;
+          col.width = calculateColumnWidth(col);
         }
         else
         {
@@ -1222,7 +1234,7 @@
             ? colOpts.filterable : columnManager.filterable);
 
         // We're extending the column properties a little here.
-        var columnProperties =
+        var columnObject =
         {
           id: fieldKey,
           name: field.getName(),
@@ -1241,31 +1253,35 @@
         };
 
         // Default is to be sortable.
-        columnProperties.sortable =
+        columnObject.sortable =
         ((colOpts.sortable != null) && (colOpts.sortable != undefined))
             ? colOpts.sortable : true;
 
         if (datatype)
         {
-          columnProperties.datatype = datatype;
+          columnObject.datatype = datatype;
         }
 
-        columnProperties.header = colOpts.header;
+        columnObject.header = colOpts.header;
 
         if (!columnManager.forceFitColumns)
         {
           if (colOpts.width)
           {
-            columnProperties.width = colOpts.width;
+            columnObject.width = colOpts.width;
+          }
+          else if (colOpts.fitMax)
+          {
+            columnObject.width = calculateColumnWidth(columnObject);
           }
           // Here to handle XTypes like the adql:timestamp xtype.
           else if (field.getXType() && field.getXType().match(/timestamp/i))
           {
-            columnProperties.width = 140;
+            columnObject.width = 140;
           }
         }
 
-        addColumn(columnProperties);
+        addColumn(columnObject);
       });
     }
 
@@ -1378,20 +1394,6 @@
 
       g.init();
     }
-
-//    function getEventHandlers()
-//    {
-//      return _self.eventHandlers;
-//    }
-//
-//    function addEventHandler(event, handler)
-//    {
-//      var handlers = getEventHandlers()[event.type] || [];
-//
-//      handlers.push(handler);
-//
-//      getEventHandlers()[event.type] = handlers;
-//    }
 
 //    function subscribe(event, handler)
 //    {
