@@ -506,7 +506,7 @@
   function CSVBuilder(input, buildRowData)
   {
     var _selfCSVBuilder = this;
-    var longestValues = [];
+    var longestValues = {};
     var chunk = {lastMatch: 0, rowCount: 0};
     var pageSize = input.pageSize || null;
 
@@ -523,19 +523,6 @@
 	        fireEvent(cadc.vot.onPageAddEnd);
 	      });
 	    }
-    }
-
-    /**
-     * Necessary to avoid duplicate entries.
-     */
-    function clearEventSubscriptions()
-    {
-      var $me = $(_selfCSVBuilder);
-
-      $me.unbind(cadc.vot.onPageAddStart);
-      $me.unbind(cadc.vot.onPageAddEnd);
-      $me.unbind(cadc.vot.onRowAdd);
-      $me.unbind(cadc.vot.onDataLoadComplete);
     }
 
     function append(asChunk)
@@ -619,7 +606,7 @@
 
     function loadEnd()
     {
-      fireEvent(cadc.vot.onDataLoadComplete);
+      fireEvent(cadc.vot.onDataLoadComplete, {"longestValues": longestValues});
     }
 
     $.extend(this,
