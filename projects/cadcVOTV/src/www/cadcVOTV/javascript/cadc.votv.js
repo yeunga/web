@@ -907,7 +907,6 @@
           && isFitMax(_columnDefinition.id))
       {
         _columnDefinition.width = calculateColumnWidth(_columnDefinition);
-        console.log("Set " + _columnDefinition.id + " width to " + _columnDefinition.width);
       }
     }
 
