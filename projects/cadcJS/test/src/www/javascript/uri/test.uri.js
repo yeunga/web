@@ -39,11 +39,18 @@ test("Test parse out full relative URI.", 1, function()
         "Relative URI should be: /path/item.txt?a=b&c=d");
 });
 
-test("Test parse out path only relative URI.", 1, function()
+test("Test parse out path only relative URI.", 2, function()
 {
   var testSubject =
       new cadc.web.util.URI("http://www.mysite.com/path/item.txt");
 
   equal(testSubject.getRelativeURI(), "/path/item.txt",
         "Relative URI should be: /path/item.txt");
+
+  // Test for encoded query parameters.
+  testSubject = new cadc.web.util.URI(
+      "http://www.mysite.com/my/path?A=B%20C.D%20AS%20%22E%22");
+
+  equal(testSubject.getRelativeURI(), "/my/path?A=B%20C.D%20AS%20%22E%22",
+        "Relative URI should be: /my/path?A=B%20C.D%20AS%20%22E%22");
 });
