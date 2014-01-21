@@ -513,8 +513,6 @@
 
     function init()
     {
-//      clearEventSubscriptions();
-
 	    if (pageSize)
 	    {
 	      // Also issue a page end on load complete.
@@ -749,7 +747,16 @@
       request.addEventListener("readystatechange", initializeInternalBuilder,
                                false);
       request.addEventListener("progress", handleProgress, false);
-      request.addEventListener("loadend", loadEnd, false);
+      request.addEventListener("load", loadEnd, false);
+      request.addEventListener("abort", loadEnd, false);
+      request.addEventListener("error", loadEnd, false);
+
+      // Load end was not supported by Safari, so use the individual events that
+      // it represents instead.
+      //
+      // jenkinsd 2014.01.21
+      //
+//      request.addEventListener("loadend", loadEnd, false);
 
       return request;
     }
