@@ -4,11 +4,13 @@
     "cadc": {
       "vot": {
         "Viewer": Viewer,
+        "CHECKBOX_SELECTOR_COLUMN_ID": "_checkbox_selector",
         "datatype": {
           "NUMERIC": "NUMERIC",
           "STRING": "STRING",
           "DATETIME": "DATETIME"
-        }
+        },
+        "DEFAULT_CELL_PADDING_PX": 8
       }
     }
   });
@@ -36,8 +38,7 @@
   {
     var _self = this;
     var $_lengthFinder = $("#lengthFinder")
-        || $("<div id='lengthFinder'></div>").appendTo(
-        $(document.body));
+        || $("<div id='lengthFinder'></div>").appendTo($(document.body));
     this.dataView = new Slick.Data.DataView({ inlineFilters: true });
     this.grid = null;
     this.columnManager = options.columnManager ? options.columnManager : {};
@@ -78,7 +79,6 @@
       new cadc.vot.Builder(input,
                            function (voTableBuilder)
                            {
-                             voTableBuilder.build(voTableBuilder.buildRowData);
                              var hasDisplayColumns =
                                  (_self.displayColumns
                                      && (_self.displayColumns.length > 0));
@@ -86,11 +86,29 @@
                              // Set up to stream.
                              if (input.url)
                              {
-                             	 if (!hasDisplayColumns)
-                             	 {
-                             	 	 refreshColumns(
-                                     input.tableMetadata.getFields());
-                             	 }
+                               var inputFields =
+                                   input.tableMetadata.getFields();
+
+                               /*
+                                * We need to refresh columns twice; once to
+                                * display something while the data is streaming,
+                                * and again to update the column widths based
+                                * on data.
+                                *
+                                * jenkinsd 2013.12.20
+                                */
+                               if (!hasDisplayColumns)
+                               {
+                                 refreshColumns(inputFields);
+                               }
+
+                               voTableBuilder.subscribe(cadc.vot.onDataLoadComplete,
+                                                        function(event, args)
+                               {
+                                 setLongestValues(args.longestValues);
+                                 resetColumnWidths();
+//                                 refreshGridColumns();
+                               });
 
                                clearRows();
                                _self.init();
@@ -112,9 +130,14 @@
                                                         {
                                                           addRow(row, null);
                                                         });
+
+                               voTableBuilder.build(
+                                   voTableBuilder.buildRowData);
                              }
                              else
                              {
+                               voTableBuilder.build(
+                                   voTableBuilder.buildRowData);
                                _self.load(voTableBuilder.getVOTable(),
                                           !hasDisplayColumns, true);
                                _self.init();
@@ -168,6 +191,17 @@
           ? getColumnOptions()[columnLabel] : {};
     }
 
+    /**
+     * Obtain whether the global fitMax or per column fitMax option has been
+     * set.
+     *
+     * @param columnID    The column ID to check.
+     */
+    function isFitMax(columnID)
+    {
+      return getOptionsForColumn(columnID).fitMax || getOptions().fitMax;
+    }
+
     function getColumnFilters()
     {
       return _self.columnFilters;
@@ -176,6 +210,76 @@
     function clearColumnFilters()
     {
       _self.columnFilters = {};
+    }
+
+    /**
+     * Obtain a column from the Grid by its unique ID.
+     * @param columnID    The Column ID.
+     * @returns {Object} column definition.
+     */
+    function getGridColumn(columnID)
+    {
+      var existingColumnIndex = getGrid().getColumnIndex(columnID);
+
+      var col;
+
+      if (existingColumnIndex)
+      {
+        col = getGrid().getColumns()[existingColumnIndex];
+      }
+      else
+      {
+        col = null;
+      }
+
+      return col;
+    }
+
+    /**
+     * Obtain the index of the given column ID.  Return the index, or -1 if it
+     * does not exist.
+     *
+     * @param columnID
+     * @returns {number}
+     */
+    function getColumnIndex(columnID)
+    {
+      var allCols = getColumns();
+
+      for (var i = 0; i < allCols.length; i++)
+      {
+        var nextCol = allCols[i];
+
+        if (nextCol.id == columnID)
+        {
+          return i;
+        }
+      }
+
+      return -1;
+    }
+
+    /**
+     * Obtain a column from the CADC VOTV column cache by its unique ID.
+     * @param columnID    The Column ID.
+     * @returns {Object} column definition.
+     */
+    function getColumn(columnID)
+    {
+      var columnIndex = getColumnIndex(columnID);
+
+      var col;
+
+      if (columnIndex)
+      {
+        col = getColumns()[columnIndex];
+      }
+      else
+      {
+        col = null;
+      }
+
+      return col;
     }
 
     function addColumn(columnObject)
@@ -330,12 +434,6 @@
       g.updateRowCount();
       g.invalidateAllRows();
       g.resizeCanvas();
-    }
-
-    function getColumn(columnID)
-    {
-      return getGrid().getColumns()[
-          getGrid().getColumnIndex(columnID)];
     }
 
     function sort()
@@ -702,65 +800,113 @@
       return false;
     }
 
-    // Used for resetting the force fit column widths.
-    function resetColumnWidths()
+    /**
+     * Calculate the width of a column from its longest value.
+     * @param _column     The column to calculate for.
+     * @returns {number}  The integer width.
+     */
+    function calculateColumnWidth(_column)
     {
-      var g = getGrid();
-      var gridColumns = g.getColumns();
-      var totalWidth = 0;
+      var columnName = _column.name;
+      var colOpts = getOptionsForColumn(columnName);
+      var minWidth = columnName.length;
+      var longestCalculatedWidth = getLongestValue(_column.id);
+      var textWidthToUse = (longestCalculatedWidth > minWidth)
+          ? longestCalculatedWidth : minWidth;
 
-      for (var c in gridColumns)
+      var lengthStr = "";
+      var userColumnWidth = colOpts.width;
+
+      for (var v = 0; v < textWidthToUse; v++)
       {
-        var col = gridColumns[c];
-        var colWidth;
-
-        // Do not calculate with checkbox column.
-        if (col.id != "_checkbox_selector")
-        {
-          var colOpts = getOptionsForColumn(col.name);
-          var minWidth = col.name.length + 3;
-          var longestCalculatedWidth = getLongestValue(col.id);
-          var textWidthToUse = (longestCalculatedWidth > minWidth)
-              ? longestCalculatedWidth : minWidth;
-
-          var lengthStr = "";
-          var userColumnWidth = colOpts.width;
-
-          for (var v = 0; v < textWidthToUse; v++)
-          {
-            lengthStr += "a";
-          }
-
-          $_lengthFinder.prop("class", col.name);
-          $_lengthFinder.text(lengthStr);
-
-          var width = ($_lengthFinder.width() + 1);
-
-          colWidth = (userColumnWidth || width);
-
-          $_lengthFinder.empty();
-
-          col.width = colWidth;
-        }
-        else
-        {
-          colWidth = col.width;
-        }
-
-        totalWidth += colWidth;
+        lengthStr += "_";
       }
 
-      if (totalWidth > 0)
-      {
-        $(getTargetNodeSelector()).css("width", (totalWidth + 15) + "px");
+      $_lengthFinder.addClass(_column.name);
+      $_lengthFinder.text(lengthStr);
 
-        if (usePager())
+      var width = ($_lengthFinder.width() + 1);
+      var colWidth = (userColumnWidth || width);
+
+      $_lengthFinder.removeClass(_column.name);
+      $_lengthFinder.empty();
+
+      // Adjust width for cell padding.
+      return colWidth + cadc.vot.DEFAULT_CELL_PADDING_PX;
+    }
+
+    /**
+     * Used for resetting the force fit column widths.
+     */
+    function resetColumnWidths()
+    {
+      var allCols = getColumns();
+//      var gridColumns = getGrid().getColumns();
+
+//      var totalWidth = 0;
+      for (var i = 0; i < allCols.length; i++)
+//      for (var c in gridColumns)
+      {
+//        var col = gridColumns[c];
+        var col = allCols[i];
+        setColumnWidth(col);
+
+//        var colWidth;
+
+        // Do not calculate with checkbox column.
+//        if (col.id != cadc.vot.CHECKBOX_SELECTOR_COLUMN_ID)
+//        {
+//          col.width = calculateColumnWidth(col);
+//        }
+//        else
+//        {
+//          colWidth = col.width;
+//        }
+
+//        totalWidth += colWidth;
+      }
+
+      var gridColumns = getGrid().getColumns();
+      var dupGridColumns = [];
+
+      // Handle the visible columns
+      for (var j = 0; j < gridColumns.length; j++)
+      {
+        var gridColumn = gridColumns[j];
+        var existingColumn = getColumn(gridColumn.id);
+
+        // Update the equivalent in the grid, if it's there.
+        if (existingColumn)
         {
-          $(getPagerNodeSelector()).css("width", (totalWidth + 15) + "px");
+          gridColumn.width = existingColumn.width;
         }
 
-        $(getHeaderNodeSelector()).css("width", (totalWidth + 15) + "px");
-        _self.refreshGrid();
+        dupGridColumns.push(gridColumn);
+      }
+
+      getGrid().setColumns(dupGridColumns);
+
+//      if (totalWidth > 0)
+//      {
+//        $(getTargetNodeSelector()).css("width", (totalWidth + 15) + "px");
+//
+//        if (usePager())
+//        {
+//          $(getPagerNodeSelector()).css("width", (totalWidth + 15) + "px");
+//        }
+//
+//        $(getHeaderNodeSelector()).css("width", (totalWidth + 15) + "px");
+//        _self.refreshGrid();
+//      }
+    }
+
+    function setColumnWidth(_columnDefinition)
+    {
+      // Do not calculate with checkbox column.
+      if ((_columnDefinition.id != cadc.vot.CHECKBOX_SELECTOR_COLUMN_ID)
+          && isFitMax(_columnDefinition.id))
+      {
+        _columnDefinition.width = calculateColumnWidth(_columnDefinition);
       }
     }
 
@@ -1202,7 +1348,40 @@
     }
 
     /**
+     * Update the columns in the grid with the cached ones.  This method exists
+     * to make use of the fitMax option.
+     */
+    function refreshGridColumns()
+    {
+      var allCols = getGrid().getColumns();
+      var visibleColumns = getGrid().getColumns();
+      var dupColumns = visibleColumns.slice(0);
+
+      for (var i = 0; i < allCols.length; i++)
+      {
+        var nextCol = allCols[i];
+        var nextVisibleColumn = visibleColumns[i];
+
+        if (nextCol)
+        {
+          if (getOptionsForColumn(nextCol.id).fitMax)
+          {
+            nextCol.width = calculateColumnWidth(nextCol);
+            dupColumns[i].width = nextCol.width;
+          }
+        }
+      }
+
+      getGrid().setColumns(dupColumns);
+    }
+
+    /**
      * Refresh this Viewer's columns.
+     *
+     * WARNING: This will clear ALL of the columns, including the checkbox
+     * selector column.  Generally, this method will only be called to
+     * initialize the columns from the init() method, or when first building
+     * the viewer.
      *
      * @param _fields   A Table in the VOTable.
      */
@@ -1222,7 +1401,7 @@
             ? colOpts.filterable : columnManager.filterable);
 
         // We're extending the column properties a little here.
-        var columnProperties =
+        var columnObject =
         {
           id: fieldKey,
           name: field.getName(),
@@ -1241,31 +1420,35 @@
         };
 
         // Default is to be sortable.
-        columnProperties.sortable =
+        columnObject.sortable =
         ((colOpts.sortable != null) && (colOpts.sortable != undefined))
             ? colOpts.sortable : true;
 
         if (datatype)
         {
-          columnProperties.datatype = datatype;
+          columnObject.datatype = datatype;
         }
 
-        columnProperties.header = colOpts.header;
+        columnObject.header = colOpts.header;
 
         if (!columnManager.forceFitColumns)
         {
           if (colOpts.width)
           {
-            columnProperties.width = colOpts.width;
+            columnObject.width = colOpts.width;
+          }
+          else if (colOpts.fitMax)
+          {
+            columnObject.width = calculateColumnWidth(columnObject);
           }
           // Here to handle XTypes like the adql:timestamp xtype.
           else if (field.getXType() && field.getXType().match(/timestamp/i))
           {
-            columnProperties.width = 140;
+            columnObject.width = 140;
           }
         }
 
-        addColumn(columnProperties);
+        addColumn(columnObject);
       });
     }
 
@@ -1379,20 +1562,6 @@
       g.init();
     }
 
-//    function getEventHandlers()
-//    {
-//      return _self.eventHandlers;
-//    }
-//
-//    function addEventHandler(event, handler)
-//    {
-//      var handlers = getEventHandlers()[event.type] || [];
-//
-//      handlers.push(handler);
-//
-//      getEventHandlers()[event.type] = handlers;
-//    }
-
 //    function subscribe(event, handler)
 //    {
 //      $(getTargetNodeSelector()).on(event, handler);
@@ -1415,7 +1584,7 @@
                "refreshGrid": refreshGrid,
                "getGrid": getGrid,
                "getDataView": getDataView,
-               "getColumn": getColumn,
+               "getColumn": getGridColumn,
                "getColumns": getColumns,
                "setColumns": setColumns,
                "clearColumns": clearColumns,
