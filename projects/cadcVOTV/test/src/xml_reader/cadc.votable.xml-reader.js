@@ -49,7 +49,7 @@ test("Read in simple VOTable.", 6, function ()
     // Create a DOM to pass in.
     var xmlDOM = new DOMParser().parseFromString(xmlData, "text/xml");
     var voTableBuilder = new cadc.vot.XMLBuilder(xmlDOM);
-    var genericBuilder = new cadc.vot.Builder(xmlDOM);
+    var genericBuilder = new cadc.vot.Builder({"xmlDOM": xmlDOM});
     voTableBuilder.build(genericBuilder.buildRowData);
 
     equal(voTableBuilder.getVOTable().getResources().length, 1,
