@@ -23,6 +23,8 @@ TEST_CMD = test/src/www/javascript/phantomjs
 TEST_ARGS = test/src/www/javascript/qunit-runner.js --qunit test/src/www/javascript/qunit-1.10.0.js
 TEST_URI_PKG_ARGS = $(TEST_ARGS) --package test/src/www/javascript/uri/package.json --tests test/src/www/javascript/uri/test.uri.js --junit test/src/www/javascript/uri/qunit-results.xml test/src/www/javascript/uri/test.uri.js
 TEST_URI_CMD = $(TEST_CMD) $(TEST_URI_PKG_ARGS)
+TEST_UTIL_PKG_ARGS = $(TEST_ARGS) --package test/src/www/javascript/util/package.json --tests test/src/www/javascript/util/test.util.js --junit test/src/www/javascript/util/qunit-results.xml test/src/www/javascript/util/test.util.js
+TEST_UTIL_CMD = $(TEST_CMD) $(TEST_UTIL_PKG_ARGS)
 
 .PHONY: test
 
@@ -32,7 +34,7 @@ install:
 	${RSYNC} $(RSYNC_FLAGS) $(DEST)/www $(RPS)
 
 test:
-	$(TEST_URI_CMD)
+	$(TEST_URI_CMD) && $(TEST_UTIL_CMD)
 
 makelinks:  test
 
