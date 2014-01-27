@@ -2,7 +2,6 @@ test("Test URI components from full URL.", 1, function()
 {
   var myURI = new cadc.web.util.URI("http://www.mysite.com/path/1/2/item.txt");
 
-  console.log("Expecting /path/1/2/item.txt but got " + myURI.getPath());
   equal(myURI.getPath(), "/path/1/2/item.txt",
         "Output should be /path/1/2/item.txt");
 });
@@ -11,7 +10,6 @@ test("Test URI components from full URL 2.", 3, function()
 {
   var myURI = new cadc.web.util.URI("http://www.mysite.com/path/item.txt?a=b&c=d");
 
-  console.log("Expecting /path/item.txt but got " + myURI.getPath());
   equal(myURI.getPath(), "/path/item.txt",
         "Path should be /path/item.txt");
 
@@ -21,11 +19,19 @@ test("Test URI components from full URL 2.", 3, function()
   equal("d", q.c[0], "Query string param a is wrong.");
 });
 
+test("Test empty query.", 1, function()
+{
+  var myURI = new cadc.web.util.URI("http://www.mysite.com/path/");
+
+  var q = myURI.getQuery();
+
+  equal("{}", JSON.stringify(q), "Query object should be empty.");
+});
+
 test("Test URI components from URI.", 1, function()
 {
   var myURI = new cadc.web.util.URI("caom2:path/a/b/item.fits");
 
-  console.log("Expecting path/a/b/item.fits but got " + myURI.getPath());
   equal(myURI.getPath(), "path/a/b/item.fits",
         "Output should be path/a/b/item.fits");
 });
