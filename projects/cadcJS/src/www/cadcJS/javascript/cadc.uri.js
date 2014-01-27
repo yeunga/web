@@ -89,7 +89,8 @@
         var queryKey = pair[0];
         var keyValues = nvpair[queryKey] || [];
 
-        keyValues.push(pair[1]);
+        // TODO - Is it a good idea to always decode this?
+        keyValues.push(decodeURIComponent(pair[1]));
 
         nvpair[queryKey] = keyValues;
       });
