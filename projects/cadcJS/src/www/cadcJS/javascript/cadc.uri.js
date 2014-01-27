@@ -81,7 +81,7 @@
     {
       var nvpair = {};
       var qs = getURIComponents().query;
-      var pairs = qs.split('&');
+      var pairs = (qs != "") ? qs.split("&") : [];
 
       $.each(pairs, function(i, v)
       {
