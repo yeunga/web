@@ -35,7 +35,7 @@ server, you can set the PROXY_URL filter token value to "".
     <touch file="${build}/LASTINSTALL.${DSTAMP}_${TSTAMP}" />
   </target>
 
-  <target name="build" depends="clientBuild" />
+  <target name="build" depends="resourceCopy" />
 
   <target name="resourceCopy">
     <copy todir="${build}/www">
@@ -43,21 +43,7 @@ server, you can set the PROXY_URL filter token value to "".
     </copy>
   </target>
 
-  <target name="clientBuild" depends="resourceCopy">
-    <apply executable="java" parallel="false" dest="${build}/www/${project}/javascript">
-
-      <fileset dir="${build}/www/${project}/javascript" includes="cadc.v*.js" />
-      <arg line="-jar" />
-      <arg path="${lib.compressor}" />
-      <srcfile />
-      <arg line="-o" />
-      <mapper type="glob" from="*.js" to="*.min.js" />
-
-      <targetfile />
-    </apply>
-  </target>
-
-  <target name="install_www" depends="clientBuild">
+  <target name="install_www" depends="resourceCopy">
 
     <chmod perm="644">
       <fileset dir="${build}/www"/> <!-- files -->

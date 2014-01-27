@@ -54,3 +54,19 @@ test("Test parse out path only relative URI.", 2, function()
   equal(testSubject.getRelativeURI(), "/my/path?A=B%20C.D%20AS%20%22E%22",
         "Relative URI should be: /my/path?A=B%20C.D%20AS%20%22E%22");
 });
+
+test("Test decode query parameter components.", 2, function()
+{
+  var testSubject =
+      new cadc.web.util.URI("http://www.mysite.com/path/item.txt?A=");
+
+  deepEqual(testSubject.getQueryValues("A"), [""],
+            "Query values for 'A' should be empty array.");
+
+  // Test for encoded query parameters.
+  testSubject = new cadc.web.util.URI(
+      "http://www.mysite.com/my/path?A=B%20C.D%20AS%20%22E%22");
+
+  deepEqual(testSubject.getQueryValues("A"), ["B C.D AS \"E\""],
+            "Query values for 'A' should have item with spaces.");
+});
