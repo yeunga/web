@@ -841,29 +841,11 @@
     function resetColumnWidths()
     {
       var allCols = getColumns();
-//      var gridColumns = getGrid().getColumns();
 
-//      var totalWidth = 0;
       for (var i = 0; i < allCols.length; i++)
-//      for (var c in gridColumns)
       {
-//        var col = gridColumns[c];
         var col = allCols[i];
         setColumnWidth(col);
-
-//        var colWidth;
-
-        // Do not calculate with checkbox column.
-//        if (col.id != cadc.vot.CHECKBOX_SELECTOR_COLUMN_ID)
-//        {
-//          col.width = calculateColumnWidth(col);
-//        }
-//        else
-//        {
-//          colWidth = col.width;
-//        }
-
-//        totalWidth += colWidth;
       }
 
       var gridColumns = getGrid().getColumns();
@@ -1421,8 +1403,8 @@
 
         // Default is to be sortable.
         columnObject.sortable =
-        ((colOpts.sortable != null) && (colOpts.sortable != undefined))
-            ? colOpts.sortable : true;
+          ((colOpts.sortable != null) && (colOpts.sortable != undefined))
+              ? colOpts.sortable : true;
 
         if (datatype)
         {
@@ -1431,22 +1413,20 @@
 
         columnObject.header = colOpts.header;
 
-        if (!columnManager.forceFitColumns)
+        if (colOpts.width)
         {
-          if (colOpts.width)
-          {
-            columnObject.width = colOpts.width;
-          }
-          else if (colOpts.fitMax)
-          {
-            columnObject.width = calculateColumnWidth(columnObject);
-          }
-          // Here to handle XTypes like the adql:timestamp xtype.
-          else if (field.getXType() && field.getXType().match(/timestamp/i))
-          {
-            columnObject.width = 140;
-          }
+          columnObject.width = colOpts.width;
         }
+        else if (columnManager.forceFitColumns || colOpts.fitMax)
+        {
+          columnObject.width = calculateColumnWidth(columnObject);
+        }
+
+        // Here to handle XTypes like the adql:timestamp xtype.
+//        else if (field.getXType() && field.getXType().match(/timestamp/i))
+//        {
+//          columnObject.width = 140;
+//        }
 
         addColumn(columnObject);
       });
