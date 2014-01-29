@@ -850,6 +850,7 @@
 
       var gridColumns = getGrid().getColumns();
       var dupGridColumns = [];
+      var totalWidth = 0;
 
       // Handle the visible columns
       for (var j = 0; j < gridColumns.length; j++)
@@ -863,23 +864,25 @@
           gridColumn.width = existingColumn.width;
         }
 
+        totalWidth += gridColumn.width;
+
         dupGridColumns.push(gridColumn);
       }
 
       getGrid().setColumns(dupGridColumns);
 
-//      if (totalWidth > 0)
-//      {
-//        $(getTargetNodeSelector()).css("width", (totalWidth + 15) + "px");
-//
-//        if (usePager())
-//        {
-//          $(getPagerNodeSelector()).css("width", (totalWidth + 15) + "px");
-//        }
-//
-//        $(getHeaderNodeSelector()).css("width", (totalWidth + 15) + "px");
-//        _self.refreshGrid();
-//      }
+      if (totalWidth > 0)
+      {
+        $(getTargetNodeSelector()).css("width", (totalWidth + 15) + "px");
+
+        if (usePager())
+        {
+          $(getPagerNodeSelector()).css("width", (totalWidth + 15) + "px");
+        }
+
+        $(getHeaderNodeSelector()).css("width", (totalWidth + 15) + "px");
+        _self.refreshGrid();
+      }
     }
 
     function setColumnWidth(_columnDefinition)
