@@ -155,6 +155,16 @@
       return _selfMetadata.fields;
     }
 
+    /**
+     * Set this metadata's fields.
+     *
+     * @param _fields  {Array} of values.
+     */
+    function setFields(_fields)
+    {
+      _selfMetadata.fields = _fields;
+    }
+
     function getLinks()
     {
       return _selfMetadata.links;
@@ -196,6 +206,7 @@
                "getDescription": getDescription,
                "getParameters": getParameters,
                "getFields": getFields,
+               "setFields": setFields,
                "getLinks": getLinks,
                "getGroups": getGroups,
                "addField": addField,
