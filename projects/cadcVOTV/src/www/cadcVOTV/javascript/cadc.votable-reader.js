@@ -655,13 +655,12 @@
       var found = findRowEnd(asChunk, chunk.lastMatch);
 
       // skip the first row - it contains facsimiles of column names
-      if (chunk.rowCount === 0 &&
-          found > 0)
+      if ((chunk.rowCount === 0) && (found > 0))
       {
         found = advanceToNextRow(asChunk, found);
       }
 
-      while (found > 0 && found !== chunk.lastMatch)
+      while ((found > 0) && (found !== chunk.lastMatch))
       {
         nextRow(asChunk.slice(chunk.lastMatch, found));
         found = advanceToNextRow(asChunk, found);
@@ -681,7 +680,6 @@
 
     function fireEvent(event, eventData)
     {
-//      $.event.trigger(event, eventData);
       $(_selfCSVBuilder).trigger(event, eventData);
     }
 
@@ -715,12 +713,12 @@
         // Used to calculate the page start and end based on the current row 
         // count.
         var moduloPage = (chunk.rowCount % pageSize);
-        
-        if (moduloPage == (pageSize - 1))
+
+        if (moduloPage === 1)
         {
           fireEvent(cadc.vot.onPageAddStart);
         }
-        else if (moduloPage == 0)
+        else if (moduloPage === 0)
         {
           fireEvent(cadc.vot.onPageAddEnd);
         }
@@ -828,14 +826,24 @@
              }).fail(getErrorCallbackFunction());
     }
 
+    function handleInputError()
+    {
+      console.log(
+          "cadcVOTV: Unable to obtain XML, JSON, or CSV VOTable from URL");
+      alert("cadcVOTV: Unable to obtain XML, JSON, or CSV VOTable from URL ("
+            + input.url + ").");
+    }
+
     /**
      * Create the internal builder once the request has been established.
      */
-    function initializeInternalBuilder()
+    function initializeInternalBuilder(event, target)
     {
-      if (this.readyState == this.HEADERS_RECEIVED)
+      var req = event.target;
+
+      if (req.readyState == req.HEADERS_RECEIVED)
       {
-        var contentType = this.getResponseHeader("Content-Type");
+        var contentType = req.getResponseHeader("Content-Type");
 
         // Only CSV supports streaming!
         if (contentType && (contentType.indexOf("csv") >= 0))
@@ -850,9 +858,7 @@
         }
         else
         {
-          console.log(
-              "cadcVOTV: Unable to obtain XML, JSON, or CSV VOTable from URL");
-          alert("cadcVOTV: Unable to obtain XML, JSON, or CSV VOTable from URL (" + input.url + ").");
+          handleInputError();
         }
       }
     }
@@ -862,20 +868,18 @@
       __MAIN_BUILDER.getInternalBuilder().loadEnd();
     }
 
-    function handleProgress()
+    function handleProgress(event, target)
     {
-      __MAIN_BUILDER.appendToBuilder(this.responseText);
+      __MAIN_BUILDER.appendToBuilder(event.target.responseText);
     }
 
     function createRequest()
     {
-      // This won't work in versions 5 & 6 of Internet Explorer.
-//      var request = new XMLHttpRequest();
-
       var request;
 
       try
       {
+        // This won't work in versions 5 & 6 of Internet Explorer.
         request = new XMLHttpRequest();
       }
       catch (trymicrosoft)
@@ -894,17 +898,48 @@
           }
           catch (failed)
           {
-            request = null;
+            throw new Error("Unable to create an HTTP request.  Aborting!");
           }
         }
       }
 
-      request.addEventListener("readystatechange", initializeInternalBuilder,
-                               false);
-      request.addEventListener("progress", handleProgress, false);
-      request.addEventListener("load", loadEnd, false);
-      request.addEventListener("abort", loadEnd, false);
+      var readyStateChangeHandler;
+
+      // Internet Explorer will need to be handled via the old state change
+      // behaviour.
+      if (window.ActiveXObject)
+      {
+        readyStateChangeHandler = function(_event, _target)
+        {
+          try
+          {
+            initializeInternalBuilder(_event, _target);
+
+            // Complete
+            if (this.readyState === this.DONE)
+            {
+              handleProgress(_event, _target);
+              loadEnd();
+            }
+          }
+          catch (e)
+          {
+            console.log(e);
+            handleInputError();
+          }
+        };
+      }
+      else
+      {
+        request.addEventListener("progress", handleProgress, false);
+        request.addEventListener("load", loadEnd, false);
+        request.addEventListener("abort", loadEnd, false);
+        readyStateChangeHandler = initializeInternalBuilder;
+      }
+
       request.addEventListener("error", loadEnd, false);
+      request.addEventListener("readystatechange", readyStateChangeHandler,
+                               false);
 
       // Load end was not supported by Safari, so use the individual events that
       // it represents instead.
