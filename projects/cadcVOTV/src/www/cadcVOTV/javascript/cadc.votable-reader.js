@@ -6,10 +6,15 @@
       "vot": {
         "Builder": Builder,
         "RowBuilder": RowBuilder,
-        "XMLBuilder": XMLBuilder,
+        "VOTableXMLBuilder": VOTableXMLBuilder,
         "JSONBuilder": JSONBuilder,
         "CSVBuilder": CSVBuilder,
         "StreamBuilder": StreamBuilder,
+
+        "xml": {
+          "VOTableXPathEvaluator": VOTableXPathEvaluator,
+          "votable": "http://www.ivoa.net/xml/VOTable/v1.2"
+        },
 
         // Events
         "onRowAdd": new jQuery.Event("cadcVOTV:onRowAdd"),
@@ -46,7 +51,7 @@
       {
         var cellField = tableFields[cellIndex];
         var cellDatatype = cellField.getDatatype();
-        var stringValue = extract(cellIndex);
+        var stringValue = extract(rowData, cellIndex);
 
         setLongest(longestValues, cellField.getID(), stringValue);
 
@@ -106,7 +111,7 @@
     {
       if (input.xmlDOM && (input.xmlDOM.documentElement != null))
       {
-        _selfBuilder._builder = new cadc.vot.XMLBuilder(input.xmlDOM);
+        _selfBuilder._builder = new cadc.vot.VOTableXMLBuilder(input.xmlDOM);
 
         if (readyCallback)
         {
@@ -236,58 +241,95 @@
   }
 
   /**
-   * The XML plugin reader.
+   * Evaluate XPath cross-browser.
    *
-   * @param _xmlDOM    The XML DOM to use.
+   * @param _xmlDOM                   The document to traverse.
+   * @param _defaultNamespacePrefix   The prefix for default namespaces.
    * @constructor
    */
-  function XMLBuilder(_xmlDOM)
+  function VOTableXPathEvaluator(_xmlDOM, _defaultNamespacePrefix)
   {
-    var _selfXMLBuilder = this;
+    var _selfXPathEvaluator = this;
 
-    this.voTable = null;
     this.xmlDOM = _xmlDOM;
+    this.defaultNamespacePrefix = _defaultNamespacePrefix;
 
-    function init()
+
+    function getData()
     {
-      if (getData().documentElement.nodeName == 'parsererror')
-      {
-        alert("VOView: XML input is invalid.\n\n");
-      }
+      return _selfXPathEvaluator.xmlDOM;
     }
 
-    function getVOTable()
+    function getDefaultNamespacePrefix()
     {
-      return _selfXMLBuilder.voTable;
+      return _selfXPathEvaluator.defaultNamespacePrefix;
     }
 
     /**
-     * Evaluate an XPath expression aExpression against a given DOM node
-     * or Document object (aNode), returning the results as an array
-     * thanks wanderingstan at morethanwarm dot mail dot com for the
-     * initial work.
-     * @param _node     The Node to begin looking in.
-     * @param _expression   The expression XPath to look for.
+     * Prepare the given expression to be processed.  This method will simply
+     * prepend the default namespace where needed.
+     *
+     * @param _expression   The expression XPath to prepare.
+     * @return {String}     The prepared path.
      */
-    function evaluateXPath(_node, _expression)
+    function preparePath(_expression)
     {
-      var xpe = _node.ownerDocument || _node;
-      var pathItems = _expression.split("/");
-      var path = "./*";
+      var pathItems = _expression ? _expression.split("/") : [];
+      var path = "";
 
-      for (var i = 0; i < pathItems.length; i++)
+      for (var piIndex = 0; piIndex < pathItems.length; piIndex++)
       {
-        var pathItem = pathItems[i];
-        path += "[local-name()='" + pathItem + "']";
+        var nextItem = pathItems[piIndex];
 
-        if (i < (pathItems.length - 1))
+        if (nextItem)
         {
-          path += "/*";
+          path += "/" + getDefaultNamespacePrefix() + ":" + nextItem;
         }
       }
 
-      var result = xpe.evaluate(path, _node, null,
-                                XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
+      return path;
+    }
+
+    /**
+     * Evaluate an XPath expression this reader's DOM, returning the results as
+     * an array thanks wanderingstan at morethanwarm dot mail dot com for the
+     * initial work.
+     *
+     * @param _expression   The expression XPath to look for from the root.
+     * @return {Array}
+     */
+    function evaluate(_expression)
+    {
+      var expressionPath = preparePath(_expression);
+      var documentNode = getData();
+      var xpe = documentNode.ownerDocument || documentNode;
+
+      var localNSResolver = function (prefix)
+      {
+        var localName = cadc.vot.xml[prefix];
+        var resolvedName;
+
+        if (localName)
+        {
+          resolvedName = localName;
+        }
+        else
+        {
+          resolvedName = xpe.createNSResolver
+                       ? xpe.createNSResolver(xpe.documentElement)(prefix)
+                       : null;
+        }
+
+        return resolvedName;
+      };
+
+      if (!xpe.evaluate)
+      {
+        xpe.evaluate = document.evaluate;
+      }
+
+      var result = xpe.evaluate(expressionPath, documentNode, localNSResolver,
+                                XPathResult.UNORDERED_NODE_ITERATOR_TYPE, null);
       var found = [];
       var res;
 
@@ -299,6 +341,67 @@
       return found;
     }
 
+    $.extend(this,
+             {
+               "evaluate": evaluate
+             });
+  }
+
+  /**
+   * The XML plugin reader.
+   *
+   * @param _xmlDOM    The XML DOM to use.
+   * @constructor
+   */
+  function VOTableXMLBuilder(_xmlDOM)
+  {
+    var _selfXMLBuilder = this;
+
+    this.voTable = null;
+    this.xmlDOM = _xmlDOM;
+
+    function init()
+    {
+      if (!document.evaluate)
+      {
+        if (wgxpath)
+        {
+          // Internet Explorer compatibility.
+          //
+          // WebRT 48318
+          // jenkinsd 2014.02.13
+          //
+          wgxpath.install();
+        }
+        else
+        {
+          alert("cadcVOTV: Internet Explorer poly fill not present.");
+        }
+      }
+      else if (getData().documentElement.nodeName == 'parsererror')
+      {
+        alert("cadcVOTV: XML input is invalid.\n\n");
+      }
+    }
+
+    function getVOTable()
+    {
+      return _selfXMLBuilder.voTable;
+    }
+
+    /**
+     * Given traverse the DOM for this document to the given expression.
+     *
+     * @param xPathExpression   Expression to traverse to.
+     * @return {Array}          Array of found items.
+     */
+    function getElements(xPathExpression)
+    {
+      var evaluator = new VOTableXPathEvaluator(getData(), "votable");
+
+      return evaluator.evaluate(xPathExpression);
+    }
+
     function getData()
     {
       return _selfXMLBuilder.xmlDOM;
@@ -306,8 +409,8 @@
 
     function build(buildRowData)
     {
-      var xmlVOTableDOM = evaluateXPath(this.getData(), "VOTABLE");
-      var xmlVOTableResourceDOM = evaluateXPath(xmlVOTableDOM[0], "RESOURCE");
+      // Work around the default namespace.
+      var xmlVOTableResourceDOMs = getElements("/VOTABLE/RESOURCE");
 
       var voTableParameters = [];
       var voTableResources = [];
@@ -315,137 +418,160 @@
       var resourceTables = [];
       var resourceInfos = [];
 
-      var votableResourceInfoDOM = evaluateXPath(xmlVOTableResourceDOM[0],
-                                                 "INFO");
-
-      for (var infoIndex = 0; infoIndex < votableResourceInfoDOM.length;
-           infoIndex++)
+      // Iterate over resources.
+      for (var resourceIndex = 0; resourceIndex < xmlVOTableResourceDOMs.length;
+           resourceIndex++)
       {
-        var nextInfo = votableResourceInfoDOM[infoIndex];
-        resourceInfos.push(new cadc.vot.Info(nextInfo.getAttribute("name"),
-                                             nextInfo.getAttribute("value")));
-      }
+        var nextResourcePath = "/VOTABLE/RESOURCE[" + (resourceIndex + 1) + "]";
+        var nextResourceDOM = xmlVOTableResourceDOMs[resourceIndex];
+        var resourceInfoDOMs = getElements(nextResourcePath + "/INFO");
 
-      var votableResourceDescriptionDOM =
-          evaluateXPath(xmlVOTableResourceDOM[0], "DESCRIPTION");
-
-      var resourceDescription =
-          votableResourceDescriptionDOM.length > 0
-              ? votableResourceDescriptionDOM[0].value : "";
-      var resourceMetadata = new cadc.vot.Metadata(null, resourceInfos,
-                                                   resourceDescription, null,
-                                                   null, null);
-      var xmlVOTableResourceTableDOM = evaluateXPath(xmlVOTableResourceDOM[0],
-                                                     "TABLE");
-
-      // Iterate over tables.
-      for (var tableIndex = 0; tableIndex < xmlVOTableResourceTableDOM.length;
-           tableIndex++)
-      {
-        var resourceTableDOM = xmlVOTableResourceTableDOM[tableIndex];
-
-        var tableFields = [];
-        var resourceTableDescriptionDOM = evaluateXPath(resourceTableDOM,
-                                                        "DESCRIPTION");
-        var resourceTableDescription =
-            resourceTableDescriptionDOM.length > 0
-                ? resourceTableDescriptionDOM[0].value : "";
-
-        var resourceTableFieldDOM = evaluateXPath(resourceTableDOM, "FIELD");
-
-        // To record the longest value for each field (Column).  Will be stored in
-        // the TableData instance.
-        //
-        // It contains a key of the field ID, and the value is the integer length.
-        //
-        // Born from User Story 1103.
-        var longestValues = {};
-
-        for (var fieldIndex = 0; fieldIndex < resourceTableFieldDOM.length;
-             fieldIndex++)
+        // Iterate Resource INFOs
+        for (var infoIndex = 0; infoIndex < resourceInfoDOMs.length;
+             infoIndex++)
         {
-          var fieldDOM = resourceTableFieldDOM[fieldIndex];
-          var fieldID;
-          var xmlFieldID = fieldDOM.getAttribute("id");
-          var xmlFieldUType = fieldDOM.getAttribute("utype");
-          var xmlFieldName = fieldDOM.getAttribute("name");
-
-          if (xmlFieldID && (xmlFieldID != ""))
-          {
-            fieldID = xmlFieldID;
-          }
-          else
-          {
-            fieldID = xmlFieldName;
-          }
-
-          longestValues[fieldID] = -1;
-
-          var fieldDescriptionDOM = evaluateXPath(fieldDOM, "DESCRIPTION");
-
-          var fieldDescription = ((fieldDescriptionDOM.length > 0)
-                                      && fieldDescriptionDOM[0].childNodes
-              && fieldDescriptionDOM[0].childNodes[0])
-              ? fieldDescriptionDOM[0].childNodes[0].nodeValue
-              : "";
-
-          var field = new cadc.vot.Field(
-              xmlFieldName,
-              fieldID,
-              fieldDOM.getAttribute("ucd"),
-              xmlFieldUType,
-              fieldDOM.getAttribute("unit"),
-              fieldDOM.getAttribute("xtype"),
-              new cadc.vot.Datatype(fieldDOM.getAttribute("datatype")),
-              fieldDOM.getAttribute("arraysize"),
-              fieldDescription,
-              fieldDOM.getAttribute("name"));
-
-          tableFields.push(field);
+          var nextInfo = resourceInfoDOMs[infoIndex];
+          resourceInfos.push(new cadc.vot.Info(nextInfo.getAttribute("name"),
+                                               nextInfo.getAttribute("value")));
         }
 
-        var tableMetadata = new cadc.vot.Metadata(null, null,
-                                                  resourceTableDescription,
-                                                  null, tableFields, null);
+        var resourceDescriptionDOMs = getElements(nextResourcePath
+                                                  + "/DESCRIPTION");
 
-        var tableDataRows = [];
-        var tableDataRowsDOM = evaluateXPath(resourceTableDOM,
-                                             "DATA/TABLEDATA/TR");
-        var tableFieldsMetadata = tableMetadata.getFields();
+        var resourceDescription = resourceDescriptionDOMs.length > 0
+                                  ? resourceDescriptionDOMs[0].value : null;
 
-        for (var rowIndex = 0; rowIndex < tableDataRowsDOM.length; rowIndex++)
+        var resourceMetadata = new cadc.vot.Metadata(null, resourceInfos,
+                                                     resourceDescription, null,
+                                                     null, null);
+
+        var resourceTableDOMs = getElements(nextResourcePath + "/TABLE");
+
+        // Iterate over tables.
+        for (var tableIndex = 0; tableIndex < resourceTableDOMs.length;
+             tableIndex++)
         {
-          var rowDataDOM = tableDataRowsDOM[rowIndex];
-          var rowCellsDOM = evaluateXPath(rowDataDOM, "TD");
-          var rowID = rowDataDOM.getAttribute("id");
+          var nextTablePath = nextResourcePath + "/TABLE[" + (tableIndex + 1)
+                              + "]";
 
-          if (!rowID)
+          var tableFields = [];
+          var resourceTableDescriptionDOM = getElements(nextTablePath
+                                                        + "/DESCRIPTION");
+          var resourceTableDescription =
+              resourceTableDescriptionDOM.length > 0
+              ? resourceTableDescriptionDOM[0].value : null;
+
+          var resourceTableFieldDOM = getElements(nextTablePath + "/FIELD");
+
+          // To record the longest value for each field (Column).  Will be
+          // stored in the TableData instance.
+          //
+          // It contains a key of the field ID, and the value is the integer
+          // length.
+          //
+          // Born from User Story 1103.
+          var longestValues = {};
+
+          for (var fieldIndex = 0; fieldIndex < resourceTableFieldDOM.length;
+               fieldIndex++)
           {
-            rowID = "vov_" + rowIndex;
+            var nextFieldPath = nextTablePath + "/FIELD[" + (fieldIndex + 1)
+                                + "]";
+            var fieldDOM = resourceTableFieldDOM[fieldIndex];
+            var fieldID;
+            var xmlFieldID = fieldDOM.getAttribute("id");
+            var xmlFieldUType = fieldDOM.getAttribute("utype");
+            var xmlFieldName = fieldDOM.getAttribute("name");
+
+            if (xmlFieldID && (xmlFieldID != ""))
+            {
+              fieldID = xmlFieldID;
+            }
+            else
+            {
+              fieldID = xmlFieldName;
+            }
+
+            longestValues[fieldID] = -1;
+
+            var fieldDescriptionDOM = getElements(nextFieldPath
+                                                  + "/DESCRIPTION");
+
+            var fieldDescription = ((fieldDescriptionDOM.length > 0)
+                                    && fieldDescriptionDOM[0].childNodes
+                                    && fieldDescriptionDOM[0].childNodes[0])
+                ? fieldDescriptionDOM[0].childNodes[0].nodeValue
+                : "";
+
+            var field = new cadc.vot.Field(
+                xmlFieldName,
+                fieldID,
+                fieldDOM.getAttribute("ucd"),
+                xmlFieldUType,
+                fieldDOM.getAttribute("unit"),
+                fieldDOM.getAttribute("xtype"),
+                new cadc.vot.Datatype(fieldDOM.getAttribute("datatype")),
+                fieldDOM.getAttribute("arraysize"),
+                fieldDescription,
+                fieldDOM.getAttribute("name"));
+
+            tableFields.push(field);
           }
 
-          var rowData = buildRowData(tableFieldsMetadata, rowID, rowCellsDOM,
-                                     longestValues, function (index)
-              {
-                var cellDataDOM = rowCellsDOM[index];
-                return (cellDataDOM.childNodes && cellDataDOM.childNodes[0]) ?
-                       cellDataDOM.childNodes[0].nodeValue : "";
-              });
-          tableDataRows.push(rowData);
+          var tableMetadata = new cadc.vot.Metadata(null, null,
+                                                    resourceTableDescription,
+                                                    null, tableFields, null);
+
+          var tableDataRows = [];
+          var rowDataDOMs = getElements(nextTablePath + "/DATA/TABLEDATA/TR");
+          var tableFieldsMetadata = tableMetadata.getFields();
+
+          for (var rowIndex = 0; rowIndex < rowDataDOMs.length; rowIndex++)
+          {
+            var nextRowPath = nextTablePath + "/DATA/TABLEDATA/TR["
+                              + (rowIndex + 1) + "]";
+            var rowDataDOM = rowDataDOMs[rowIndex];
+            var rowCellsDOM = getElements(nextRowPath + "/TD");
+            var rowID = rowDataDOM.getAttribute("id");
+
+            if (!rowID)
+            {
+              rowID = "vov_" + rowIndex;
+            }
+
+            /**
+             * Method to construct a row.  This is called for each row read.
+             *
+             * @param rowData       The row data for a single row.
+             * @param index         The row index.
+             * @returns {string|*}
+             */
+            var getCellData = function (rowData, index)
+            {
+              var cellDataDOM = rowData[index];
+              return (cellDataDOM.childNodes && cellDataDOM.childNodes[0]) ?
+                     cellDataDOM.childNodes[0].nodeValue : "";
+            };
+
+            var rowData = buildRowData(tableFieldsMetadata, rowID, rowCellsDOM,
+                                       longestValues, getCellData);
+            tableDataRows.push(rowData);
+          }
+
+          var tableData = new cadc.vot.TableData(tableDataRows, longestValues);
+          resourceTables.push(new cadc.vot.Table(tableMetadata, tableData));
         }
 
-        var tableData = new cadc.vot.TableData(tableDataRows, longestValues);
-        resourceTables.push(new cadc.vot.Table(tableMetadata, tableData));
+        voTableResources.push(
+            new cadc.vot.Resource(nextResourceDOM.getAttribute("id"),
+                                  nextResourceDOM.getAttribute("name"),
+                                  nextResourceDOM.getAttribute("type") == "meta",
+                                  resourceMetadata, resourceTables));
       }
 
-      voTableResources.push(
-          new cadc.vot.Resource(xmlVOTableResourceDOM[0].getAttribute("type"),
-                                resourceMetadata, resourceTables));
-
-      var xmlVOTableDescription = evaluateXPath(xmlVOTableDOM[0],
-                                                "DESCRIPTION");
+      var xmlVOTableDescription = getElements("/VOTABLE/DESCRIPTION");
       var voTableDescription = xmlVOTableDescription.length > 0
-          ? xmlVOTableDescription[0].value : "";
+                               ? xmlVOTableDescription[0].value : null;
       var voTableMetadata = new cadc.vot.Metadata(voTableParameters,
                                                   voTableInfos,
                                                   voTableDescription, null,
@@ -458,6 +584,7 @@
     $.extend(this,
              {
                "build": build,
+               "evaluateXPath": getElements,
                "getData": getData,
                "getVOTable": getVOTable
              });
@@ -578,9 +705,9 @@
       var rowData = buildRowData(tableFields, "vov_" + chunk.rowCount,
                                  entryAsArray,
                                  longestValues,
-                                 function (index)
+                                 function (rowData, index)
                                  {
-                                   return entryAsArray[index].trim();
+                                   return rowData[index].trim();
                                  });
 
       if (pageSize)
@@ -742,7 +869,35 @@
 
     function createRequest()
     {
-      var request = new XMLHttpRequest();
+      // This won't work in versions 5 & 6 of Internet Explorer.
+//      var request = new XMLHttpRequest();
+
+      var request;
+
+      try
+      {
+        request = new XMLHttpRequest();
+      }
+      catch (trymicrosoft)
+      {
+        console.log("Trying Msxml2 request.");
+        try
+        {
+          request = new ActiveXObject("Msxml2.XMLHTTP");
+        }
+        catch (othermicrosoft)
+        {
+          try
+          {
+            console.log("Trying Microsoft request.");
+            request = new ActiveXObject("Microsoft.XMLHTTP");
+          }
+          catch (failed)
+          {
+            request = null;
+          }
+        }
+      }
 
       request.addEventListener("readystatechange", initializeInternalBuilder,
                                false);
