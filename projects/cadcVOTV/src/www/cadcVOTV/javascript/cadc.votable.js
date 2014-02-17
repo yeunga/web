@@ -128,12 +128,12 @@
   {
     var _selfMetadata = this;
 
-    _selfMetadata.parameters = __parameters;
-    _selfMetadata.infos = __infos;
+    _selfMetadata.parameters = __parameters || [];
+    _selfMetadata.infos = __infos || [];
     _selfMetadata.description = _description;
-    _selfMetadata.links = __links;
+    _selfMetadata.links = __links || [];
     _selfMetadata.fields = __fields || [];
-    _selfMetadata.groups = __groups;
+    _selfMetadata.groups = __groups || [];
 
     function getInfos()
     {
@@ -188,10 +188,12 @@
     function hasFieldWithID(_fieldID)
     {
       var currFields = getFields();
-    	
-    	for (var f in currFields)
+
+    	for (var f = 0; f < currFields.length; f++)
     	{
-    		if (currFields[f].getID() == _fieldID)
+        var nextField = currFields[f];
+
+    		if (nextField && (currFields[f].getID() == _fieldID))
     		{
     			return true;
     		}    	
@@ -452,11 +454,13 @@
              });
   }
 
-  function Resource(_type, __metadata, __tables)
+  function Resource(_ID, _name, _metaFlag, __metadata, __tables)
   {
     var _selfResource = this;
 
-    _selfResource.type = _type;
+    _selfResource.ID = _ID;
+    _selfResource.name = _name;
+    _selfResource.metaFlag = _metaFlag;
     _selfResource.metadata = __metadata;
     _selfResource.tables = __tables;
 
@@ -465,9 +469,19 @@
       return _selfResource.tables;
     }
 
-    function getType()
+    function getID()
     {
-      return _selfResource.type;
+      return _selfResource.ID;
+    }
+
+    function isMeta()
+    {
+      return _selfResource.metaFlag;
+    }
+
+    function getName()
+    {
+      return _selfResource.name;
     }
 
     function getMetadata()
@@ -490,7 +504,10 @@
              {
                "getTables": getTables,
                "getMetadata": getMetadata,
-               "getType": getType,
+               "getID": getID,
+               "getName": getName,
+               "isMeta": isMeta,
+               "getInfos": getInfos,
                "getDescription": getDescription
              });
   }
