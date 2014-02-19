@@ -81,20 +81,21 @@
     {
       var nvpair = {};
       var qs = getURIComponents().query;
-      var pairs = (qs != "") ? qs.split("&") : [];
-
-      $.each(pairs, function(i, v)
+      if (qs.trim())
       {
-        var pair = v.split('=');
-        var queryKey = pair[0];
-        var keyValues = nvpair[queryKey] || [];
+        var pairs = (qs != "") ? qs.split("&") : [];
+        $.each(pairs, function(i, v)
+        {
+          var pair = v.split('=');
+          var queryKey = pair[0];
+          var keyValues = nvpair[queryKey] || [];
 
-        // TODO - Is it a good idea to always decode this?
-        keyValues.push(decodeURIComponent(pair[1]));
+          // TODO - Is it a good idea to always decode this?
+          keyValues.push(decodeURIComponent(pair[1]));
 
-        nvpair[queryKey] = keyValues;
-      });
-
+          nvpair[queryKey] = keyValues;
+        });
+      }
       return nvpair;
     }
 
@@ -220,6 +221,7 @@
     $.extend(this,
              {
                "getQuery": getQuery,
+               "getQueryString": getQueryString,
                "getQueryStringObject": getQueryStringObject,
                "getQueryValue": getQueryValue,
                "getQueryValues": getQueryValues,
