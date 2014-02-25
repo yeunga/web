@@ -76,3 +76,12 @@ test("Test decode query parameter components.", 2, function()
   deepEqual(testSubject.getQueryValues("A"), ["B C.D AS \"E\""],
             "Query values for 'A' should have item with spaces.");
 });
+
+test("Handle multiple values for single key.", 1, function()
+{
+  var testSubject =
+      new cadc.web.util.URI("http://www.mysite.com/path/item.txt?A=Eh&A=S");
+
+  deepEqual(testSubject.getQueryValues("A"), ["Eh", "S"],
+            "Query values for 'A' should have two items ['Eh', 'S'].");
+});
