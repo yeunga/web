@@ -66,7 +66,8 @@
  *
  ************************************************************************
  */
-(function ($) {
+(function ($)
+{
   // register namespace
   $.extend(true, window, {
     "cadc": {
@@ -89,7 +90,19 @@
   {
     var _selfStringUtil = this;
 
-    this.string = _string ? _string.toString() : "";
+    this.string = function ()
+    {
+      if (_string === Number(0))
+      {
+        // want a string with content 0, not the JavaScript boolean default
+        return "0";
+      }
+      else
+      {
+        return  _string ? _string.toString() : "";
+      }
+    }();
+
 
     function getString()
     {
@@ -117,8 +130,8 @@
       }
       else
       {
-        returnValue = getString().toString().replace(/&/g,"&amp;").
-            replace(/</g,"&lt;").replace(/>/g,"&gt;");
+        returnValue = getString().toString().replace(/&/g, "&amp;").
+            replace(/</g, "&lt;").replace(/>/g, "&gt;");
       }
 
       return returnValue;

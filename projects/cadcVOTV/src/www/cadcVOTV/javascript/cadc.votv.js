@@ -298,68 +298,6 @@
     }
 
     /**
-     * During a sort, this is the comparer that is used.  This comparer is used
-     * by the DataView object, so it expects the comparison items to be pulled
-     * from the datacontext (a{}, b{}).
-     *
-     * @param a           The left dataset to compare.
-     * @param b           The right dataset to compare.
-     * @returns {number}
-     */
-    function comparer(a, b)
-    {
-      var x = a[_self.sortcol], y = b[_self.sortcol];
-
-      return sortComparer(x, y);
-    }
-
-    /**
-     * The actual array comparer.  Used for unit testing.
-     *
-     * @param x           The left dataset to compare.
-     * @param y           The right dataset to compare.
-     * @returns {number}
-     */
-    function sortComparer(x, y)
-    {
-      var vx = x;
-      var vy = y;
-
-      if (!areStrings(vx, vy))
-      {
-        if (isNumber(vx))
-        {
-          vx = parseFloat(vx);
-
-          if (!isNumber(vy))
-          {
-            vy = Number.NaN;
-          }
-        }
-        else if (isNumber(vy))
-        {
-          vy = parseFloat(vy);
-
-          if (!isNumber(vx))
-          {
-            vx = Number.NaN;
-          }
-        }
-
-        if (isNaN(parseFloat(vx)))
-        {
-          vx = -Infinity;
-        }
-        else if (isNaN(parseFloat(vy)))
-        {
-          vy = -Infinity;
-        }
-      }
-
-      return (vx == vy ? 0 : (vx > vy ? 1 : -1));
-    }
-
-    /**
      * Add a VOTable Row.
      *
      * @param row       The cadc.vot.Row object.
@@ -1126,11 +1064,14 @@
                             {
                               _self.sortAsc = args.sortAsc;
                               _self.sortcol = args.sortCol.field;
+                              var isnumeric = _self.getColumn(_self.sortcol).datatype.isNumeric();
+                              var comparer = 
+                                new cadc.vot.Comparer(_self.sortcol, isnumeric);
 
                               // using native sort with comparer
                               // preferred method but can be very slow in IE
                               // with huge datasets
-                              dataView.sort(_self.comparer, args.sortAsc);
+                              dataView.sort(comparer.compare, args.sortAsc);
                               dataView.refresh();
                             });
 
@@ -1581,8 +1522,6 @@
                "getDisplayedColumns": getDisplayedColumns,
                "valueFilters": valueFilters,
                "searchFilter": searchFilter,
-               "comparer": comparer,
-               "sortComparer": sortComparer,
                "setSortColumn": setSortColumn
 
                // Event subscription

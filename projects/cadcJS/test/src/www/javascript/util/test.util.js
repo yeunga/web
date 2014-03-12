@@ -1,4 +1,4 @@
-test("Test String util.", 4, function()
+test("Test String util.", 5, function()
 {
   var stringUtil = new cadc.web.util.StringUtil("MY&&<>VAL");
 
@@ -6,12 +6,16 @@ test("Test String util.", 4, function()
 
   equal(output, "MY&amp;&amp;&lt;&gt;VAL",
         "Output should be MY&amp;&amp;&lt;&gt;VAL");
+
   equal(stringUtil.hasText(), true, "Should return true.");
 
   stringUtil = new cadc.web.util.StringUtil("");
   equal(stringUtil.hasText(), false, "Should return false.");
 
   stringUtil = new cadc.web.util.StringUtil(-14.567);
+  equal(stringUtil.hasText(), true, "Should return true.");
+
+  stringUtil = new cadc.web.util.StringUtil(0);
   equal(stringUtil.hasText(), true, "Should return true.");
 });
 
