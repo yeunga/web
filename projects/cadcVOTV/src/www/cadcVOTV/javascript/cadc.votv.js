@@ -223,7 +223,7 @@
 
       var col;
 
-      if (existingColumnIndex)
+      if (!isNaN(existingColumnIndex))
       {
         col = getGrid().getColumns()[existingColumnIndex];
       }
@@ -1064,6 +1064,9 @@
                             {
                               _self.sortAsc = args.sortAsc;
                               _self.sortcol = args.sortCol.field;
+
+                              console.log("Getting: " + _self.sortcol);
+
                               var isnumeric = _self.getColumn(_self.sortcol).datatype.isNumeric();
                               var comparer = 
                                 new cadc.vot.Comparer(_self.sortcol, isnumeric);
