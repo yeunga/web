@@ -107,7 +107,7 @@ server, you can set the PROXY_URL filter token value to "".
     <echo message="Sort comparer tests"/>
     <antcall target="js-test">
       <param name="js-test-dir" value="test/src/comparer" />
-      <param name="js-test-name" value="cadc.votv.comparer.js" />
+      <param name="js-test-name" value="cadc.votv.sorter.js" />
     </antcall>
 
     <echo message="VOTable Streaming builder tests"/>

@@ -223,6 +223,7 @@
 
     _selfDatatype.datatypeValue = _datatypeValue || "";
 
+    var stringTypes = ["varchar", "char", "adql:VARCHAR", "adql:CLOB"];
 
     function getDatatypeValue()
     {
@@ -231,7 +232,11 @@
 
     function isNumeric()
     {
-      return isIntegerNumeric() || isFloatingPointNumeric();
+      // will accept float, double, long, int, short, real, timestamp,
+      // adql:TIMESTAMP, adql:DOUBLE, adql:INTEGER, adql:REGION,
+      // adql:POINT, adql:REAL
+      //
+      return !isCharDatatype();
     }
 
     function isFloatingPointNumeric()
@@ -245,6 +250,19 @@
       var dataTypeVal = getDatatypeValue();
       return (dataTypeVal == "int") || (dataTypeVal == "long")
               || (dataTypeVal == "short");
+    }
+
+    function isCharDatatype()
+    {
+      var dataTypeValue = getDatatypeValue();
+      for(var ii in stringTypes)
+      {
+        if (dataTypeValue == stringTypes[ii] )
+        {
+          return true;
+        }
+      }
+      return false;
     }
 
     $.extend(this,
