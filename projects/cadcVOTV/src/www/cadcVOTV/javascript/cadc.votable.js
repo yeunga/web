@@ -242,7 +242,9 @@
     function isFloatingPointNumeric()
     {
       var dataTypeVal = getDatatypeValue();
-      return (dataTypeVal == "float") || (dataTypeVal == "double");
+      return (dataTypeVal == "float") || (dataTypeVal == "double")
+              || (dataTypeVal == "adql:DOUBLE") || (dataTypeVal == "adql:FLOAT")
+              || (dataTypeVal == "adql:REGION");
     }
 
     function isIntegerNumeric()
