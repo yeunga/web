@@ -156,9 +156,8 @@
       }
       else
       {
-        console.log("cadcVOTV: input object is not set or not recognizable");
-        alert("cadcVOTV: input object is not set or not recognizable. \n\n"
-                  + input);
+        console.log("cadcVOTV: Input object is not set or not recognizable");
+        throw new Error("cadcVOTV: Input object is not set or not recognizable. \n\n" + input);
       }
     }
 
@@ -375,12 +374,12 @@
         }
         else
         {
-          alert("cadcVOTV: Internet Explorer poly fill not present.");
+          throw new Error("cadcVOTV: Internet Explorer poly fill not present.");
         }
       }
       else if (getData().documentElement.nodeName == 'parsererror')
       {
-        alert("cadcVOTV: XML input is invalid.\n\n");
+        throw new Error("cadcVOTV: XML input is invalid.\n\n");
       }
     }
 
@@ -785,7 +784,7 @@
             outputMessage += "\n\nMessage from server: " + message;
           }
 
-          alert(outputMessage);
+          throw new Error(outputMessage);
         };
       }
     }
@@ -828,10 +827,11 @@
 
     function handleInputError()
     {
-      console.log(
-          "cadcVOTV: Unable to obtain XML, JSON, or CSV VOTable from URL");
-      alert("cadcVOTV: Unable to obtain XML, JSON, or CSV VOTable from URL ("
-            + input.url + ").");
+      var message =
+          "cadcVOTV: Unable to obtain XML, JSON, or CSV VOTable from URL (" + input.url + ").";
+      console.log(message);
+
+      throw new Error(message);
     }
 
     /**
