@@ -33,6 +33,7 @@
     function setLongest(longestValues, cellID, newValue)
     {
       var stringLength = (newValue && newValue.length) ? newValue.length : -1;
+
       if (longestValues[cellID] === undefined)
       {
         longestValues[cellID] = -1;
