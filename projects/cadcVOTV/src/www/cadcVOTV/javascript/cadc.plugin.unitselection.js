@@ -101,7 +101,8 @@
         var i = column.header.units.length;
         var unitPullDown = $("<select></select>")
             .addClass(options.unitPulldownCssClass)
-            .data("column", column);
+            .data("column", column)
+            .attr("id", column.utype + "_unitselect");
         var selectedUnit = $(column).data("unitValue");
 
         while (i--)
