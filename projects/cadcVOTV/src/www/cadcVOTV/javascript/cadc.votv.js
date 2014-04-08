@@ -810,12 +810,7 @@
         // Update the equivalent in the grid, if it's there.
         if (existingColumn)
         {
-          console.log("Setting existing to " + existingColumn.width + " for " + gridColumn.name);
           gridColumn.width = existingColumn.width;
-        }
-        else
-        {
-          console.log("Can't find " + gridColumn.id);
         }
 
         totalWidth += gridColumn.width;
