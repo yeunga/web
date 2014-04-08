@@ -1381,7 +1381,7 @@
         {
           columnObject.width = colOpts.width;
         }
-        else if (columnManager.forceFitColumns || isFitMax(columObject.id))
+        else if (columnManager.forceFitColumns || isFitMax(columnObject.id))
         {
           columnObject.width = calculateColumnWidth(columnObject);
         }
