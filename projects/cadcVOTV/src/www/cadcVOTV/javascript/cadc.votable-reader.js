@@ -472,6 +472,20 @@
           // Born from User Story 1103.
           var longestValues = {};
 
+          /**
+           * Method to construct a row.  This is called for each row read.
+           *
+           * @param rowData       The row data for a single row.
+           * @param index         The row index.
+           * @returns {string|*}
+           */
+          var getCellData = function (rowData, index)
+          {
+            var cellDataDOM = rowData[index];
+            return (cellDataDOM.childNodes && cellDataDOM.childNodes[0]) ?
+                   cellDataDOM.childNodes[0].nodeValue : "";
+          };
+
           for (var fieldIndex = 0; fieldIndex < resourceTableFieldDOM.length;
                fieldIndex++)
           {
@@ -539,22 +553,9 @@
               rowID = "vov_" + rowIndex;
             }
 
-            /**
-             * Method to construct a row.  This is called for each row read.
-             *
-             * @param rowData       The row data for a single row.
-             * @param index         The row index.
-             * @returns {string|*}
-             */
-            var getCellData = function (rowData, index)
-            {
-              var cellDataDOM = rowData[index];
-              return (cellDataDOM.childNodes && cellDataDOM.childNodes[0]) ?
-                     cellDataDOM.childNodes[0].nodeValue : "";
-            };
-
             var rowData = buildRowData(tableFieldsMetadata, rowID, rowCellsDOM,
                                        longestValues, getCellData);
+
             tableDataRows.push(rowData);
           }
 
