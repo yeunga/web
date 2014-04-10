@@ -232,11 +232,21 @@
 
     function isNumeric()
     {
-      // will accept float, double, long, int, short, real, timestamp,
-      // adql:TIMESTAMP, adql:DOUBLE, adql:INTEGER, adql:REGION,
-      // adql:POINT, adql:REAL
+      // will accept float, double, long, int, short, real, adql:DOUBLE,
+      // adql:INTEGER, adql:REGION, adql:POINT, adql:REAL
       //
-      return !isCharDatatype();
+      return !isCharDatatype() && !isTimestamp();
+    }
+
+    /**
+     * Return whether this datatype is a Timestamp.
+     * @returns {boolean}   True if timestamp, False otherwise.
+     */
+    function isTimestamp()
+    {
+      var dataTypeVal = getDatatypeValue();
+      return ((dataTypeVal == "timestamp")
+              || (dataTypeVal == "adql:TIMESTAMP"));
     }
 
     function isFloatingPointNumeric()
@@ -257,9 +267,9 @@
     function isCharDatatype()
     {
       var dataTypeValue = getDatatypeValue();
-      for(var ii in stringTypes)
+      for (var stIndex = 0; stIndex < stringTypes.length; stIndex++)
       {
-        if (dataTypeValue == stringTypes[ii] )
+        if (dataTypeValue == stringTypes[stIndex])
         {
           return true;
         }
@@ -271,6 +281,7 @@
              {
                "getDatatypeValue": getDatatypeValue,
                "isNumeric": isNumeric,
+               "isTimestamp": isTimestamp,
                "isIntegerNumeric": isIntegerNumeric,
                "isFloatingPointNumeric": isFloatingPointNumeric
              });
