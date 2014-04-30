@@ -46,7 +46,9 @@
 
     this.columns = [];
     this.displayColumns = [];  // Columns that are actually in the Grid.
+    this.resizedColumns = {};  // Columns the user has resized.
     this.columnFilters = {};
+    this.updatedColumnSelects = {};
     this.targetNodeSelector = targetNodeSelector;
     this.columnOptions = options.columnOptions ? options.columnOptions : {};
     this.options = options;
@@ -189,6 +191,16 @@
     {
       return getColumnOptions()[columnLabel]
           ? getColumnOptions()[columnLabel] : {};
+    }
+    
+    function getResizedColumns()
+    {
+        return _self.resizedColumns;
+    }
+    
+    function getUpdatedColumnSelects()
+    {
+        return _self.updatedColumnSelects;
     }
 
     /**
@@ -1231,6 +1243,8 @@
                                                            "unitValue",
                                                            args.unitValue);
                                                      }
+                                                     // track select changes.
+                                                     getUpdatedColumnSelects[args.column.id] = args.unitValue;
 
                                                      // Invalidate to force column
                                                      // reformatting.
@@ -1239,6 +1253,17 @@
 
         grid.registerPlugin(unitSelectionPlugin);
       }
+      
+      // Track the width of resized columns.
+      grid.onColumnsResized.subscribe(function(e, args) {
+        var columns = args.grid.getColumns();
+        $.each(columns, function(index, column) {
+            if (column.width !== column.previousWidth) {
+                getResizedColumns[column.id] = column.width;
+                return false;
+            }
+        });
+      });
 
       setDataView(dataView);
       setGrid(grid);
@@ -1537,7 +1562,9 @@
                "getDisplayedColumns": getDisplayedColumns,
                "valueFilters": valueFilters,
                "searchFilter": searchFilter,
-               "setSortColumn": setSortColumn
+               "setSortColumn": setSortColumn,
+               "getResizedColumns": getResizedColumns,
+               "getUpdatedColumnSelects": getUpdatedColumnSelects
 
                // Event subscription
 //               "subscribe": subscribe

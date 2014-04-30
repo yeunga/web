@@ -116,6 +116,12 @@ server, you can set the PROXY_URL filter token value to "".
       <param name="js-test-name" value="cadc.votable.streaming-reader.js" />
     </antcall>
 
+    <echo message="Result state tests"/>
+    <antcall target="js-test">
+      <param name="js-test-dir" value="test/src/result_state" />
+      <param name="js-test-name" value="cadc.result-state.js" />
+    </antcall>
+    
   </target>
 
   <target name="js-test">
