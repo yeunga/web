@@ -199,7 +199,9 @@
      */
     function isFitMax(columnID)
     {
-      return getOptionsForColumn(columnID).fitMax || getOptions().fitMax;
+      var columnOptions = getOptionsForColumn(columnID);
+
+      return (columnOptions && columnOptions.fitMax) || getOptions().fitMax;
     }
 
     function getColumnFilters()
@@ -270,7 +272,7 @@
 
       var col;
 
-      if (columnIndex)
+      if (columnIndex || (columnIndex === Number(0)))
       {
         col = getColumns()[columnIndex];
       }
@@ -783,7 +785,16 @@
       for (var i = 0; i < allCols.length; i++)
       {
         var col = allCols[i];
-        setColumnWidth(col);
+        var initialWidth = getOptionsForColumn(col.name).width;
+
+        if (initialWidth && (initialWidth !== Number(0)))
+        {
+          col.width = initialWidth;
+        }
+        else
+        {
+          setColumnWidth(col);
+        }
       }
 
       var gridColumns = getGrid().getColumns();
@@ -819,15 +830,16 @@
         }
 
         $(getHeaderNodeSelector()).css("width", (totalWidth + 15) + "px");
-        _self.refreshGrid();
       }
+
+      _self.refreshGrid();
     }
 
     function setColumnWidth(_columnDefinition)
     {
       // Do not calculate with checkbox column.
       if ((_columnDefinition.id != cadc.vot.CHECKBOX_SELECTOR_COLUMN_ID)
-          && isFitMax(_columnDefinition.id))
+          && (isFitMax(_columnDefinition.id) || getOptions().forceFitColumns))
       {
         _columnDefinition.width = calculateColumnWidth(_columnDefinition);
       }
@@ -1364,7 +1376,7 @@
         {
           columnObject.width = colOpts.width;
         }
-        else if (columnManager.forceFitColumns || colOpts.fitMax)
+        else if (columnManager.forceFitColumns || isFitMax(columnObject.id))
         {
           columnObject.width = calculateColumnWidth(columnObject);
         }
