@@ -45,9 +45,10 @@
     this.rowManager = options.rowManager ? options.rowManager : {};
 
     this.columns = [];
-    this.displayColumns = [];  // Columns that are actually in the Grid.
+    // displayColumns: columns that are actually in the Grid.
+    this.displayColumns = options.displayColumn ? options.displayColumns : [];
     this.resizedColumns = {};  // Columns the user has resized.
-    this.columnFilters = {};
+    this.columnFilters = options.columnFilters ? options.columnFilters : {};
     this.updatedColumnSelects = {};
     this.targetNodeSelector = targetNodeSelector;
     this.columnOptions = options.columnOptions ? options.columnOptions : {};
@@ -1244,7 +1245,7 @@
                                                            args.unitValue);
                                                      }
                                                      // track select changes.
-                                                     getUpdatedColumnSelects[args.column.id] = args.unitValue;
+                                                     _self.updatedColumnSelects[args.column.id] = args.unitValue;
 
                                                      // Invalidate to force column
                                                      // reformatting.
