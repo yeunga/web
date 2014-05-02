@@ -53,7 +53,11 @@
             var url = [];
             url.push(baseUrl);
             url.push(queryUrl);
-            url.push("&");
+            // Check if queryUrl ends in a ?
+            if (queryUrl.slice(-1) != "?")
+            {
+                url.push("&");
+            }
             url.push(cadc.web.START_OF_PARAMETERS);
             if (sortColumn)
             {
@@ -78,7 +82,7 @@
             }
             $.each(columns, function(index, column)
             {
-                url.push(getColumnParameter(index + 1, column, widths, filters, units));
+                url.push(getColumnParameter(index + 1, column.id, widths, filters, units));
             });
             url.push("&");
             url.push(cadc.web.END_OF_PARAMETERS);
@@ -122,88 +126,15 @@
         function parseQueryUrl(url)
         {
             // Look for the cadc.web.START_OF_PARAMETERS parameter.
-            var parts = url.split("&" + cadc.web.START_OF_PARAMETERS);
-            return parts[0] ? parts[0] : "";
+            var parts = url.split(cadc.web.START_OF_PARAMETERS);
+            if (parts[0].slice(-1) == "&")
+            {
+                return parts[0].slice(0, parts[0].length - 1);
+            }
+            else
+            return parts[0];
         };
 
-        /**
-         * Parse the result table state parameters into an object containing
-         * the sort column name and sort column direction (ascending/descending)
-         * and the columnID, width, filter, and unit for each column.
-         * 
-         * @param {String} url The query url.
-         * @returns {Object}
-         */
-        function getResultState(url)
-        {
-            var resultState = {};
-            
-            // check for result state start parameter.
-            var startIndex = url.indexOf("&" + cadc.web.START_OF_PARAMETERS);
-            if (startIndex === -1)
-            {
-                resultState["error"] = "Start of parameters parameters not found";
-                return resultState;
-            }
-            
-            // check for result state end parameter to verify the parameters
-            // haven't been truncated.
-            var endIndex = url.indexOf("&" + cadc.web.END_OF_PARAMETERS);
-            if (endIndex === -1)
-            {
-                resultState["error"] = "End of parameters parameters not found";
-                return resultState;
-            }
-            
-            var columns = [];
-            var parameters = url.substring(startIndex + cadc.web.START_OF_PARAMETERS.length + 1, endIndex).split("&");
-            $.each(parameters, function(index, parameter)
-            {
-                var nameValue = parameter.split("=");
-                if (nameValue.length === 2)
-                {
-                    if (nameValue[0] === cadc.web.SORT_COLUMN)
-                    {
-                        resultState[cadc.web.SORT_COLUMN] = nameValue[1];
-                    }
-                    else if (nameValue[0] === cadc.web.SORT_DIRECTION)
-                    {
-                        resultState[cadc.web.SORT_DIRECTION] = nameValue[1];
-                    }
-                    else if (nameValue[0].slice(0, cadc.web.COLUMN_PARAMETER_NAME.length) === cadc.web.COLUMN_PARAMETER_NAME)
-                    {
-                        var columnNumber = nameValue[0].substring(cadc.web.COLUMN_PARAMETER_NAME.length);
-                        var parts = nameValue[1].split(";");
-                        var state = {};
-                        state["number"] = columnNumber;
-                        state["id"] = parts[0] ? decodeURIComponent(parts[0]) : '';
-                        state["width"] = parts[1] ? parts[1] : '';
-                        state["filter"] = parts[2] ? decodeURIComponent(parts[2]) : '';
-                        state["unit"] = parts[3] ? decodeURIComponent(parts[3]) : '';
-                        columns.push(state);
-                    }
-                    else
-                    {
-                        console.error("Unknown parameter: " + nameValue[0]);
-                    }
-                }
-            });
-            
-            // Sort the columns by column number.
-            columns.sort(compare);
-            resultState["columns"] = columns;
-            
-            // Create an array of column id's.
-            var displayColumns = [];
-            $.each(columns, function(index, column) 
-            {
-               displayColumns.push(column.id); 
-            });
-            resultState["displayColumns"] = displayColumns;
-            
-            return resultState;
-        };
-        
         /**
          * Sort the array by the number attribute.
          * 
@@ -213,22 +144,134 @@
          */
         function compare(a, b)
         {
-            if (a.number < b.number)
+            if (new Number(a.number) < new Number(b.number))
             {
                return -1;
             }
-            if (a.number > b.number)
+            if (new Number(a.number) > new Number(b.number))
             {
                 return 1;
             }
             return 0;
+        };
+        
+        /**
+         * Parse the result table state parameters into an voviewer options
+         * object containing the viewer options from the url.
+         * 
+         * @param {String} url The query url.
+         * @returns {Object} Voviewer options.
+         */
+        function getViewerOptions(url)
+        {
+            var options = {};
+            
+            // check for result state start parameter.
+            var startIndex = url.indexOf(cadc.web.START_OF_PARAMETERS);
+            if (startIndex === -1)
+            {
+                return options;
+            }
+            
+            // check for result state end parameter to verify the parameters
+            // haven't been truncated.
+            var endIndex = url.indexOf("&" + cadc.web.END_OF_PARAMETERS);
+            if (endIndex === -1)
+            {
+                options.error = "End of url parameter &" +
+                                cadc.web.END_OF_PARAMETERS + " not found";
+                return options;
+            }
+            
+            var columns = [];
+            var columnOptions = {};
+            var columnFilters = {};
+            var parameters = url.substring(startIndex + 
+                                           cadc.web.START_OF_PARAMETERS.length, 
+                                           endIndex).split("&");
+            $.each(parameters, function(index, parameter)
+            {
+                var nameValue = parameter.split("=");
+                if (nameValue.length === 2)
+                {
+                    if (nameValue[0] === cadc.web.SORT_COLUMN)
+                    {
+                        options.sortColumn = nameValue[1];
+                    }
+                    else if (nameValue[0] === cadc.web.SORT_DIRECTION)
+                    {
+                        options.sortDir = nameValue[1];
+                    }
+                    else if (nameValue[0].slice(0, cadc.web.COLUMN_PARAMETER_NAME.length) 
+                            === cadc.web.COLUMN_PARAMETER_NAME)
+                    {
+                        var parts = nameValue[1].split(";");
+                        var id = parts[0] ? decodeURIComponent(parts[0]) : '';
+                        var width = parts[1] ? parts[1] : '';
+                        var filter = parts[2] ? decodeURIComponent(parts[2]) : '';
+                        var unit = parts[3] ? decodeURIComponent(parts[3]) : '';
+                        if (filter)
+                        {
+                            columnFilters[id] = filter;
+                        }
+                        if (width || unit)
+                        {
+                            var option = {};
+                            if (width)
+                            {
+                                option.width = width;
+                            }
+                            if (unit)
+                            {
+                                var header = {};
+                                header.units = [{"label": unit, "value": unit, "default": true}];
+                                option.header = header;
+                            }
+                            columnOptions[id] = option;
+                        }
+                        
+                        // Track column order and column id for displayColumns.
+                        var columnNumber = nameValue[0].substring(cadc.web.COLUMN_PARAMETER_NAME.length);
+                        columns.push({"number": columnNumber, "id": id});
+                    }
+                    else
+                    {
+                        console.error("Unknown parameter: " + nameValue[0]);
+                    }
+                }
+            });
+            
+            if (!$.isEmptyObject(columnOptions))
+            {
+                options.columnOptions = columnOptions;
+            }
+            
+            if (!$.isEmptyObject(columnFilters))
+            {
+                options.columnFilters = columnFilters;
+            }
+            
+            // Sort the columns by column number.
+            if (columns.length > 0)
+            {
+                columns.sort(compare);
+            
+                // Create an array of column id's.
+                options.displayColumns = [];
+                $.each(columns, function(index, column) 
+                {
+                    options.displayColumns.push(column.id); 
+                });
+            }
+            
+            return options;
         };
 
         $.extend(this,
                 {
                     // Methods
                     "getResultStateUrl": getResultStateUrl,
-                    "getResultState": getResultState,
+                    "getViewerOptions": getViewerOptions,
                     "parseQueryUrl": parseQueryUrl
                 });
     }
