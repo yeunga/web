@@ -16,7 +16,8 @@
     var _inHandler;
     var _options;
     var _defaults = {
-      selectActiveRow: true
+      selectActiveRow: true,
+      selectClickedRow: false
     };
 
     function init(grid)
@@ -217,7 +218,7 @@
         }
       }
 
-      if (cell.cell === 0)
+      if (_options.selectClickedRow || cell.cell === 0)
       {
         _ranges = rowsToRanges(selection);
         setSelectedRanges(_ranges);
