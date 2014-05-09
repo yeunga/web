@@ -80,7 +80,7 @@
             });
 
             // Replace ?& in the query with ?.
-            return url.join("").replace('/\?&/', '?');
+            return url.join("").replace("?&", "?");
         };
 
         /**
@@ -148,9 +148,6 @@
             });
             
             var url = [];
-            url.push(_self.url.getScheme());
-            url.push("://")
-            url.push(_self.url.getHost());
             url.push(_self.url.getPath());
             if (query.length > 0)
             {

@@ -1,8 +1,8 @@
-test("Serialize table state to an url", 14, function()
+test("Serialize table state to an url", 16, function()
 {
     // No parameters
     var baseUrl = "http://localhost.com";
-    var queryUrl = "/foo/bar/search";
+    var queryUrl = "/foo/bar/search?";
     var sortColumn, sortDirection, columns, widths, filters, units;
 
     var selializer = new cadc.vot.ResultStateSerializer(baseUrl, queryUrl, 
@@ -14,8 +14,24 @@ test("Serialize table state to an url", 14, function()
     ok(actual, "url should not be empty");
     equal(actual, expected, "Incorrect url returned");
     
+    // No query parameters but state parameters.
+    queryUrl = "/foo/bar/search?";
+    sortColumn = "foo";
+    sortDirection = "dsc";
+
+    var selializer = new cadc.vot.ResultStateSerializer(baseUrl, queryUrl, 
+                            sortColumn, sortDirection, columns, widths, 
+                            filters, units);
+    var actual = selializer.getResultStateUrl();
+    var expected = expected = baseUrl + queryUrl + "sortCol=foo&sortDir=dsc";
+
+    ok(actual, "url should not be empty");
+    equal(actual, expected, "Incorrect url returned");
+    
     // Minimal parameters.
     queryUrl = "/foo/bar/search?Observation.target.name=alpha%20beta&foo=bar";
+    sortColumn = '';
+    sortDirection = '';
 
     selializer = new cadc.vot.ResultStateSerializer(baseUrl, queryUrl, 
                     sortColumn, sortDirection, columns, widths, filters, units);
@@ -84,33 +100,33 @@ test("Serialize table state to an url", 14, function()
 
 test("Parse the query url and state parts", 8, function()
 {
-    var url = "http://www.localhost.com/search";
+    var url = "search";
     var deserializer = new cadc.vot.ResultStateDeserializer(url);
     var actual = deserializer.getQueryUrl();
 
     ok(actual, "Query url should not be empty");
     equal(actual, url, "Query url does not match");
     
-    url = "http://www.localhost.com/search?";
+    url = "search?";
     deserializer = new cadc.vot.ResultStateDeserializer(url);
     actual = deserializer.getQueryUrl();
 
     ok(actual, "Query url should not be empty");
-    equal(actual, "http://www.localhost.com/search", "Query url does not match");
+    equal(actual, "search", "Query url does not match");
 
-    url = "http://www.localhost.com/search?foo=bar&tea=two&";
+    url = "search?foo=bar&tea=two&";
     deserializer = new cadc.vot.ResultStateDeserializer(url);
     actual = deserializer.getQueryUrl();
 
     ok(actual, "Query url should not be empty");
-    equal(actual, "http://www.localhost.com/search?foo=bar&tea=two", "Query url does not match");
+    equal(actual, "search?foo=bar&tea=two", "Query url does not match");
     
-    url = "http://www.localhost.com/search?foo=bar&sortCol=a&sortDir=dsc&col_1=a;b;c;d&e=f&col_2=g;h;i;j";
+    url = "search?foo=bar&sortCol=a&sortDir=dsc&col_1=a;b;c;d&e=f&col_2=g;h;i;j";
     deserializer = new cadc.vot.ResultStateDeserializer(url);
     actual = deserializer.getQueryUrl();
 
     ok(actual, "Query url should not be empty");
-    equal(actual, "http://www.localhost.com/search?foo=bar&e=f", "Query url does not match");
+    equal(actual, "search?foo=bar&e=f", "Query url does not match");
 });
 
 test("Deserialize an url to voview options", 12, function()
