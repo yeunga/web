@@ -10,7 +10,10 @@
           "STRING": "STRING",
           "DATETIME": "DATETIME"
         },
-        "DEFAULT_CELL_PADDING_PX": 8
+        "DEFAULT_CELL_PADDING_PX": 8,
+        "events": {
+          "onSort": new jQuery.Event("cadcVOTV:onSort")
+        }
       }
     }
   });
@@ -110,10 +113,11 @@
                                {
                                  setLongestValues(args.longestValues);
                                  resetColumnWidths();
-//                                 refreshGridColumns();
                                });
 
                                clearRows();
+
+                               // Setup the Grid and DataView to be loaded.
                                _self.init();
 
                                voTableBuilder.subscribe(cadc.vot.onPageAddStart,
@@ -126,6 +130,12 @@
                                                         function(event)
                                                         {
                                                           getDataView().endUpdate();
+
+                                                          // Sorting as data loads.  Not sure if this is a good idea or not.
+                                                          // jenkinsd 2014.05.09
+                                                          // WebRT 53730
+                                                          //
+                                                          sort();
                                                         });
 
                                voTableBuilder.subscribe(cadc.vot.onRowAdd,
@@ -389,12 +399,21 @@
       g.resizeCanvas();
     }
 
+    /**
+     * Tell the Grid to sort.  This exists mainly to set an initial sort column
+     * on the Grid.
+     */
     function sort()
     {
       if (_self.sortcol)
       {
-        getGrid().setSortColumn(_self.sortcol,
-                                (_self.sortAsc || (_self.sortAsc == 1)));
+        var isAscending = (_self.sortAsc || (_self.sortAsc == 1));
+        getGrid().setSortColumn(_self.sortcol, isAscending);
+
+        trigger(cadc.vot.events.onSort, {
+          sortCol: _self.sortcol,
+          sortAsc: isAscending
+        });
       }
     }
 
@@ -1086,22 +1105,45 @@
                                  return true;
                                });
 
+      /**
+       * Tell the dataview to do the comparison.
+       */
+      var doGridSort = function()
+      {
+        var isnumeric = _self.getColumn(_self.sortcol).datatype.isNumeric();
+        var comparer =
+            new cadc.vot.Comparer(_self.sortcol, isnumeric);
+
+        // using native sort with comparer
+        // preferred method but can be very slow in IE
+        // with huge datasets
+        dataView.sort(comparer.compare, _self.sortAsc);
+        dataView.refresh();
+      };
+
+      /**
+       * Handle the local sort events.  These events are fired for the initial
+       * sort when the Grid is loaded, if any.
+       *
+       * WebRT 53730
+       */
+      subscribe(cadc.vot.events.onSort, function(eventData, args)
+      {
+        _self.sortAsc = args.sortAsc;
+        _self.sortcol = args.sortCol;
+
+        doGridSort();
+      });
+
+      /**
+       * Handle the Grid sorts.
+       */
       grid.onSort.subscribe(function (e, args)
                             {
                               _self.sortAsc = args.sortAsc;
                               _self.sortcol = args.sortCol.field;
 
-                              console.log("Getting: " + _self.sortcol);
-
-                              var isnumeric = _self.getColumn(_self.sortcol).datatype.isNumeric();
-                              var comparer = 
-                                new cadc.vot.Comparer(_self.sortcol, isnumeric);
-
-                              // using native sort with comparer
-                              // preferred method but can be very slow in IE
-                              // with huge datasets
-                              dataView.sort(comparer.compare, args.sortAsc);
-                              dataView.refresh();
+                              doGridSort();
                             });
 
       // wire up model events to drive the grid
@@ -1408,12 +1450,6 @@
           columnObject.width = calculateColumnWidth(columnObject);
         }
 
-        // Here to handle XTypes like the adql:timestamp xtype.
-//        else if (field.getXType() && field.getXType().match(/timestamp/i))
-//        {
-//          columnObject.width = 140;
-//        }
-
         addColumn(columnObject);
       });
     }
@@ -1528,15 +1564,31 @@
       g.init();
     }
 
-//    function subscribe(event, handler)
-//    {
-//      $(getTargetNodeSelector()).on(event, handler);
-//    }
-//
-//    function trigger(event, args)
-//    {
-//      $(getTargetNodeSelector()).trigger(event, args);
-//    }
+    /**
+     * Fire an event.  Taken from the slick.grid Object.
+     *
+     * @param _event       The Event to fire.
+     * @param _args        Arguments to the event.
+     * @returns {*}       The event notification result.
+     */
+    function trigger(_event, _args)
+    {
+      var args = _args || {};
+      args.application = _self;
+
+      return $(_self).trigger(_event, _args);
+    }
+
+    /**
+     * Subscribe to one of this form's events.
+     *
+     * @param _event      Event object.
+     * @param __handler   Handler function.
+     */
+    function subscribe(_event, __handler)
+    {
+      $(_self).on(_event.type, __handler);
+    }
 
     $.extend(this,
              {
@@ -1566,10 +1618,10 @@
                "searchFilter": searchFilter,
                "setSortColumn": setSortColumn,
                "getResizedColumns": getResizedColumns,
-               "getUpdatedColumnSelects": getUpdatedColumnSelects
+               "getUpdatedColumnSelects": getUpdatedColumnSelects,
 
                // Event subscription
-//               "subscribe": subscribe
+               "subscribe": subscribe
              });
   }
 })(jQuery);
