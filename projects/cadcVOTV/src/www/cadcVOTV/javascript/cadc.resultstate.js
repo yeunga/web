@@ -80,7 +80,7 @@
             });
 
             // Replace ?& in the query with ?.
-            return url.join("").replace("?&", "?");
+            return url.join("").replace("?&", "?").replace("#?", "?");
         };
 
         /**
@@ -193,11 +193,11 @@
             {
                 if (key === cadc.vot.ResultState.SORT_COLUMN)
                 {
-                    options.sortColumn = value;
+                    options.sortColumn = value ? decodeURIComponent(value) : '';
                 }
                 else if (key === cadc.vot.ResultState.SORT_DIRECTION)
                 {
-                    options.sortDir = value;
+                    options.sortDir = value ? decodeURIComponent(value) : '';
                 }
                 else if (key.slice(0, cadc.vot.ResultState.COLUMN_PARAMETER_NAME.length) 
                         === cadc.vot.ResultState.COLUMN_PARAMETER_NAME)
@@ -249,10 +249,10 @@
                 columns.sort(compare);
             
                 // Create an array of column id's.
-                options.displayColumns = [];
+                options.defaultColumnIDs = [];
                 $.each(columns, function(index, column) 
                 {
-                    options.displayColumns.push(column.id); 
+                    options.defaultColumnIDs.push(column.id); 
                 });
             }
             
