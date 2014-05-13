@@ -46,7 +46,7 @@
 
     this.columns = [];
     // displayColumns: columns that are actually in the Grid.
-    this.displayColumns = options.displayColumn ? options.displayColumns : [];
+    this.displayColumns = options.displayColumns ? options.displayColumns : [];
     this.resizedColumns = {};  // Columns the user has resized.
     this.columnFilters = options.columnFilters ? options.columnFilters : {};
     this.updatedColumnSelects = {};

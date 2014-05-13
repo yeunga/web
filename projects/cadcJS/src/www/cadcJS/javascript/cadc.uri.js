@@ -140,6 +140,11 @@
     {
       return getURIComponents().host;
     }
+    
+    function getScheme()
+    {
+        return getURIComponents().scheme;
+    }
 
     /**
      * Key -> value representation of the query string.  Assumes one value per
@@ -231,7 +236,8 @@
                "getFile": getFile,
                "getURI": getURI,
                "getRelativeURI": getRelativeURI,
-               "getHash": getHash
+               "getHash": getHash,
+               "getScheme": getScheme
              });
   }
 })(jQuery);

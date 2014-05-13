@@ -2,15 +2,16 @@
 {
     $.extend(true, window, {
         "cadc": {
-            "web": {
-                "ResultState": ResultState,
-                "START_OF_PARAMETERS": "SOP",
-                "END_OF_PARAMETERS": "EOP",
-                "COLUMN_PARAMETER_NAME": "col_",
-                "SORT_COLUMN": "sortCol",
-                "SORT_DIRECTION": "sortDir",
-                "SORT_ASCENDING": "asc",
-                "SORT_DESCENDING": "dsc"
+            "vot": {
+                "ResultState": {
+                    "COLUMN_PARAMETER_NAME": "col_",
+                    "SORT_COLUMN": "sortCol",
+                    "SORT_DIRECTION": "sortDir",
+                    "SORT_ASCENDING": "asc",
+                    "SORT_DESCENDING": "dsc"
+                },
+                "ResultStateSerializer": ResultStateSerializer,
+                "ResultStateDeserializer": ResultStateDeserializer
             }
         }
     });
@@ -20,119 +21,140 @@
      * A library to serialize and deserialize a query and the state of the
      * results table.
      *
+     * @param {String} _baseUrl The base url.
+     * @param {String} _queryUrl The query url.
+     * @param {String} _sortColumn Column the table is sorted on.
+     * @param {String} _sortDirection Sort direction, ascending or descending.
+     * @param {array} _columns Columns that are actually in the Grid.
+     * @param {Object} _widths Column id's and widths.
+     * @param {Object} _filters Column id's and filter values.
+     * @param {Object} _units Column id's and select values.
      */
-    function ResultState()
+    function ResultStateSerializer(_baseUrl, _queryUrl, _sortColumn, 
+                                   _sortDirection, _columns, _widths,
+                                   _filters, _units)
     {
+        var _self = this;
+        this.baseUrl = _baseUrl;
+        this.queryUrl = _queryUrl;
+        this.sortColumn = _sortColumn;
+        this.sortDirection = _sortDirection;
+        this.columns = _columns || [];
+        this.widths = _widths || {};
+        this.filters = _filters || {};
+        this.units = _units || {};
 
         /**
          * Returns a url from the given arguments that contains the query parameters
          * and optionally parameters that describe the state of the results table.
-         * 
-         * @param {String} _baseUrl The base url.
-         * @param {String} _queryUrl The query url.
-         * @param {String} _sortColumn Column the table is sorted on.
-         * @param {String} _sortDirection Sort direction, ascending or descending.
-         * @param {array} _columns Columns that are actually in the Grid.
-         * @param {Object} _widths Column id's and widths.
-         * @param {Object} _filters Column id's and filter values.
-         * @param {Object} _units Column id's and select values.
          */
-        function getResultStateUrl(_baseUrl, _queryUrl, _sortColumn, 
-                                   _sortDirection, _columns, _widths,
-                                   _filters, _units)
+        function getResultStateUrl()
         {
-            var baseUrl = _baseUrl;
-            var queryUrl = _queryUrl;
-            var sortColumn = _sortColumn;
-            var sortDirection = _sortDirection;
-            var columns = _columns || [];
-            var widths = _widths || {};
-            var filters = _filters || {};
-            var units = _units || {};
-
             var url = [];
-            url.push(baseUrl);
-            url.push(queryUrl);
-            // Check if queryUrl ends in a ?
-            if (queryUrl.slice(-1) != "?")
+            url.push(_self.baseUrl);
+            url.push(_self.queryUrl);
+            if (_self.sortColumn)
             {
                 url.push("&");
-            }
-            url.push(cadc.web.START_OF_PARAMETERS);
-            if (sortColumn)
-            {
-                url.push("&");
-                url.push(cadc.web.SORT_COLUMN);
+                url.push(cadc.vot.ResultState.SORT_COLUMN);
                 url.push("=");
-                url.push(encodeURIComponent(sortColumn));
+                url.push(encodeURIComponent(_self.sortColumn));
             }
-            if (sortDirection)
+            if (_self.sortDirection)
             {
                 url.push("&");
-                url.push(cadc.web.SORT_DIRECTION);
+                url.push(cadc.vot.ResultState.SORT_DIRECTION);
                 url.push("=");
-                if (sortDirection === cadc.web.SORT_ASCENDING)
+                if (_self.sortDirection === cadc.vot.SORT_ASCENDING)
                 {
-                    url.push(cadc.web.SORT_ASCENDING);
+                    url.push(cadc.vot.ResultState.SORT_ASCENDING);
                 }
                 else
                 {
-                    url.push(cadc.web.SORT_DESCENDING);
+                    url.push(cadc.vot.ResultState.SORT_DESCENDING);
                 }
             }
-            $.each(columns, function(index, column)
+            $.each(_self.columns, function(index, column)
             {
-                url.push(getColumnParameter(index + 1, column.id, widths, filters, units));
+                url.push(getColumnParameter(index + 1, column.id));
             });
-            url.push("&");
-            url.push(cadc.web.END_OF_PARAMETERS);
-            return url.join("");
+
+            // Replace ?& in the query with ?.
+            return url.join("").replace("?&", "?").replace("#?", "?");
         };
 
         /**
          * Returns an url parameter from the given column attributes.
          * 
          * @param {type} _index
-         * @param {type} _column
-         * @param {Object} _widths Column id's and widths.
-         * @param {Object} _filters Column id's and filter values.
-         * @param {Object} _units Column id's and select values.
+         * @param {type} _columnID
          * @returns {String}
          */
-        function getColumnParameter(_index, _column, _widths, _filters, _units)
+        function getColumnParameter(_index, _columnID)
         {
             var parameter = [];
             parameter.push("&");
-            parameter.push(cadc.web.COLUMN_PARAMETER_NAME);
+            parameter.push(cadc.vot.ResultState.COLUMN_PARAMETER_NAME);
             parameter.push(_index);
             parameter.push("=");
-            parameter.push(encodeURIComponent(_column));
+            parameter.push(encodeURIComponent(_columnID));
             parameter.push(";");
-            parameter.push(_widths[_column] ? encodeURIComponent(_widths[_column]) : "");
+            parameter.push(_self.widths[_columnID] ? encodeURIComponent(_self.widths[_columnID]) : "");
             parameter.push(";");
-            parameter.push(_filters[_column] ? encodeURIComponent(_filters[_column]) : "");
+            parameter.push(_self.filters[_columnID] ? encodeURIComponent(_self.filters[_columnID]) : "");
             parameter.push(";");
-            parameter.push(_units[_column] ? _units[_column] : "");
+            parameter.push(_self.units[_columnID] ? _self.units[_columnID] : "");
             return parameter.join("");
         };
-
+        
+        $.extend(this,
+                {
+                    // Methods
+                    "getResultStateUrl": getResultStateUrl
+                });
+        
+    };
+    
+    /**
+     * Parses the query url into just the query url part, removing any
+     * result state parameters.
+     * 
+     * @param {String} _url The query url.
+     * @returns {String}
+     */
+    function ResultStateDeserializer(_url)
+    {
+        var _self = this;
+        this.url = new cadc.web.util.URI(_url);
+        
         /**
          * Parses the query url into just the query url part, removing any
          * result state parameters.
          * 
-         * @param {String} url The query url.
          * @returns {String}
          */
-        function parseQueryUrl(url)
+        function getQueryUrl()
         {
-            // Look for the cadc.web.START_OF_PARAMETERS parameter.
-            var parts = url.split(cadc.web.START_OF_PARAMETERS);
-            if (parts[0].slice(-1) == "&")
+            var query = [];
+            $.each(_self.url.getQueryStringObject(), function(key, value)
             {
-                return parts[0].slice(0, parts[0].length - 1);
+                if (key && key !== cadc.vot.ResultState.SORT_COLUMN &&
+                    key !== cadc.vot.ResultState.SORT_DIRECTION &&
+                    key.slice(0, cadc.vot.ResultState.COLUMN_PARAMETER_NAME.length) 
+                        !== cadc.vot.ResultState.COLUMN_PARAMETER_NAME)
+                {
+                    query.push(key + "=" + value);
+                }
+            });
+            
+            var url = [];
+            url.push(_self.url.getPath());
+            if (query.length > 0)
+            {
+                url.push("?");
+                url.push(query.join("&"));
             }
-            else
-            return parts[0];
+            return url.join("");
         };
 
         /**
@@ -144,11 +166,11 @@
          */
         function compare(a, b)
         {
-            if (new Number(a.number) < new Number(b.number))
+            if (Number(a.number) < Number(b.number))
             {
                return -1;
             }
-            if (new Number(a.number) > new Number(b.number))
+            if (Number(a.number) > Number(b.number))
             {
                 return 1;
             }
@@ -159,85 +181,55 @@
          * Parse the result table state parameters into an voviewer options
          * object containing the viewer options from the url.
          * 
-         * @param {String} url The query url.
          * @returns {Object} Voviewer options.
          */
-        function getViewerOptions(url)
+        function getViewerOptions()
         {
             var options = {};
-            
-            // check for result state start parameter.
-            var startIndex = url.indexOf(cadc.web.START_OF_PARAMETERS);
-            if (startIndex === -1)
-            {
-                return options;
-            }
-            
-            // check for result state end parameter to verify the parameters
-            // haven't been truncated.
-            var endIndex = url.indexOf("&" + cadc.web.END_OF_PARAMETERS);
-            if (endIndex === -1)
-            {
-                options.error = "End of url parameter &" +
-                                cadc.web.END_OF_PARAMETERS + " not found";
-                return options;
-            }
-            
             var columns = [];
             var columnOptions = {};
             var columnFilters = {};
-            var parameters = url.substring(startIndex + 
-                                           cadc.web.START_OF_PARAMETERS.length, 
-                                           endIndex).split("&");
-            $.each(parameters, function(index, parameter)
+            $.each(_self.url.getQueryStringObject(), function(key, value)
             {
-                var nameValue = parameter.split("=");
-                if (nameValue.length === 2)
+                if (key === cadc.vot.ResultState.SORT_COLUMN)
                 {
-                    if (nameValue[0] === cadc.web.SORT_COLUMN)
+                    options.sortColumn = value ? decodeURIComponent(value) : '';
+                }
+                else if (key === cadc.vot.ResultState.SORT_DIRECTION)
+                {
+                    options.sortDir = value ? decodeURIComponent(value) : '';
+                }
+                else if (key.slice(0, cadc.vot.ResultState.COLUMN_PARAMETER_NAME.length) 
+                        === cadc.vot.ResultState.COLUMN_PARAMETER_NAME)
+                {
+                    var parts = value.split(";");
+                    var id = parts[0] ? decodeURIComponent(parts[0]) : '';
+                    var width = parts[1] ? parts[1] : '';
+                    var filter = parts[2] ? decodeURIComponent(parts[2]) : '';
+                    var unit = parts[3] ? decodeURIComponent(parts[3]) : '';
+                    if (filter)
                     {
-                        options.sortColumn = nameValue[1];
+                        columnFilters[id] = filter;
                     }
-                    else if (nameValue[0] === cadc.web.SORT_DIRECTION)
+                    if (width || unit)
                     {
-                        options.sortDir = nameValue[1];
-                    }
-                    else if (nameValue[0].slice(0, cadc.web.COLUMN_PARAMETER_NAME.length) 
-                            === cadc.web.COLUMN_PARAMETER_NAME)
-                    {
-                        var parts = nameValue[1].split(";");
-                        var id = parts[0] ? decodeURIComponent(parts[0]) : '';
-                        var width = parts[1] ? parts[1] : '';
-                        var filter = parts[2] ? decodeURIComponent(parts[2]) : '';
-                        var unit = parts[3] ? decodeURIComponent(parts[3]) : '';
-                        if (filter)
+                        var option = {};
+                        if (width)
                         {
-                            columnFilters[id] = filter;
+                            option.width = width;
                         }
-                        if (width || unit)
+                        if (unit)
                         {
-                            var option = {};
-                            if (width)
-                            {
-                                option.width = width;
-                            }
-                            if (unit)
-                            {
-                                var header = {};
-                                header.units = [{"label": unit, "value": unit, "default": true}];
-                                option.header = header;
-                            }
-                            columnOptions[id] = option;
+                            var header = {};
+                            header.units = [{"label": unit, "value": unit, "default": true}];
+                            option.header = header;
                         }
-                        
-                        // Track column order and column id for displayColumns.
-                        var columnNumber = nameValue[0].substring(cadc.web.COLUMN_PARAMETER_NAME.length);
-                        columns.push({"number": columnNumber, "id": id});
+                        columnOptions[id] = option;
                     }
-                    else
-                    {
-                        console.error("Unknown parameter: " + nameValue[0]);
-                    }
+
+                    // Track column order and column id for displayColumns.
+                    var columnNumber = key.substring(cadc.vot.ResultState.COLUMN_PARAMETER_NAME.length);
+                    columns.push({"number": columnNumber, "id": id});
                 }
             });
             
@@ -257,10 +249,10 @@
                 columns.sort(compare);
             
                 // Create an array of column id's.
-                options.displayColumns = [];
+                options.defaultColumnIDs = [];
                 $.each(columns, function(index, column) 
                 {
-                    options.displayColumns.push(column.id); 
+                    options.defaultColumnIDs.push(column.id); 
                 });
             }
             
@@ -270,9 +262,8 @@
         $.extend(this,
                 {
                     // Methods
-                    "getResultStateUrl": getResultStateUrl,
                     "getViewerOptions": getViewerOptions,
-                    "parseQueryUrl": parseQueryUrl
+                    "getQueryUrl": getQueryUrl
                 });
-    }
+    };
 })(jQuery);
