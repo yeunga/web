@@ -160,7 +160,7 @@ test("Deserialize an url to voview options", 12, function()
     expected = {};
     expected.sortColumn = "foo";
     expected.sortDir = "asc";
-    expected.displayColumns = ["id1", "id2", "id3"];
+    expected.defaultColumnIDs = ["id1", "id2", "id3"];
 
     ok(actual, "State should not be undefined or null");
     deepEqual(actual, expected, "State does not match");
@@ -172,7 +172,7 @@ test("Deserialize an url to voview options", 12, function()
     expected = {};
     expected.sortColumn = "foo";
     expected.sortDir = "asc";
-    expected.displayColumns = ["id1", "id2", "id3"];
+    expected.defaultColumnIDs = ["id1", "id2", "id3"];
     expected.columnOptions =
             {
                 id1: {width: "50"},
@@ -189,7 +189,7 @@ test("Deserialize an url to voview options", 12, function()
     expected = {};
     expected.sortColumn = "foo";
     expected.sortDir = "asc";
-    expected.displayColumns = ["id1", "id2", "id3"];
+    expected.defaultColumnIDs = ["id1", "id2", "id3"];
     expected.columnOptions = {id1: {width: "50"}, id2: {width: "75"}};
     expected.columnFilters = {id1: "filter 1", id3: "filter 3"};
 
@@ -203,7 +203,7 @@ test("Deserialize an url to voview options", 12, function()
     expected = {};
     expected.sortColumn = "foo";
     expected.sortDir = "asc";
-    expected.displayColumns = ["id1", "id2", "id3"];
+    expected.defaultColumnIDs = ["id1", "id2", "id3"];
     expected.columnOptions =
             {
                 id1: {width: "50"},
@@ -238,7 +238,7 @@ test("Merge url viewer options into a default viewer options", 1, function()
             }
         },
         columnFilters: {id1: "default filter", id3: "default filter"},
-        displayColumns: ["col1", "col2", "col3"]
+        defaultColumnIDs: ["col1", "col2", "col3"]
     };
     
     var expectedOptions =
@@ -262,7 +262,7 @@ test("Merge url viewer options into a default viewer options", 1, function()
             }
         },
         columnFilters: {id1: "filter 1", id3: "filter 3"},
-        displayColumns: ["id1", "id2", "id3"]
+        defaultColumnIDs: ["id1", "id2", "id3"]
     };
     
     var baseUrl = "http://localhost.com/search?Observation.target.name=alpha%20beta&foo=bar";
