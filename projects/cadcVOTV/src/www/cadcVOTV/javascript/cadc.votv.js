@@ -12,7 +12,8 @@
         },
         "DEFAULT_CELL_PADDING_PX": 8,
         "events": {
-          "onSort": new jQuery.Event("cadcVOTV:onSort")
+          "onSort": new jQuery.Event("cadcVOTV:onSort"),
+          "onColumnOrderReset": new jQuery.Event("cadcVOTV:onColumnOrderReset")
         }
       }
     }
@@ -435,11 +436,6 @@
     function getOptions()
     {
       return _self.options;
-    }
-
-    function setOptions(optionsDef)
-    {
-      _self.options = optionsDef;
     }
 
     function usePager()
@@ -1053,6 +1049,16 @@
         {
           columnPicker = null;
         }
+      }
+
+      if (columnPicker)
+      {
+        columnPicker.onResetColumnOrder.subscribe(function()
+                                                  {
+                                                    // Clear the hash.
+                                                    parent.location.hash = '';
+                                                    trigger(cadc.vot.events.onColumnOrderReset, null);
+                                                  });
       }
 
       if (forceFitMax)
