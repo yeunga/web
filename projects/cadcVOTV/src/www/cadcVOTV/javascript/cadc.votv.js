@@ -10,7 +10,11 @@
           "STRING": "STRING",
           "DATETIME": "DATETIME"
         },
-        "DEFAULT_CELL_PADDING_PX": 8
+        "DEFAULT_CELL_PADDING_PX": 8,
+        "events": {
+          "onSort": new jQuery.Event("cadcVOTV:onSort"),
+          "onColumnOrderReset": new jQuery.Event("cadcVOTV:onColumnOrderReset")
+        }
       }
     }
   });
@@ -416,11 +420,6 @@
     function getOptions()
     {
       return _self.options;
-    }
-
-    function setOptions(optionsDef)
-    {
-      _self.options = optionsDef;
     }
 
     function usePager()
@@ -1035,6 +1034,16 @@
         }
       }
 
+      if (columnPicker)
+      {
+        columnPicker.onResetColumnOrder.subscribe(function()
+                                                  {
+                                                    // Clear the hash.
+                                                    parent.location.hash = '';
+                                                    trigger(cadc.vot.events.onColumnOrderReset, null);
+                                                  });
+      }
+
       if (forceFitMax)
       {
         var totalWidth = 0;
@@ -1527,15 +1536,31 @@
       g.init();
     }
 
-//    function subscribe(event, handler)
-//    {
-//      $(getTargetNodeSelector()).on(event, handler);
-//    }
-//
-//    function trigger(event, args)
-//    {
-//      $(getTargetNodeSelector()).trigger(event, args);
-//    }
+    /**
+     * Fire an event.  Taken from the slick.grid Object.
+     *
+     * @param _event       The Event to fire.
+     * @param _args        Arguments to the event.
+     * @returns {*}       The event notification result.
+     */
+    function trigger(_event, _args)
+    {
+      var args = _args || {};
+      args.application = _self;
+
+      return $(_self).trigger(_event, _args);
+    }
+
+    /**
+     * Subscribe to one of this form's events.
+     *
+     * @param _event      Event object.
+     * @param __handler   Handler function.
+     */
+    function subscribe(_event, __handler)
+    {
+      $(_self).on(_event.type, __handler);
+    }
 
     $.extend(this,
              {
@@ -1565,10 +1590,10 @@
                "searchFilter": searchFilter,
                "setSortColumn": setSortColumn,
                "getResizedColumns": getResizedColumns,
-               "getUpdatedColumnSelects": getUpdatedColumnSelects
+               "getUpdatedColumnSelects": getUpdatedColumnSelects,
 
                // Event subscription
-//               "subscribe": subscribe
+               "subscribe": subscribe
              });
   }
 })(jQuery);
