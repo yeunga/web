@@ -155,7 +155,7 @@ var options = {
     "User": {
       cssClass: "user_column"
     },
-    "Started on": {
+    "Started": {
       cssClass: "started_on_column"
     }
   }
@@ -171,7 +171,6 @@ function testComparers(columnOfInterest, expectedArray, direction)
     options.sortDir = direction;
 
     var viewer = new cadc.vot.Viewer("#myGrid", options);
-    viewer.init();
     viewer.build({xmlDOM: xmlDOM},
                  function ()
                  {
@@ -186,7 +185,8 @@ function testComparers(columnOfInterest, expectedArray, direction)
     viewer.render();
     var dataView = viewer.getGrid().getData();
     var column = viewer.getColumn(columnOfInterest);
-    var comp = new cadc.vot.Comparer(columnOfInterest, column.datatype.isNumeric());
+    var comp = new cadc.vot.Comparer(columnOfInterest,
+                                     column.datatype.isNumeric());
 
     // execute the test
     dataView.sort(comp.compare, (direction == "asc"));
@@ -218,7 +218,7 @@ function testComparers(columnOfInterest, expectedArray, direction)
   }
   catch (error)
   {
-    console.log(error);
+    console.log(error.stack);
   }
 }
 
