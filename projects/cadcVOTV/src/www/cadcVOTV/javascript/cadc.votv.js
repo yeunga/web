@@ -438,6 +438,11 @@
       return _self.options;
     }
 
+    function setOptions(_optionsDef)
+    {
+      _self.options = _optionsDef;
+    }
+
     function usePager()
     {
       return getOptions() && getOptions().pager;
@@ -1591,6 +1596,7 @@
                "areNumbers": areNumbers,
                "areStrings": areStrings,
                "getOptions": getOptions,
+               "setOptions": setOptions,
                "refreshGrid": refreshGrid,
                "getGrid": getGrid,
                "getDataView": getDataView,
