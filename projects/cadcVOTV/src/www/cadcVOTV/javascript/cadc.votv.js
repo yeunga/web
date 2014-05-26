@@ -438,6 +438,11 @@
       return _self.options;
     }
 
+    function setOptions(_optionsDef)
+    {
+      _self.options = _optionsDef;
+    }
+
     function usePager()
     {
       return getOptions() && getOptions().pager;
@@ -955,7 +960,8 @@
         {
           rowSelectionModel =
           new CADC.RowSelectionModel({
-                                       selectActiveRow: getOptions().selectActiveRow
+                                       selectActiveRow: getOptions().selectActiveRow,
+                                       selectClickedRow: getOptions().selectClickedRow
                                      });
         }
         else if (Slick.RowSelectionModel)
@@ -1604,6 +1610,7 @@
                "areNumbers": areNumbers,
                "areStrings": areStrings,
                "getOptions": getOptions,
+               "setOptions": setOptions,
                "refreshGrid": refreshGrid,
                "getGrid": getGrid,
                "getDataView": getDataView,
