@@ -114,6 +114,14 @@
       var rowsFromRanges = getSelectedRows();
       setSelectedRows(rowsFromRanges);
     }
+    
+    function isCellSelectable(cell)
+    {
+      var checkboxElement = _grid.getCellNode(cell.row, 0);
+      if (($(checkboxElement).find('._select_vov_' + cell.row)).length === 0)
+        return false;
+      return true;
+    }
 
     function handleActiveCellChange(e, data)
     {
@@ -168,9 +176,16 @@
 
     function handleClick(e)
     {
+      // Enable highlighting of the selected row.
+      _grid.getOptions().enableCellNavigation = true;
+      
       var cell = _grid.getCellFromEvent(e);
-      if (!cell || !_grid.canCellBeActive(cell.row, cell.cell))
+      if (!cell || 
+          !_grid.canCellBeActive(cell.row, cell.cell) ||
+          !isCellSelectable(cell))
       {
+        // Disable highlighting of the selected row.
+        _grid.getOptions().enableCellNavigation = false;
         return false;
       }
 

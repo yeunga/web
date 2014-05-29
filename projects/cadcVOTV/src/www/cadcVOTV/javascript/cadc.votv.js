@@ -892,14 +892,29 @@
       var enableSelection = !getOptions().enableSelection
           || getOptions().enableSelection == true;
 
-      if (Slick.CheckboxSelectColumn && enableSelection)
+      if (CADC.CheckboxSelectColumn)
+      {
+        checkboxSelector = new CADC.CheckboxSelectColumn({
+                                                            cssClass: "slick-cell-checkboxsel",
+                                                            width: 55,
+                                                            headerCssClass: "slick-header-column-checkboxsel"
+                                                          });
+      }
+      else if (Slick.CheckboxSelectColumn)
       {
         checkboxSelector = new Slick.CheckboxSelectColumn({
                                                             cssClass: "slick-cell-checkboxsel",
                                                             width: 55,
                                                             headerCssClass: "slick-header-column-checkboxsel"
                                                           });
+      }
+      else
+      {
+        checkboxSelector = null;
+      }
 
+      if (checkboxSelector && enableSelection) 
+      {
         var checkboxColumn = checkboxSelector.getColumnDefinition();
         var colsToCheck = (getDisplayColumns().length == 0)
             ? getColumns() : getDisplayColumns();
@@ -924,10 +939,6 @@
           getColumns()[checkboxColumnIndex] = checkboxColumn;
           getDisplayColumns()[checkboxColumnIndex] = checkboxColumn;
         }
-      }
-      else
-      {
-        checkboxSelector = null;
       }
 
       getOptions().defaultFormatter = function (row, cell, value, columnDef,
