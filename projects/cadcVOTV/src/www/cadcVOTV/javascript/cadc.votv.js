@@ -105,7 +105,7 @@
                                var gridHeaderIcon = $("#grid-header-icon");
                                if (gridHeaderIcon)
                                {
-                                 gridHeaderIcon.html('<img src="/cadcVOTV/images/PleaseWait-small.gif" class="grid-header-icon"/>');
+                                 gridHeaderIcon.attr("src", "/cadcVOTV/images/PleaseWait-small.gif");
                                }
 
                                /*
