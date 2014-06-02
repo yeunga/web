@@ -96,6 +96,17 @@
                              {
                                var inputFields =
                                    input.tableMetadata.getFields();
+                               
+                               // TODO: Only add the spinner if the max rows option
+                               // has been enabled
+                               
+                               // add a spinner to the header bar to indicate
+                               // streaming has begun
+                               var gridHeaderIcon = $("#grid-header-icon");
+                               if (gridHeaderIcon)
+                               {
+                                 gridHeaderIcon.html('<img src="/cadcVOTV/images/PleaseWait-small.gif" class="grid-header-icon"/>');
+                               }
 
                                /*
                                 * We need to refresh columns twice; once to
