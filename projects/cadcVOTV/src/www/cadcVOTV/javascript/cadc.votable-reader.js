@@ -97,12 +97,13 @@
    * Main builder class.  Uses an implementation of a certain kind of builder
    * internally.
    *
+   * @param maxRowLimit
    * @param input
    * @param readyCallback
    * @param errorCallback
    * @constructor
    */
-  function Builder(input, readyCallback, errorCallback)
+  function Builder(maxRowLimit, input, readyCallback, errorCallback)
   {
     var _selfBuilder = this;
     this.voTable = null;
@@ -130,7 +131,7 @@
       }
       else if (input.csv)
       {
-        _selfBuilder._builder = new cadc.vot.CSVBuilder(input, buildRowData);
+        _selfBuilder._builder = new cadc.vot.CSVBuilder(maxRowLimit, input, buildRowData);
 
         if (readyCallback)
         {
@@ -141,7 +142,7 @@
       {
         try
         {
-          var streamBuilder = new cadc.vot.StreamBuilder(input, readyCallback,
+          var streamBuilder = new cadc.vot.StreamBuilder(maxRowLimit, input, readyCallback,
                                                          errorCallback,
                                                          _selfBuilder);
 
@@ -627,11 +628,12 @@
   /**
    * The CSV plugin reader.
    *
+   * @param maxRowLimit   Limit for the maximum number of rows.
    * @param input         The CSV type and table metadata.
    * @param buildRowData  The function to make something vo-consistent from the row data.
    * @constructor
    */
-  function CSVBuilder(input, buildRowData)
+  function CSVBuilder(maxRowLimit, input, buildRowData)
   {
     var _selfCSVBuilder = this;
     var longestValues = {};
@@ -748,13 +750,14 @@
    * Stream builder for URLs being input.  Relies on the cadc.uri.js to be
    * imported.
    *
+   * @param maxRowLimit     Limit for the maximum number of rows.
    * @param input           The input options.
    * @param readyCallback   Callback for ready.
    * @param errorCallback   Callback for errors.
    * @param __MAIN_BUILDER  The internal data-savvy builder.
    * @constructor
    */
-  function StreamBuilder(input, readyCallback, errorCallback, __MAIN_BUILDER)
+  function StreamBuilder(maxRowLimit, input, readyCallback, errorCallback, __MAIN_BUILDER)
   {
     if (!(cadc.web))
     {
@@ -851,7 +854,7 @@
         if (contentType && (contentType.indexOf("csv") >= 0))
         {
           __MAIN_BUILDER.setInternalBuilder(
-                new cadc.vot.CSVBuilder(input, __MAIN_BUILDER.buildRowData));
+                new cadc.vot.CSVBuilder(maxRowLimit, input, __MAIN_BUILDER.buildRowData));
 
           if (readyCallback)
           {

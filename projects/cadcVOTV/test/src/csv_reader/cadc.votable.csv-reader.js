@@ -34,7 +34,7 @@ test("Read in simple CSV VOTable.", 32, function ()
     var pageEventCounter = 0;
 
     var rowBuilder = new cadc.vot.RowBuilder();
-    var testSubject = new cadc.vot.CSVBuilder(input, rowBuilder.buildRowData);
+    var testSubject = new cadc.vot.CSVBuilder(30000, input, rowBuilder.buildRowData);
 
     var onRowAddEventHandler = function (rowData)
     {
@@ -116,7 +116,7 @@ test("Read in simple CSV VOTable.", 32, function ()
     testPrivate(testSubject, 8 + 1, secondLastReturn);
 
     console.log("test case - new with first row of data");
-    testSubject = new cadc.vot.CSVBuilder(input,
+    testSubject = new cadc.vot.CSVBuilder(30000, input, 
                                              rowBuilder.buildRowData);
 
     testSubject.subscribe(cadc.vot.onRowAdd, onRowAddEventHandler);
@@ -131,7 +131,7 @@ test("Read in simple CSV VOTable.", 32, function ()
     testPrivate(testSubject, 2, secondReturn);
 
     console.log("test case - new with all data");
-    testSubject = new cadc.vot.CSVBuilder(input,
+    testSubject = new cadc.vot.CSVBuilder(30000, input, 
                                              rowBuilder.buildRowData);
 
     testSubject.subscribe(cadc.vot.onRowAdd, onRowAddEventHandler);
@@ -189,7 +189,7 @@ test("Read a single row for events.", 5, function()
     var pageEndEventCounter = 0;
 
     var rowBuilder = new cadc.vot.RowBuilder();
-    var testSubject = new cadc.vot.CSVBuilder(input, rowBuilder.buildRowData);
+    var testSubject = new cadc.vot.CSVBuilder(30000, input, rowBuilder.buildRowData);
 
     var onRowAddEventHandler = function (rowData)
     {

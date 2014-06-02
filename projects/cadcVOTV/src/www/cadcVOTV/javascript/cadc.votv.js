@@ -83,7 +83,8 @@
      */
     function build(input, completeCallback, errorCallBack)
     {
-      new cadc.vot.Builder(input,
+      new cadc.vot.Builder(options.maxRowLimit,
+			   input, 
                            function (voTableBuilder)
                            {
                              var hasDisplayColumns =
