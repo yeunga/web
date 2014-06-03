@@ -118,9 +118,7 @@
     function isCellSelectable(cell)
     {
       var checkboxElement = _grid.getCellNode(cell.row, 0);
-      if (($(checkboxElement).find('._select_vov_' + cell.row)).length === 0)
-        return false;
-      return true;
+      return ($(checkboxElement).find('._select_vov_' + cell.row)).length !== 0;
     }
 
     function handleActiveCellChange(e, data)
