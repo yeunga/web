@@ -84,7 +84,8 @@ test("Add rows to Viewer.", 20, function ()
     columnOptions:  // Done by column ID.
     {
 
-    }
+    },
+    maxRowLimit: 30000
   };
 
   var $testContainer = $("<div id=\"TESTITEMVIEWER\"></div>");

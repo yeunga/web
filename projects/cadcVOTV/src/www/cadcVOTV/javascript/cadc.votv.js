@@ -84,7 +84,7 @@
     function build(input, completeCallback, errorCallBack)
     {
       new cadc.vot.Builder(options.maxRowLimit,
-			   input, 
+                           input, 
                            function (voTableBuilder)
                            {
                              var hasDisplayColumns =
@@ -126,7 +126,19 @@
                                {
                                  setLongestValues(args.longestValues);
                                  resetColumnWidths();
-                               });
+                                 var gridHeaderIcon = $("#grid-header-icon");
+                                 if (gridHeaderIcon)
+                                 {
+                                   if (options.maxRowLimit > getDataView().getPagingInfo().totalRows)
+                                   {
+                                     gridHeaderIcon.prop("src", "/cadcVOTV/images/transparent-20.png");
+                                   }
+                                   else
+                                   {
+                                     gridHeaderIcon.prop("src", "/cadcVOTV/images/warning.gif");
+                                   }
+                                 }
+                               })
 
                                clearRows();
 
