@@ -138,7 +138,7 @@
                                      gridHeaderIcon.prop("src", "/cadcVOTV/images/warning.gif");
                                    }
                                  }
-                               })
+                               });
 
                                clearRows();
 
