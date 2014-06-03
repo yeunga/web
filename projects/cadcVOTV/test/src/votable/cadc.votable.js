@@ -69,7 +69,8 @@ test("Test table functions.", 2, function ()
 {
   try
   {
-    new cadc.vot.Builder({
+    new cadc.vot.Builder(30000, 
+                         {
                            xmlDOM: xmlDOM
                          },
                          function (voTableBuilder)

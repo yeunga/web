@@ -31,7 +31,7 @@ test("Check input URL.", 1, function ()
 
   var rowBuilder = new cadc.vot.RowBuilder();
   var csvBuilder = new cadc.vot.CSVBuilder(input, rowBuilder.buildRowData);
-  var streamBuilder = new cadc.vot.StreamBuilder(input, null, null, csvBuilder);
+  var streamBuilder = new cadc.vot.StreamBuilder(30000, input, null, null, csvBuilder);
 
   equal("/path/to/results?a=b#c887", streamBuilder.getURLString(),
         "Sanitized check should be translated to /path/to/results?a=b#c887");

@@ -83,7 +83,8 @@
      */
     function build(input, completeCallback, errorCallBack)
     {
-      new cadc.vot.Builder(input,
+      new cadc.vot.Builder(options.maxRowLimit,
+                           input, 
                            function (voTableBuilder)
                            {
                              var hasDisplayColumns =
@@ -95,6 +96,17 @@
                              {
                                var inputFields =
                                    input.tableMetadata.getFields();
+                               
+                               // TODO: Only add the spinner if the max rows option
+                               // has been enabled
+                               
+                               // add a spinner to the header bar to indicate
+                               // streaming has begun
+                               var gridHeaderIcon = $("#grid-header-icon");
+                               if (gridHeaderIcon)
+                               {
+                                 gridHeaderIcon.attr("src", "/cadcVOTV/images/PleaseWait-small.gif");
+                               }
 
                                /*
                                 * We need to refresh columns twice; once to
@@ -114,7 +126,19 @@
                                {
                                  setLongestValues(args.longestValues);
                                  resetColumnWidths();
-                               });
+                                 var gridHeaderIcon = $("#grid-header-icon");
+                                 if (gridHeaderIcon)
+                                 {
+                                   if (options.maxRowLimit > getDataView().getPagingInfo().totalRows)
+                                   {
+                                     gridHeaderIcon.prop("src", "/cadcVOTV/images/transparent-20.png");
+                                   }
+                                   else
+                                   {
+                                     gridHeaderIcon.prop("src", "/cadcVOTV/images/warning.gif");
+                                   }
+                                 }
+                               })
 
                                clearRows();
 
