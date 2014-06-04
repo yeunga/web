@@ -892,13 +892,16 @@
       var enableSelection = !getOptions().enableSelection
           || getOptions().enableSelection == true;
 
-      if (CADC && CADC.CheckboxSelectColumn)
+      if (typeof CADC !== 'undefined')
       {
-        checkboxSelector = new CADC.CheckboxSelectColumn({
-                                                            cssClass: "slick-cell-checkboxsel",
-                                                            width: 55,
-                                                            headerCssClass: "slick-header-column-checkboxsel"
-                                                          });
+        if (CADC.CheckboxSelectColumn)
+        {
+          checkboxSelector = new CADC.CheckboxSelectColumn({
+                                                             cssClass: "slick-cell-checkboxsel",
+                                                             width: 55,
+                                                             headerCssClass: "slick-header-column-checkboxsel"
+                                                           });
+        }
       }
       else if (Slick.CheckboxSelectColumn)
       {
@@ -967,20 +970,23 @@
 
       if (checkboxSelector)
       {
-        if (CADC && CADC.RowSelectionModel)
+        if (typeof CADC !== 'undefined')
         {
-          rowSelectionModel =
-          new CADC.RowSelectionModel({
-                                       selectActiveRow: getOptions().selectActiveRow,
-                                       selectClickedRow: getOptions().selectClickedRow
-                                     });
+          if (CADC.RowSelectionModel)
+          {
+            rowSelectionModel =
+            new CADC.RowSelectionModel({
+                                         selectActiveRow: getOptions().selectActiveRow,
+                                         selectClickedRow: getOptions().selectClickedRow
+                                       });
+          }
         }
         else if (Slick.RowSelectionModel)
         {
           rowSelectionModel =
-          new Slick.RowSelectionModel({
-                                        selectActiveRow: getOptions().selectActiveRow
-                                      });
+            new Slick.RowSelectionModel({
+                                          selectActiveRow: getOptions().selectActiveRow
+                                        });
         }
         else
         {
