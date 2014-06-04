@@ -922,7 +922,7 @@
       var enableSelection = !getOptions().enableSelection
           || getOptions().enableSelection == true;
 
-      if (CADC.CheckboxSelectColumn)
+      if (CADC && CADC.CheckboxSelectColumn)
       {
         checkboxSelector = new CADC.CheckboxSelectColumn({
                                                             cssClass: "slick-cell-checkboxsel",
@@ -997,7 +997,7 @@
 
       if (checkboxSelector)
       {
-        if (CADC.RowSelectionModel)
+        if (CADC && CADC.RowSelectionModel)
         {
           rowSelectionModel =
           new CADC.RowSelectionModel({
