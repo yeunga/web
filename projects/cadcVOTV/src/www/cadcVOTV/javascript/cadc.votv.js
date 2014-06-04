@@ -922,16 +922,14 @@
       var enableSelection = !getOptions().enableSelection
           || getOptions().enableSelection == true;
 
-      if (typeof CADC !== 'undefined')
+      if ((typeof CADC !== 'undefined')
+          && (typeof CADC.CheckboxSelectColumn !== 'undefined'))
       {
-        if (CADC.CheckboxSelectColumn)
-        {
-          checkboxSelector = new CADC.CheckboxSelectColumn({
-                                                             cssClass: "slick-cell-checkboxsel",
-                                                             width: 55,
-                                                             headerCssClass: "slick-header-column-checkboxsel"
-                                                           });
-        }
+        checkboxSelector = new CADC.CheckboxSelectColumn({
+                                                           cssClass: "slick-cell-checkboxsel",
+                                                           width: 55,
+                                                           headerCssClass: "slick-header-column-checkboxsel"
+                                                         });
       }
       else if (Slick.CheckboxSelectColumn)
       {
@@ -1000,16 +998,14 @@
 
       if (checkboxSelector)
       {
-        if (typeof CADC !== 'undefined')
+        if ((typeof CADC !== 'undefined')
+            && (typeof CADC.RowSelectionModel !== 'undefined'))
         {
-          if (CADC.RowSelectionModel)
-          {
-            rowSelectionModel =
+          rowSelectionModel =
             new CADC.RowSelectionModel({
                                          selectActiveRow: getOptions().selectActiveRow,
                                          selectClickedRow: getOptions().selectClickedRow
                                        });
-          }
         }
         else if (Slick.RowSelectionModel)
         {
