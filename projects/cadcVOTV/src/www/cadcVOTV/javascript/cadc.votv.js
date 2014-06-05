@@ -134,13 +134,12 @@
                                    var gridHeaderIcon = $("#grid-header-icon");
                                    if (gridHeaderIcon)
                                    {
-                                     if (options.maxRowLimit > getDataView().getPagingInfo().totalRows)
+                                     // clear the wait icon
+                                     gridHeaderIcon.prop("src", "/cadcVOTV/images/transparent-20.png");
+                                     if (options.maxRowLimit <= getDataView().getPagingInfo().totalRows)
                                      {
-                                       gridHeaderIcon.prop("src", "/cadcVOTV/images/transparent-20.png");
-                                     }
-                                     else
-                                     {
-                                       gridHeaderIcon.prop("src", "/cadcVOTV/images/warning.gif");
+                                       $("#grid-header-label").text($("#grid-header-label").text() +
+                                         " There are more rows available by downloading the complete query results.");
                                      }
                                    }
                                  }
@@ -1034,7 +1033,7 @@
                                                  {
                                                    gridHeaderLabel.text("Showing " + pagingInfo.totalRows
                                                                             + " rows (" + getGridData().length
-                                                                            + " before filtering)");
+                                                                            + " before filtering).");
                                                  });
         }
       }
