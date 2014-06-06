@@ -139,8 +139,7 @@
                                      if (options.maxRowLimit <= getDataView().getPagingInfo().totalRows)
                                      {
                                        // and display warning message if maximum row limit is reached
-                                       $("#grid-header-label").text($("#grid-header-label").text() +
-                                         " There are more rows available by downloading the complete query results.");
+                                       $("#grid-header-label").text($("#grid-header-label").text() + " " + options.maxRowLimitWarning);
                                      }
                                    }
                                  }
