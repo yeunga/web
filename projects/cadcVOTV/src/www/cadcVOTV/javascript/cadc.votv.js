@@ -100,6 +100,12 @@
                                // Display spinner only if paging is off
                                if (!usePager())
                                {
+                                  // remove any background color resulting from previous warning message
+                                  if ($("#results-grid-header").prop("style"))
+                                  {
+                                    $("#results-grid-header").prop("style").backgroundColor = "";
+                                  }
+
                                  // add a spinner to the header bar to indicate
                                  // streaming has begun
                                  var gridHeaderIcon = $("#grid-header-icon");
@@ -134,13 +140,13 @@
                                    var gridHeaderIcon = $("#grid-header-icon");
                                    if (gridHeaderIcon)
                                    {
-                                     if (options.maxRowLimit > getDataView().getPagingInfo().totalRows)
+                                     // clear the wait icon
+                                     gridHeaderIcon.prop("src", "/cadcVOTV/images/transparent-20.png");
+                                     if (options.maxRowLimit <= getDataView().getPagingInfo().totalRows)
                                      {
-                                       gridHeaderIcon.prop("src", "/cadcVOTV/images/transparent-20.png");
-                                     }
-                                     else
-                                     {
-                                       gridHeaderIcon.prop("src", "/cadcVOTV/images/warning.gif");
+                                       // and display warning message if maximum row limit is reached
+                                       $("#grid-header-label").text($("#grid-header-label").text() + " " + options.maxRowLimitWarning);
+                                       $("#results-grid-header").prop("style").backgroundColor = "rgb(235, 235, 49)";
                                      }
                                    }
                                  }
@@ -1047,7 +1053,7 @@
                                                  {
                                                    gridHeaderLabel.text("Showing " + pagingInfo.totalRows
                                                                             + " rows (" + getGridData().length
-                                                                            + " before filtering)");
+                                                                            + " before filtering).");
                                                  });
         }
       }
