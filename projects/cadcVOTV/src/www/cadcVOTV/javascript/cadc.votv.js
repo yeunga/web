@@ -67,6 +67,13 @@
     this.sortcol = options.sortColumn;
     this.sortAsc = options.sortDir == "asc";
 
+    // story 1584 - variable viewport height
+    this.variableViewportHeight = options.variableViewportHeight
+        ? options.variableViewportHeight
+        : false;
+    this.viewportOffset = 0;
+
+
     /**
      * @param input  Object representing the input.
      *
@@ -83,7 +90,7 @@
      */
     function build(input, completeCallback, errorCallBack)
     {
-      new cadc.vot.Builder(options.maxRowLimit,
+      new cadc.vot.Builder(getOptions().maxRowLimit,
                            input, 
                            function (voTableBuilder)
                            {
@@ -100,11 +107,13 @@
                                // Display spinner only if paging is off
                                if (!usePager())
                                {
-                                  // remove any background color resulting from previous warning message
-                                  if ($("#results-grid-header").prop("style"))
-                                  {
-                                    $("#results-grid-header").prop("style").backgroundColor = "";
-                                  }
+                                 var $gridHeaderStyle =
+                                     $("#results-grid-header").prop("style");
+                                 // remove any background color resulting from previous warning message
+                                 if ($gridHeaderStyle)
+                                 {
+                                   $gridHeaderStyle.backgroundColor = "";
+                                 }
 
                                  // add a spinner to the header bar to indicate
                                  // streaming has begun
@@ -435,6 +444,31 @@
       g.invalidateAllRows();
       g.resizeCanvas();
     }
+
+    function getGridHeaderHeight()
+    {
+      return ($(".grid-header").height()+
+        $(".slick-header").height()+
+        $(".slick-headerrow").height());
+    }
+
+    /** 
+     * Call if supporting a variable viewport height, and there's a static header
+     * that not part of the grid container.
+     */
+    function setViewportOffset(offset)
+    {
+      this.viewportOffset = (offset + getGridHeaderHeight());
+    }
+
+    function setViewportHeight()
+    {
+      if (this.variableViewportHeight)
+      {
+        $(this.targetNodeSelector).height(($(window).height() - this.viewportOffset));
+      }
+    }
+
 
     /**
      * Tell the Grid to sort.  This exists mainly to set an initial sort column
@@ -1170,15 +1204,25 @@
        */
       var doGridSort = function()
       {
-        var isnumeric = _self.getColumn(_self.sortcol).datatype.isNumeric();
-        var comparer =
-            new cadc.vot.Comparer(_self.sortcol, isnumeric);
+        if (_self.sortcol)
+        {
+          var sortColumn = _self.getColumn(_self.sortcol);
 
-        // using native sort with comparer
-        // preferred method but can be very slow in IE
-        // with huge datasets
-        dataView.sort(comparer.compare, _self.sortAsc);
-        dataView.refresh();
+          // In the odd chance that the sort column is not in the displayed
+          // column list.
+          if (sortColumn)
+          {
+            var isnumeric = sortColumn.datatype.isNumeric();
+            var comparer =
+                new cadc.vot.Comparer(_self.sortcol, isnumeric);
+
+            // using native sort with comparer
+            // preferred method but can be very slow in IE
+            // with huge datasets
+            dataView.sort(comparer.compare, _self.sortAsc);
+            dataView.refresh();
+          }
+        }
       };
 
       /**
@@ -1249,6 +1293,7 @@
 
       $(window).resize(function ()
                        {
+                         _self.setViewportHeight();
                          grid.resizeCanvas();
                        });
 
@@ -1680,6 +1725,8 @@
                "setSortColumn": setSortColumn,
                "getResizedColumns": getResizedColumns,
                "getUpdatedColumnSelects": getUpdatedColumnSelects,
+               "setViewportHeight": setViewportHeight,
+               "setViewportOffset": setViewportOffset,
 
                // Event subscription
                "subscribe": subscribe
