@@ -235,7 +235,7 @@
       // will accept float, double, long, int, short, real, adql:DOUBLE,
       // adql:INTEGER, adql:REGION, adql:POINT, adql:REAL
       //
-      return !isCharDatatype() && !isTimestamp();
+      return !isCharDatatype() && !isTimestamp() && !isBoolean();
     }
 
     /**
@@ -247,6 +247,11 @@
       var dataTypeVal = getDatatypeValue();
       return ((dataTypeVal == "timestamp")
               || (dataTypeVal == "adql:TIMESTAMP"));
+    }
+
+    function isBoolean()
+    {
+      return getDatatypeValue() == "boolean";
     }
 
     function isFloatingPointNumeric()
@@ -283,7 +288,8 @@
                "isNumeric": isNumeric,
                "isTimestamp": isTimestamp,
                "isIntegerNumeric": isIntegerNumeric,
-               "isFloatingPointNumeric": isFloatingPointNumeric
+               "isFloatingPointNumeric": isFloatingPointNumeric,
+               "isBoolean": isBoolean
              });
   }
 

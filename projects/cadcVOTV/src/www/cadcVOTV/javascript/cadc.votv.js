@@ -67,6 +67,13 @@
     this.sortcol = options.sortColumn;
     this.sortAsc = options.sortDir == "asc";
 
+    // story 1584 - variable viewport height
+    this.variableViewportHeight = options.variableViewportHeight
+        ? options.variableViewportHeight
+        : false;
+    this.viewportOffset = 0;
+
+
     /**
      * @param input  Object representing the input.
      *
@@ -83,7 +90,7 @@
      */
     function build(input, completeCallback, errorCallBack)
     {
-      new cadc.vot.Builder(options.maxRowLimit,
+      new cadc.vot.Builder(getOptions().maxRowLimit,
                            input, 
                            function (voTableBuilder)
                            {
@@ -100,11 +107,13 @@
                                // Display spinner only if paging is off
                                if (!usePager())
                                {
-                                  // remove any background color resulting from previous warning message
-                                  if ($("#results-grid-header").prop("style"))
-                                  {
-                                    $("#results-grid-header").prop("style").backgroundColor = "";
-                                  }
+                                 var $gridHeaderStyle =
+                                     $("#results-grid-header").prop("style");
+                                 // remove any background color resulting from previous warning message
+                                 if ($gridHeaderStyle)
+                                 {
+                                   $gridHeaderStyle.backgroundColor = "";
+                                 }
 
                                  // add a spinner to the header bar to indicate
                                  // streaming has begun
@@ -144,8 +153,9 @@
                                      gridHeaderIcon.prop("src", "/cadcVOTV/images/transparent-20.png");
                                      if (options.maxRowLimit <= getDataView().getPagingInfo().totalRows)
                                      {
+                                       var $gridHeaderLabel = $("#grid-header-label");
                                        // and display warning message if maximum row limit is reached
-                                       $("#grid-header-label").text($("#grid-header-label").text() + " " + options.maxRowLimitWarning);
+                                       $gridHeaderLabel.text($gridHeaderLabel.text() + " " + options.maxRowLimitWarning);
                                        $("#results-grid-header").prop("style").backgroundColor = "rgb(235, 235, 49)";
                                      }
                                    }
@@ -260,8 +270,21 @@
     function isFitMax(columnID)
     {
       var columnOptions = getOptionsForColumn(columnID);
+      var fitMaxEnabled = (getOptions().fitMax === true);
 
-      return (columnOptions && columnOptions.fitMax) || getOptions().fitMax;
+      if (columnOptions)
+      {
+        if (columnOptions.fitMax === true)
+        {
+          fitMaxEnabled = true;
+        }
+        else if (columnOptions.fitMax === false)
+        {
+          fitMaxEnabled = false;
+        }
+      }
+
+      return fitMaxEnabled;
     }
 
     function getColumnFilters()
@@ -435,6 +458,31 @@
       g.invalidateAllRows();
       g.resizeCanvas();
     }
+
+    function getGridHeaderHeight()
+    {
+      return ($(".grid-header").height()+
+        $(".slick-header").height()+
+        $(".slick-headerrow").height());
+    }
+
+    /** 
+     * Call if supporting a variable viewport height, and there's a static header
+     * that not part of the grid container.
+     */
+    function setViewportOffset(offset)
+    {
+      this.viewportOffset = (offset + getGridHeaderHeight());
+    }
+
+    function setViewportHeight()
+    {
+      if (this.variableViewportHeight)
+      {
+        $(this.targetNodeSelector).height(($(window).height() - this.viewportOffset));
+      }
+    }
+
 
     /**
      * Tell the Grid to sort.  This exists mainly to set an initial sort column
@@ -1170,15 +1218,25 @@
        */
       var doGridSort = function()
       {
-        var isnumeric = _self.getColumn(_self.sortcol).datatype.isNumeric();
-        var comparer =
-            new cadc.vot.Comparer(_self.sortcol, isnumeric);
+        if (_self.sortcol)
+        {
+          var sortColumn = _self.getColumn(_self.sortcol);
 
-        // using native sort with comparer
-        // preferred method but can be very slow in IE
-        // with huge datasets
-        dataView.sort(comparer.compare, _self.sortAsc);
-        dataView.refresh();
+          // In the odd chance that the sort column is not in the displayed
+          // column list.
+          if (sortColumn)
+          {
+            var isnumeric = sortColumn.datatype.isNumeric();
+            var comparer =
+                new cadc.vot.Comparer(_self.sortcol, isnumeric);
+
+            // using native sort with comparer
+            // preferred method but can be very slow in IE
+            // with huge datasets
+            dataView.sort(comparer.compare, _self.sortAsc);
+            dataView.refresh();
+          }
+        }
       };
 
       /**
@@ -1235,6 +1293,7 @@
 
       $(window).resize(function ()
                        {
+                         _self.setViewportHeight();
                          grid.resizeCanvas();
                        });
 
@@ -1286,36 +1345,33 @@
                                                }
 
                                                // Do not display for the checkbox column.
-                                               else if (args.column.filterable)
+                                               else if (args.column.filterable === true)
                                                {
-                                                 // Allow for overrides per column.
-                                                 if (args.column.filterable == false)
+                                                 var datatype =
+                                                     args.column.datatype;
+                                                 var tooltipTitle;
+
+                                                 if (datatype.isNumeric())
                                                  {
-                                                   $("<span class=\"empty\"></span>").
-                                                       appendTo(args.node);
+                                                   tooltipTitle = "Number: 10 or >=10 or 10..20 for a range , ! to negate";
                                                  }
                                                  else
                                                  {
-                                                   var datatype =
-                                                       args.column.datatype;
-                                                   var tooltipTitle;
-
-                                                   if (datatype.isNumeric())
-                                                   {
-                                                     tooltipTitle = "Number: 10 or >=10 or 10..20 for a range , ! to negate";
-                                                   }
-                                                   else
-                                                   {
-                                                     tooltipTitle = "String: abc (exact match) or *ab*c* , ! to negate";
-                                                   }
-
-                                                   $("<input type='text'>")
-                                                       .data("columnId", args.column.id)
-                                                       .val(columnFilters[args.column.id])
-                                                       .prop("title", tooltipTitle)
-                                                       .prop("id", args.column.utype + "_filter")
-                                                       .appendTo(args.node);
+                                                   tooltipTitle = "String: abc (exact match) or *ab*c* , ! to negate";
                                                  }
+
+                                                 $("<input type='text'>")
+                                                     .data("columnId", args.column.id)
+                                                     .val(columnFilters[args.column.id])
+                                                     .prop("title", tooltipTitle)
+                                                     .prop("id", args.column.utype + "_filter")
+                                                     .appendTo(args.node);
+                                               }
+                                               else
+                                               {
+                                                 // Allow for overrides per column.
+                                                 $("<span class=\"empty\"></span>").
+                                                     appendTo(args.node);
                                                }
                                              });
 
@@ -1452,9 +1508,19 @@
         var colOpts = getOptionsForColumn(fieldKey);
         var cssClass = colOpts.cssClass;
         var datatype = field.getDatatype();
-        var filterable = columnManager.filterable
-            && (((colOpts.filterable != undefined) && (colOpts.filterable != null))
-            ? colOpts.filterable : columnManager.filterable);
+        var filterable = (columnManager.filterable === true);
+
+        if (colOpts)
+        {
+          if (colOpts.filterable === true)
+          {
+            filterable = true;
+          }
+          else if (colOpts.filterable === false)
+          {
+            filterable = false;
+          }
+        }
 
         // We're extending the column properties a little here.
         var columnObject =
@@ -1666,6 +1732,8 @@
                "setSortColumn": setSortColumn,
                "getResizedColumns": getResizedColumns,
                "getUpdatedColumnSelects": getUpdatedColumnSelects,
+               "setViewportHeight": setViewportHeight,
+               "setViewportOffset": setViewportOffset,
 
                // Event subscription
                "subscribe": subscribe
