@@ -153,8 +153,9 @@
                                      gridHeaderIcon.prop("src", "/cadcVOTV/images/transparent-20.png");
                                      if (options.maxRowLimit <= getDataView().getPagingInfo().totalRows)
                                      {
+                                       var $gridHeaderLabel = $("#grid-header-label");
                                        // and display warning message if maximum row limit is reached
-                                       $("#grid-header-label").text($("#grid-header-label").text() + " " + options.maxRowLimitWarning);
+                                       $gridHeaderLabel.text($gridHeaderLabel.text() + " " + options.maxRowLimitWarning);
                                        $("#results-grid-header").prop("style").backgroundColor = "rgb(235, 235, 49)";
                                      }
                                    }
@@ -269,8 +270,21 @@
     function isFitMax(columnID)
     {
       var columnOptions = getOptionsForColumn(columnID);
+      var fitMaxEnabled = (getOptions().fitMax === true);
 
-      return (columnOptions && columnOptions.fitMax) || getOptions().fitMax;
+      if (columnOptions)
+      {
+        if (columnOptions.fitMax === true)
+        {
+          fitMaxEnabled = true;
+        }
+        else if (columnOptions.fitMax === false)
+        {
+          fitMaxEnabled = false;
+        }
+      }
+
+      return fitMaxEnabled;
     }
 
     function getColumnFilters()
@@ -1345,36 +1359,33 @@
                                                }
 
                                                // Do not display for the checkbox column.
-                                               else if (args.column.filterable)
+                                               else if (args.column.filterable === true)
                                                {
-                                                 // Allow for overrides per column.
-                                                 if (args.column.filterable == false)
+                                                 var datatype =
+                                                     args.column.datatype;
+                                                 var tooltipTitle;
+
+                                                 if (datatype.isNumeric())
                                                  {
-                                                   $("<span class=\"empty\"></span>").
-                                                       appendTo(args.node);
+                                                   tooltipTitle = "Number: 10 or >=10 or 10..20 for a range , ! to negate";
                                                  }
                                                  else
                                                  {
-                                                   var datatype =
-                                                       args.column.datatype;
-                                                   var tooltipTitle;
-
-                                                   if (datatype.isNumeric())
-                                                   {
-                                                     tooltipTitle = "Number: 10 or >=10 or 10..20 for a range , ! to negate";
-                                                   }
-                                                   else
-                                                   {
-                                                     tooltipTitle = "String: abc (exact match) or *ab*c* , ! to negate";
-                                                   }
-
-                                                   $("<input type='text'>")
-                                                       .data("columnId", args.column.id)
-                                                       .val(columnFilters[args.column.id])
-                                                       .prop("title", tooltipTitle)
-                                                       .prop("id", args.column.utype + "_filter")
-                                                       .appendTo(args.node);
+                                                   tooltipTitle = "String: abc (exact match) or *ab*c* , ! to negate";
                                                  }
+
+                                                 $("<input type='text'>")
+                                                     .data("columnId", args.column.id)
+                                                     .val(columnFilters[args.column.id])
+                                                     .prop("title", tooltipTitle)
+                                                     .prop("id", args.column.utype + "_filter")
+                                                     .appendTo(args.node);
+                                               }
+                                               else
+                                               {
+                                                 // Allow for overrides per column.
+                                                 $("<span class=\"empty\"></span>").
+                                                     appendTo(args.node);
                                                }
                                              });
 
@@ -1511,9 +1522,19 @@
         var colOpts = getOptionsForColumn(fieldKey);
         var cssClass = colOpts.cssClass;
         var datatype = field.getDatatype();
-        var filterable = columnManager.filterable
-            && (((colOpts.filterable != undefined) && (colOpts.filterable != null))
-            ? colOpts.filterable : columnManager.filterable);
+        var filterable = (columnManager.filterable === true);
+
+        if (colOpts)
+        {
+          if (colOpts.filterable === true)
+          {
+            filterable = true;
+          }
+          else if (colOpts.filterable === false)
+          {
+            filterable = false;
+          }
+        }
 
         // We're extending the column properties a little here.
         var columnObject =

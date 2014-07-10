@@ -57,7 +57,11 @@
         setLongest(longestValues, cellField.getID(), stringValue);
 
         var cellValue;
-        if (!$.isEmptyObject(cellDatatype) && cellDatatype.isNumeric())
+        if ($.isEmptyObject(cellDatatype))
+        {
+          cellValue = stringValue;
+        }
+        else if (cellDatatype.isNumeric())
         {
           var num;
 
@@ -76,8 +80,13 @@
           }
           cellValue = num;
         }
+        else if (cellDatatype.isBoolean())
+        {
+          cellValue = (stringValue === "true");
+        }
         else
         {
+          // Assume char or char-like value.
           cellValue = stringValue;
         }
 
