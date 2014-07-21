@@ -1291,6 +1291,20 @@
                                          grid.render();
                                        });
 
+      dataView.onPagingInfoChanged.subscribe(function (e, pagingInfo)
+                                             {
+                                               var isLastPage =
+                                                   (pagingInfo.pageNum == pagingInfo.totalPages - 1);
+                                               var enableAddRow =
+                                                   (isLastPage || pagingInfo.pageSize == 0);
+                                               var options = grid.getOptions();
+
+                                               if (options.enableAddRow != enableAddRow)
+                                               {
+                                                 grid.setOptions({enableAddRow: enableAddRow});
+                                               }
+                                             });
+
       $(window).resize(function ()
                        {
                          _self.setViewportHeight();
