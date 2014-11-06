@@ -103,12 +103,16 @@
                              {
                                var inputFields =
                                    input.tableMetadata.getFields();
+                               var $resultsGridHeader =
+                                   $(getTargetNodeSelector()).find(".results-grid-header");
+                               var $gridHeaderIcon =
+                                   $(getTargetNodeSelector()).find(".grid-header-icon");
                                
                                // Display spinner only if paging is off
                                if (!usePager())
                                {
                                  var $gridHeaderStyle =
-                                     $("#results-grid-header").prop("style");
+                                     $resultsGridHeader.prop("style");
                                  // remove any background color resulting from previous warning message
                                  if ($gridHeaderStyle)
                                  {
@@ -117,10 +121,9 @@
 
                                  // add a spinner to the header bar to indicate
                                  // streaming has begun
-                                 var gridHeaderIcon = $("#grid-header-icon");
-                                 if (gridHeaderIcon)
+                                 if ($gridHeaderIcon)
                                  {
-                                   gridHeaderIcon.attr("src", "/cadcVOTV/images/PleaseWait-small.gif");
+                                   $gridHeaderIcon.attr("src", "/cadcVOTV/images/PleaseWait-small.gif");
                                  }
                                }
 
@@ -146,17 +149,16 @@
                                  // Display spinner only if paging is off
                                  if (!usePager())
                                  {
-                                   var gridHeaderIcon = $("#grid-header-icon");
-                                   if (gridHeaderIcon)
+                                   if ($gridHeaderIcon)
                                    {
                                      // clear the wait icon
-                                     gridHeaderIcon.prop("src", "/cadcVOTV/images/transparent-20.png");
+                                     $gridHeaderIcon.prop("src", "/cadcVOTV/images/transparent-20.png");
                                      if (options.maxRowLimit <= getDataView().getPagingInfo().totalRows)
                                      {
-                                       var $gridHeaderLabel = $("#grid-header-label");
+                                       var $gridHeaderLabel = getHeaderLabel();
                                        // and display warning message if maximum row limit is reached
                                        $gridHeaderLabel.text($gridHeaderLabel.text() + " " + options.maxRowLimitWarning);
-                                       $("#results-grid-header").prop("style").backgroundColor = "rgb(235, 235, 49)";
+                                       $resultsGridHeader.prop("style").backgroundColor = "rgb(235, 235, 49)";
                                      }
                                    }
                                  }
@@ -223,6 +225,12 @@
     function getHeaderNodeSelector()
     {
       return "div.grid-header";
+    }
+
+    function getHeaderLabel()
+    {
+      return $(getTargetNodeSelector()).prev(getHeaderNodeSelector()).find(
+          ".grid-header-label");
     }
 
     function getColumnManager()
@@ -472,14 +480,15 @@
      */
     function setViewportOffset(offset)
     {
-      this.viewportOffset = (offset + getGridHeaderHeight());
+      self.viewportOffset = (offset + getGridHeaderHeight());
     }
 
     function setViewportHeight()
     {
-      if (this.variableViewportHeight)
+      if (self.variableViewportHeight)
       {
-        $(this.targetNodeSelector).height(($(window).height() - this.viewportOffset));
+        $(self.targetNodeSelector).height(($(window).height()
+            - self.viewportOffset));
       }
     }
 
@@ -1087,19 +1096,18 @@
 
       if (usePager())
       {
-        var pager = new Slick.Controls.Pager(dataView, grid,
-                                             $(getPagerNodeSelector()));
+        new Slick.Controls.Pager(dataView, grid, $(getPagerNodeSelector()));
       }
       else
       {
         // Use the Grid header otherwise.
-        var gridHeaderLabel = $("#grid-header-label");
+        var $gridHeaderLabel = getHeaderLabel();
 
-        if (gridHeaderLabel)
+        if ($gridHeaderLabel)
         {
           dataView.onPagingInfoChanged.subscribe(function (e, pagingInfo)
                                                  {
-                                                   gridHeaderLabel.text("Showing " + pagingInfo.totalRows
+                                                   $gridHeaderLabel.text("Showing " + pagingInfo.totalRows
                                                                             + " rows (" + getGridData().length
                                                                             + " before filtering).");
                                                  });
