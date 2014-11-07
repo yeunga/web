@@ -103,10 +103,9 @@
                              {
                                var inputFields =
                                    input.tableMetadata.getFields();
-                               var $resultsGridHeader =
-                                   $(getTargetNodeSelector()).find(".results-grid-header");
+                               var $resultsGridHeader = getHeader();
                                var $gridHeaderIcon =
-                                   $(getTargetNodeSelector()).find(".grid-header-icon");
+                                   getHeader().find("img.grid-header-icon");
                                
                                // Display spinner only if paging is off
                                if (!usePager())
@@ -152,13 +151,13 @@
                                    if ($gridHeaderIcon)
                                    {
                                      // clear the wait icon
-                                     $gridHeaderIcon.prop("src", "/cadcVOTV/images/transparent-20.png");
+                                     $gridHeaderIcon.attr("src", "/cadcVOTV/images/transparent-20.png");
                                      if (options.maxRowLimit <= getDataView().getPagingInfo().totalRows)
                                      {
                                        var $gridHeaderLabel = getHeaderLabel();
                                        // and display warning message if maximum row limit is reached
                                        $gridHeaderLabel.text($gridHeaderLabel.text() + " " + options.maxRowLimitWarning);
-                                       $resultsGridHeader.prop("style").backgroundColor = "rgb(235, 235, 49)";
+                                       $resultsGridHeader.css("background-color", "rgb(235, 235, 49)");
                                      }
                                    }
                                  }
@@ -227,10 +226,14 @@
       return "div.grid-header";
     }
 
+    function getHeader()
+    {
+      return $(getTargetNodeSelector()).prev(getHeaderNodeSelector());
+    }
+
     function getHeaderLabel()
     {
-      return $(getTargetNodeSelector()).prev(getHeaderNodeSelector()).find(
-          ".grid-header-label");
+      return getHeader().find(".grid-header-label");
     }
 
     function getColumnManager()
