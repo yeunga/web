@@ -5,6 +5,7 @@
       "vot": {
         "Viewer": Viewer,
         "CHECKBOX_SELECTOR_COLUMN_ID": "_checkbox_selector",
+        "ROW_SELECT_DISABLED_KEY": "_ROW_SELECT_DISABLED_",
         "datatype": {
           "NUMERIC": "NUMERIC",
           "STRING": "STRING",
@@ -47,6 +48,10 @@
     this.grid = null;
     this.columnManager = options.columnManager ? options.columnManager : {};
     this.rowManager = options.rowManager ? options.rowManager : {};
+
+    this.$emptyResultsMessage =
+            $(options.emptyResultsMessageSelector)
+            || $("<div class=\"cadcvotv-empty-results-message\">No results returned.</div>");
 
     this.columns = [];
     // displayColumns: columns that are actually in the Grid.
@@ -99,7 +104,7 @@
                                      && (_self.displayColumns.length > 0));
 
                              // Set up to stream.
-                             if (input.url)
+                             if (input.url || input.csv)
                              {
                                var inputFields =
                                    input.tableMetadata.getFields();
@@ -206,7 +211,7 @@
 
                              if (completeCallback)
                              {
-                               completeCallback();
+                               completeCallback(voTableBuilder);
                              }
                            }, errorCallBack);
     }
@@ -410,6 +415,12 @@
         dataRow[cellFieldID] = cell.getValue();
       });
 
+      if (getRowManager().isRowDisabled)
+      {
+        dataRow[cadc.vot.ROW_SELECT_DISABLED_KEY] =
+                              getRowManager().isRowDisabled(row);
+      }
+
       if (rowIndex)
       {
         getDataView().getItems()[rowIndex] = dataRow;
@@ -483,15 +494,15 @@
      */
     function setViewportOffset(offset)
     {
-      self.viewportOffset = (offset + getGridHeaderHeight());
+      _self.viewportOffset = (offset + getGridHeaderHeight());
     }
 
     function setViewportHeight()
     {
-      if (self.variableViewportHeight)
+      if (_self.variableViewportHeight)
       {
-        $(self.targetNodeSelector).height(($(window).height()
-            - self.viewportOffset));
+        $(_self.targetNodeSelector).
+            height($(window).height() - _self.viewportOffset);
       }
     }
 
@@ -979,6 +990,10 @@
      */
     function init()
     {
+      // Keep the empty results stuff hidden.
+      $(getTargetNodeSelector()).removeClass("cadcvotv-empty-results-overlay");
+      _self.$emptyResultsMessage.hide();
+
       var dataView = getDataView();
       var forceFitMax = (getColumnManager().forceFitColumns
                              && getColumnManager().forceFitColumnMode
@@ -1110,8 +1125,10 @@
         {
           dataView.onPagingInfoChanged.subscribe(function (e, pagingInfo)
                                                  {
+                                                   var rowCount =
+                                                       getGridData().length;
                                                    $gridHeaderLabel.text("Showing " + pagingInfo.totalRows
-                                                                            + " rows (" + getGridData().length
+                                                                            + " rows (" + rowCount
                                                                             + " before filtering).");
                                                  });
         }
@@ -1397,6 +1414,9 @@
                                                  // Allow for overrides per column.
                                                  $("<span class=\"empty\"></span>").
                                                      appendTo(args.node);
+
+                                                 $(args.node).css("height",
+                                                                  "100%");
                                                }
                                              });
 
@@ -1699,6 +1719,12 @@
       }
 
       g.init();
+
+      if (getGridData().length === 0)
+      {
+        $(getTargetNodeSelector()).addClass("cadcvotv-empty-results-overlay");
+        _self.$emptyResultsMessage.show();
+      }
     }
 
     /**

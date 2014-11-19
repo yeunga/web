@@ -614,12 +614,35 @@
       return getCells().length;
     }
 
+    /**
+     * Obtain the value of a cell in this row.
+     *
+     * @param _fieldID    The ID of the cell's field.
+     * @returns {*}     Value of the cell.
+     */
+    function getCellValue(_fieldID)
+    {
+      var value = null;
+
+      $.each(getCells(), function (cellIndex, cell)
+      {
+        var cellFieldID = cell.getField().getID();
+
+        if (cellFieldID === _fieldID)
+        {
+          value = cell.getValue();
+        }
+      });
+
+      return value;
+    }
 
     $.extend(this,
              {
                "getID": getID,
                "getCells": getCells,
-               "getSize": getSize
+               "getSize": getSize,
+               "getCellValue": getCellValue
              })
   }
 
