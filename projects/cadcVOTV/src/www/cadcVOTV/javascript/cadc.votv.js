@@ -51,7 +51,8 @@
 
     this.$emptyResultsMessage =
             $(options.emptyResultsMessageSelector)
-            || $("<div class=\"cadcvotv-empty-results-message\">No results returned.</div>");
+            || $("<div class=\"cadcvotv-empty-results-message\">No results returned.</div>")
+                .appendTo($(".grid-container"));
 
     this.columns = [];
     // displayColumns: columns that are actually in the Grid.
