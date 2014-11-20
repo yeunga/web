@@ -29,10 +29,10 @@
   border-radius: 0.4em;
   padding: 1em;
   display: none;
-  margin-top: -75px;
+  margin-top: -85px;
   margin-left: -200px;
   width: 400px;
-  height: 150px;
+  height: auto;
 }
 
 .cell-effort-driven
