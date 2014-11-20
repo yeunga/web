@@ -674,8 +674,11 @@
      */
     function build()
     {
-      append(input.csv);
-      loadEnd();
+      if (input.csv)
+      {
+        append(input.csv);
+        loadEnd();
+      }
     }
 
     function append(asChunk)

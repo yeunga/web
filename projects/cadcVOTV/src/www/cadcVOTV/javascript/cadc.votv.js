@@ -166,6 +166,12 @@
                                      }
                                    }
                                  }
+
+                                 if (getGridData().length === 0)
+                                 {
+                                   $(getTargetNodeSelector()).addClass("cadcvotv-empty-results-overlay");
+                                   _self.$emptyResultsMessage.show();
+                                 }
                                });
 
                                clearRows();
@@ -1719,12 +1725,6 @@
       }
 
       g.init();
-
-      if (getGridData().length === 0)
-      {
-        $(getTargetNodeSelector()).addClass("cadcvotv-empty-results-overlay");
-        _self.$emptyResultsMessage.show();
-      }
     }
 
     /**
