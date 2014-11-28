@@ -96,6 +96,10 @@
      */
     function build(input, completeCallback, errorCallBack)
     {
+      // Keep the empty results stuff hidden.
+      $(getTargetNodeSelector()).removeClass("cadcvotv-empty-results-overlay");
+      _self.$emptyResultsMessage.hide();
+
       new cadc.vot.Builder(getOptions().maxRowLimit,
                            input, 
                            function (voTableBuilder)
@@ -185,7 +189,7 @@
                                                         {
                                                           getDataView().beginUpdate();
                                                         });
-                                                        
+
                                voTableBuilder.subscribe(cadc.vot.onPageAddEnd,
                                                         function(event)
                                                         {
@@ -997,10 +1001,6 @@
      */
     function init()
     {
-      // Keep the empty results stuff hidden.
-      $(getTargetNodeSelector()).removeClass("cadcvotv-empty-results-overlay");
-      _self.$emptyResultsMessage.hide();
-
       var dataView = getDataView();
       var forceFitMax = (getColumnManager().forceFitColumns
                              && getColumnManager().forceFitColumnMode
