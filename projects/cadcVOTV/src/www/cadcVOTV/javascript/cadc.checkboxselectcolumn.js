@@ -1,4 +1,5 @@
-(function ($) {
+(function ($)
+{
   // register namespace
   $.extend(true, window, {
     "CADC": {
@@ -7,7 +8,8 @@
   });
 
 
-  function CheckboxSelectColumn(options) {
+  function CheckboxSelectColumn(options)
+  {
     var _grid;
     var _self = this;
     var _handler = new Slick.EventHandler();
@@ -21,16 +23,18 @@
 
     var _options = $.extend(true, {}, _defaults, options);
 
-    function init(grid) {
+    function init(grid)
+    {
       _grid = grid;
       _handler
-        .subscribe(_grid.onSelectedRowsChanged, handleSelectedRowsChanged)
-        .subscribe(_grid.onClick, handleClick)
-        .subscribe(_grid.onHeaderClick, handleHeaderClick)
-        .subscribe(_grid.onKeyDown, handleKeyDown);
+          .subscribe(_grid.onSelectedRowsChanged, handleSelectedRowsChanged)
+          .subscribe(_grid.onClick, handleClick)
+          .subscribe(_grid.onHeaderClick, handleHeaderClick)
+          .subscribe(_grid.onKeyDown, handleKeyDown);
     }
 
-    function destroy() {
+    function destroy()
+    {
       _handler.unsubscribeAll();
     }
 
@@ -43,12 +47,14 @@
       {
         row = selectedRows[i];
         lookup[row] = true;
-        if (lookup[row] !== _selectedRowsLookup[row]) {
+        if (lookup[row] !== _selectedRowsLookup[row])
+        {
           _grid.invalidateRow(row);
           delete _selectedRowsLookup[row];
         }
       }
-      for (i in _selectedRowsLookup) {
+      for (i in _selectedRowsLookup)
+      {
         _grid.invalidateRow(i);
       }
 
@@ -56,7 +62,13 @@
 
       _grid.render();
 
-      if (selectedRows.length && selectedRows.length == _grid.getDataLength())
+      var disabledRowCount=0;
+      for (var i = 0; i < _grid.getDataLength(); i++)
+      {
+        _grid.getDataItem(i)[cadc.vot.ROW_SELECT_DISABLED_KEY] ? disabledRowCount++ : null;
+      }
+
+      if (selectedRows.length && (selectedRows.length == (_grid.getDataLength()-disabledRowCount)))
       {
         _grid.updateColumnHeader(_options.columnId,
                                  "<input type='checkbox' class='slick-header-column-checkboxsel' checked='checked'>",
@@ -64,16 +76,21 @@
       }
       else
       {
-        _grid.updateColumnHeader(_options.columnId, "<input class='slick-header-column-checkboxsel' type='checkbox'>",
+        _grid.updateColumnHeader(_options.columnId,
+                                 "<input type='checkbox' class='slick-header-column-checkboxsel'>",
                                  _options.toolTip);
       }
     }
 
-    function handleKeyDown(e, args) {
-      if (e.which == 32) {
-        if (_grid.getColumns()[args.cell].id === _options.columnId) {
+    function handleKeyDown(e, args)
+    {
+      if (e.which == 32)
+      {
+        if (_grid.getColumns()[args.cell].id === _options.columnId)
+        {
           // if editing, try to commit
-          if (!_grid.getEditorLock().isActive() || _grid.getEditorLock().commitCurrentEdit()) {
+          if (!_grid.getEditorLock().isActive() || _grid.getEditorLock().commitCurrentEdit())
+          {
             toggleRowSelection(args.row);
           }
           e.preventDefault();
@@ -85,9 +102,11 @@
     function handleClick(e, args)
     {
       // clicking on a row select checkbox
-      if (_grid.getColumns()[args.cell].id === _options.columnId && $(e.target).is(":checkbox")) {
+      if (_grid.getColumns()[args.cell].id === _options.columnId && $(e.target).is(":checkbox"))
+      {
         // if editing, try to commit
-        if (_grid.getEditorLock().isActive() && !_grid.getEditorLock().commitCurrentEdit()) {
+        if (_grid.getEditorLock().isActive() && !_grid.getEditorLock().commitCurrentEdit())
+        {
           e.preventDefault();
           e.stopImmediatePropagation();
           return;
@@ -103,42 +122,71 @@
     {
       if (_selectedRowsLookup[row])
       {
-        _grid.setSelectedRows($.grep(_grid.getSelectedRows(), function (n)
-        {
-          return n != row;
-        }));
-      } else {
-        _grid.setSelectedRows(_grid.getSelectedRows().concat(row));
+        deselect(row);
+      }
+      else
+      {
+        select(row);
       }
     }
 
-    function handleHeaderClick(e, args) {
-      if (args.column.id == _options.columnId && $(e.target).is(":checkbox")) {
+    function deselect(row)
+    {
+      _grid.setSelectedRows($.grep(_grid.getSelectedRows(), function (n)
+      {
+        return n != row;
+      }));
+    }
+
+    function select(row)
+    {
+      _grid.setSelectedRows(_grid.getSelectedRows().concat(row));
+    }
+
+    function handleHeaderClick(e, args)
+    {
+      var $eventTarget = $(e.target);
+
+      if ((args.column.id === _options.columnId)
+          && $eventTarget.is(":checkbox"))
+      {
         // if editing, try to commit
-        if (_grid.getEditorLock().isActive() && !_grid.getEditorLock().commitCurrentEdit()) {
+        if (_grid.getEditorLock().isActive()
+            && !_grid.getEditorLock().commitCurrentEdit())
+        {
           e.preventDefault();
-          e.stopImmediatePropagation();
-          return;
+        }
+        else
+        {
+          if ($eventTarget.is(":checked"))
+          {
+            var rows = [];
+            for (var i = 0; i < _grid.getDataLength(); i++)
+            {
+              var disabled =
+                  _grid.getDataItem(i)[cadc.vot.ROW_SELECT_DISABLED_KEY];
+
+              if (!disabled)
+              {
+                rows.push(i);
+              }
+            }
+
+            _grid.setSelectedRows(rows);
+          }
+          else
+          {
+            _grid.setSelectedRows([]);
+          }
+          e.stopPropagation();
         }
 
-        if ($(e.target).is(":checked")) {
-          var rows = [];
-          for (var i = 0; i < _grid.getDataLength(); i++) {
-            var checkboxElement = _grid.getCellNode(i, 0);
-            if (($(checkboxElement).find('._select_vov_' + i)).length > 0) {
-              rows.push(i);
-            }
-          }
-          _grid.setSelectedRows(rows);
-        } else {
-          _grid.setSelectedRows([]);
-        }
-        e.stopPropagation();
         e.stopImmediatePropagation();
       }
     }
 
-    function getColumnDefinition() {
+    function getColumnDefinition()
+    {
       return {
         id: _options.columnId,
         name: "<input type='checkbox'>",

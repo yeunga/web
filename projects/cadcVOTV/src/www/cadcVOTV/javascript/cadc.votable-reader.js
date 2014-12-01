@@ -213,7 +213,11 @@
       if (getInternalBuilder() && getInternalBuilder().build)
       {
         getInternalBuilder().build(buildRowData);
-        _selfBuilder.voTable = getInternalBuilder().getVOTable();
+
+        if (getInternalBuilder().getVOTable)
+        {
+          _selfBuilder.voTable = getInternalBuilder().getVOTable();
+        }
       }
     }
 
@@ -427,6 +431,7 @@
       var voTableInfos = [];
       var resourceTables = [];
       var resourceInfos = [];
+      var voTableFields;
 
       // Iterate over resources.
       for (var resourceIndex = 0; resourceIndex < xmlVOTableResourceDOMs.length;
@@ -546,6 +551,8 @@
                                                     resourceTableDescription,
                                                     null, tableFields, null);
 
+          voTableFields = (voTableFields === undefined) ? tableFields : voTableFields;
+
           var tableDataRows = [];
           var rowDataDOMs = getElements(nextTablePath + "/DATA/TABLEDATA/TR");
           var tableFieldsMetadata = tableMetadata.getFields();
@@ -586,7 +593,7 @@
       var voTableMetadata = new cadc.vot.Metadata(voTableParameters,
                                                   voTableInfos,
                                                   voTableDescription, null,
-                                                  null, null);
+                                                  voTableFields, null);
 
       _selfXMLBuilder.voTable = new cadc.vot.VOTable(voTableMetadata,
                                                      voTableResources);
@@ -660,6 +667,18 @@
 	        fireEvent(cadc.vot.onPageAddEnd);
 	      });
 	    }
+    }
+
+    /**
+     * For non-streaming items.
+     */
+    function build()
+    {
+      if (input.csv)
+      {
+        append(input.csv);
+        loadEnd();
+      }
     }
 
     function append(asChunk)
@@ -747,6 +766,7 @@
     $.extend(this,
              {
                "append": append,
+               "build": build,
                "getCurrent": getCurrent,
                "subscribe": subscribe,
                "loadEnd": loadEnd

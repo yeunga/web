@@ -5,6 +5,7 @@
       "vot": {
         "Viewer": Viewer,
         "CHECKBOX_SELECTOR_COLUMN_ID": "_checkbox_selector",
+        "ROW_SELECT_DISABLED_KEY": "_ROW_SELECT_DISABLED_",
         "datatype": {
           "NUMERIC": "NUMERIC",
           "STRING": "STRING",
@@ -48,6 +49,11 @@
     this.columnManager = options.columnManager ? options.columnManager : {};
     this.rowManager = options.rowManager ? options.rowManager : {};
 
+    this.$emptyResultsMessage =
+            $(options.emptyResultsMessageSelector)
+            || $("<div class=\"cadcvotv-empty-results-message\">No results returned.</div>")
+                .appendTo($(".grid-container"));
+
     this.columns = [];
     // displayColumns: columns that are actually in the Grid.
     this.displayColumns = options.displayColumns ? options.displayColumns : [];
@@ -90,6 +96,10 @@
      */
     function build(input, completeCallback, errorCallBack)
     {
+      // Keep the empty results stuff hidden.
+      $(getTargetNodeSelector()).removeClass("cadcvotv-empty-results-overlay");
+      _self.$emptyResultsMessage.hide();
+
       new cadc.vot.Builder(getOptions().maxRowLimit,
                            input, 
                            function (voTableBuilder)
@@ -99,16 +109,19 @@
                                      && (_self.displayColumns.length > 0));
 
                              // Set up to stream.
-                             if (input.url)
+                             if (input.url || input.csv)
                              {
                                var inputFields =
                                    input.tableMetadata.getFields();
+                               var $resultsGridHeader = getHeader();
+                               var $gridHeaderIcon =
+                                   getHeader().find("img.grid-header-icon");
                                
                                // Display spinner only if paging is off
                                if (!usePager())
                                {
                                  var $gridHeaderStyle =
-                                     $("#results-grid-header").prop("style");
+                                     $resultsGridHeader.prop("style");
                                  // remove any background color resulting from previous warning message
                                  if ($gridHeaderStyle)
                                  {
@@ -117,10 +130,9 @@
 
                                  // add a spinner to the header bar to indicate
                                  // streaming has begun
-                                 var gridHeaderIcon = $("#grid-header-icon");
-                                 if (gridHeaderIcon)
+                                 if ($gridHeaderIcon)
                                  {
-                                   gridHeaderIcon.attr("src", "/cadcVOTV/images/PleaseWait-small.gif");
+                                   $gridHeaderIcon.attr("src", "/cadcVOTV/images/PleaseWait-small.gif");
                                  }
                                }
 
@@ -146,19 +158,24 @@
                                  // Display spinner only if paging is off
                                  if (!usePager())
                                  {
-                                   var gridHeaderIcon = $("#grid-header-icon");
-                                   if (gridHeaderIcon)
+                                   if ($gridHeaderIcon)
                                    {
                                      // clear the wait icon
-                                     gridHeaderIcon.prop("src", "/cadcVOTV/images/transparent-20.png");
+                                     $gridHeaderIcon.attr("src", "/cadcVOTV/images/transparent-20.png");
                                      if (options.maxRowLimit <= getDataView().getPagingInfo().totalRows)
                                      {
-                                       var $gridHeaderLabel = $("#grid-header-label");
+                                       var $gridHeaderLabel = getHeaderLabel();
                                        // and display warning message if maximum row limit is reached
                                        $gridHeaderLabel.text($gridHeaderLabel.text() + " " + options.maxRowLimitWarning);
-                                       $("#results-grid-header").prop("style").backgroundColor = "rgb(235, 235, 49)";
+                                       $resultsGridHeader.css("background-color", "rgb(235, 235, 49)");
                                      }
                                    }
+                                 }
+
+                                 if (getGridData().length === 0)
+                                 {
+                                   $(getTargetNodeSelector()).addClass("cadcvotv-empty-results-overlay");
+                                   _self.$emptyResultsMessage.show();
                                  }
                                });
 
@@ -172,7 +189,7 @@
                                                         {
                                                           getDataView().beginUpdate();
                                                         });
-                                                        
+
                                voTableBuilder.subscribe(cadc.vot.onPageAddEnd,
                                                         function(event)
                                                         {
@@ -205,7 +222,7 @@
 
                              if (completeCallback)
                              {
-                               completeCallback();
+                               completeCallback(voTableBuilder);
                              }
                            }, errorCallBack);
     }
@@ -223,6 +240,16 @@
     function getHeaderNodeSelector()
     {
       return "div.grid-header";
+    }
+
+    function getHeader()
+    {
+      return $(getTargetNodeSelector()).prev(getHeaderNodeSelector());
+    }
+
+    function getHeaderLabel()
+    {
+      return getHeader().find(".grid-header-label");
     }
 
     function getColumnManager()
@@ -399,6 +426,12 @@
         dataRow[cellFieldID] = cell.getValue();
       });
 
+      if (getRowManager().isRowDisabled)
+      {
+        dataRow[cadc.vot.ROW_SELECT_DISABLED_KEY] =
+                              getRowManager().isRowDisabled(row);
+      }
+
       if (rowIndex)
       {
         getDataView().getItems()[rowIndex] = dataRow;
@@ -472,14 +505,15 @@
      */
     function setViewportOffset(offset)
     {
-      this.viewportOffset = (offset + getGridHeaderHeight());
+      _self.viewportOffset = (offset + getGridHeaderHeight());
     }
 
     function setViewportHeight()
     {
-      if (this.variableViewportHeight)
+      if (_self.variableViewportHeight)
       {
-        $(this.targetNodeSelector).height(($(window).height() - this.viewportOffset));
+        $(_self.targetNodeSelector).
+            height($(window).height() - _self.viewportOffset);
       }
     }
 
@@ -1087,20 +1121,21 @@
 
       if (usePager())
       {
-        var pager = new Slick.Controls.Pager(dataView, grid,
-                                             $(getPagerNodeSelector()));
+        new Slick.Controls.Pager(dataView, grid, $(getPagerNodeSelector()));
       }
       else
       {
         // Use the Grid header otherwise.
-        var gridHeaderLabel = $("#grid-header-label");
+        var $gridHeaderLabel = getHeaderLabel();
 
-        if (gridHeaderLabel)
+        if ($gridHeaderLabel)
         {
           dataView.onPagingInfoChanged.subscribe(function (e, pagingInfo)
                                                  {
-                                                   gridHeaderLabel.text("Showing " + pagingInfo.totalRows
-                                                                            + " rows (" + getGridData().length
+                                                   var rowCount =
+                                                       getGridData().length;
+                                                   $gridHeaderLabel.text("Showing " + pagingInfo.totalRows
+                                                                            + " rows (" + rowCount
                                                                             + " before filtering).");
                                                  });
         }
@@ -1386,6 +1421,9 @@
                                                  // Allow for overrides per column.
                                                  $("<span class=\"empty\"></span>").
                                                      appendTo(args.node);
+
+                                                 $(args.node).css("height",
+                                                                  "100%");
                                                }
                                              });
 
