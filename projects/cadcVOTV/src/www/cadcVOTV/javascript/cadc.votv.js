@@ -1,4 +1,5 @@
-(function ($) {
+(function ($)
+{
   // register namespace
   $.extend(true, window, {
     "cadc": {
@@ -14,7 +15,9 @@
         "DEFAULT_CELL_PADDING_PX": 8,
         "events": {
           "onSort": new jQuery.Event("cadcVOTV:onSort"),
-          "onColumnOrderReset": new jQuery.Event("cadcVOTV:onColumnOrderReset")
+          "onColumnOrderReset": new jQuery.Event("cadcVOTV:onColumnOrderReset"),
+          "onRowsChanged": new jQuery.Event("cadcVOTV:onRowsChanged"),
+          "onDataLoaded": new jQuery.Event("cadcVOTV:onDataLoaded")
         }
       }
     }
@@ -43,22 +46,23 @@
   {
     var _self = this;
     var $_lengthFinder = $("#lengthFinder")
-        || $("<div id='lengthFinder'></div>").appendTo($(document.body));
-    this.dataView = new Slick.Data.DataView({ inlineFilters: true });
+                         || $("<div id='lengthFinder'></div>").appendTo($(document.body));
+    this.dataView = new Slick.Data.DataView({inlineFilters: true});
     this.grid = null;
     this.columnManager = options.columnManager ? options.columnManager : {};
     this.rowManager = options.rowManager ? options.rowManager : {};
 
     this.$emptyResultsMessage =
-            $(options.emptyResultsMessageSelector)
-            || $("<div class=\"cadcvotv-empty-results-message\">No results returned.</div>")
-                .appendTo($(".grid-container"));
+    $(options.emptyResultsMessageSelector)
+    || $("<div class=\"cadcvotv-empty-results-message\">No results returned.</div>")
+        .appendTo($(".grid-container"));
 
     this.columns = [];
     // displayColumns: columns that are actually in the Grid.
     this.displayColumns = options.displayColumns ? options.displayColumns : [];
     this.resizedColumns = {};  // Columns the user has resized.
     this.columnFilters = options.columnFilters ? options.columnFilters : {};
+    this.columnFilterPluginName = options.columnFilterPluginName;
     this.updatedColumnSelects = {};
     this.targetNodeSelector = targetNodeSelector;
     this.columnOptions = options.columnOptions ? options.columnOptions : {};
@@ -101,12 +105,12 @@
       _self.$emptyResultsMessage.hide();
 
       new cadc.vot.Builder(getOptions().maxRowLimit,
-                           input, 
+                           input,
                            function (voTableBuilder)
                            {
                              var hasDisplayColumns =
                                  (_self.displayColumns
-                                     && (_self.displayColumns.length > 0));
+                                  && (_self.displayColumns.length > 0));
 
                              // Set up to stream.
                              if (input.url || input.csv)
@@ -116,7 +120,7 @@
                                var $resultsGridHeader = getHeader();
                                var $gridHeaderIcon =
                                    getHeader().find("img.grid-header-icon");
-                               
+
                                // Display spinner only if paging is off
                                if (!usePager())
                                {
@@ -150,34 +154,37 @@
                                }
 
                                voTableBuilder.subscribe(cadc.vot.onDataLoadComplete,
-                                                        function(event, args)
-                               {
-                                 setLongestValues(args.longestValues);
-                                 resetColumnWidths();
-				 
-                                 // Display spinner only if paging is off
-                                 if (!usePager())
-                                 {
-                                   if ($gridHeaderIcon)
-                                   {
-                                     // clear the wait icon
-                                     $gridHeaderIcon.attr("src", "/cadcVOTV/images/transparent-20.png");
-                                     if (options.maxRowLimit <= getDataView().getPagingInfo().totalRows)
-                                     {
-                                       var $gridHeaderLabel = getHeaderLabel();
-                                       // and display warning message if maximum row limit is reached
-                                       $gridHeaderLabel.text($gridHeaderLabel.text() + " " + options.maxRowLimitWarning);
-                                       $resultsGridHeader.css("background-color", "rgb(235, 235, 49)");
-                                     }
-                                   }
-                                 }
+                                                        function (event, args)
+                                                        {
+                                                          setLongestValues(args.longestValues);
+                                                          resetColumnWidths();
 
-                                 if (getGridData().length === 0)
-                                 {
-                                   $(getTargetNodeSelector()).addClass("cadcvotv-empty-results-overlay");
-                                   _self.$emptyResultsMessage.show();
-                                 }
-                               });
+                                                          // Display spinner only if paging is off
+                                                          if (!usePager())
+                                                          {
+                                                            if ($gridHeaderIcon)
+                                                            {
+                                                              // clear the wait icon
+                                                              $gridHeaderIcon.attr("src", "/cadcVOTV/images/transparent-20.png");
+                                                              if (options.maxRowLimit <= getDataView().getPagingInfo().totalRows)
+                                                              {
+                                                                var $gridHeaderLabel = getHeaderLabel();
+                                                                // and display warning message if maximum row limit is reached
+                                                                $gridHeaderLabel.text($gridHeaderLabel.text() + " " + options.maxRowLimitWarning);
+                                                                $resultsGridHeader.css("background-color", "rgb(235, 235, 49)");
+                                                              }
+                                                            }
+                                                          }
+
+                                                          if (getGridData().length === 0)
+                                                          {
+                                                            $(getTargetNodeSelector()).addClass("cadcvotv-empty-results-overlay");
+                                                            _self.$emptyResultsMessage.show();
+                                                          }
+
+                                                          trigger(cadc.vot.events.onDataLoaded,
+                                                                  args);
+                                                        });
 
                                clearRows();
 
@@ -185,13 +192,13 @@
                                _self.init();
 
                                voTableBuilder.subscribe(cadc.vot.onPageAddStart,
-                                                        function(event)
+                                                        function (event)
                                                         {
                                                           getDataView().beginUpdate();
                                                         });
 
                                voTableBuilder.subscribe(cadc.vot.onPageAddEnd,
-                                                        function(event)
+                                                        function (event)
                                                         {
                                                           getDataView().endUpdate();
 
@@ -217,6 +224,9 @@
                                    voTableBuilder.buildRowData);
                                _self.load(voTableBuilder.getVOTable(),
                                           !hasDisplayColumns, true);
+
+                               trigger(cadc.vot.events.onDataLoaded, {});
+
                                _self.init();
                              }
 
@@ -277,15 +287,15 @@
       return getColumnOptions()[columnLabel]
           ? getColumnOptions()[columnLabel] : {};
     }
-    
+
     function getResizedColumns()
     {
-        return _self.resizedColumns;
+      return _self.resizedColumns;
     }
-    
+
     function getUpdatedColumnSelects()
     {
-        return _self.updatedColumnSelects;
+      return _self.updatedColumnSelects;
     }
 
     /**
@@ -317,6 +327,11 @@
     function getColumnFilters()
     {
       return _self.columnFilters;
+    }
+
+    function getColumnFilterPluginName()
+    {
+      return _self.columnFilterPluginName;
     }
 
     function clearColumnFilters()
@@ -429,7 +444,7 @@
       if (getRowManager().isRowDisabled)
       {
         dataRow[cadc.vot.ROW_SELECT_DISABLED_KEY] =
-                              getRowManager().isRowDisabled(row);
+        getRowManager().isRowDisabled(row);
       }
 
       if (rowIndex)
@@ -494,12 +509,12 @@
 
     function getGridHeaderHeight()
     {
-      return ($(".grid-header").height()+
-        $(".slick-header").height()+
-        $(".slick-headerrow").height());
+      return ($(".grid-header").height() +
+              $(".slick-header").height() +
+              $(".slick-headerrow").height());
     }
 
-    /** 
+    /**
      * Call if supporting a variable viewport height, and there's a static header
      * that not part of the grid container.
      */
@@ -652,6 +667,10 @@
     }
 
     /**
+     * TODO - There are a lot of return points in this method.  Let's try to
+     * TODO - reduce them.
+     * TODO - jenkinsd 2014.12.04
+     *
      * @param filter             The filter value as entered by the user.
      * @param value              The value to be filtered or not
      * @returns {Boolean} true if value is filtered-out by filter.
@@ -722,7 +741,7 @@
           if (areNumbers(value, left, right))
           {
             return ((parseFloat(value) < parseFloat(left))
-                || (parseFloat(value) > parseFloat(right)));
+                    || (parseFloat(value) > parseFloat(right)));
           }
           else
           {
@@ -809,33 +828,12 @@
       }
       else
       {
-        // equals operator
-        if (filter.indexOf('*') > -1)
-        {
-          // wildcard match (Replace all instances of '*' with '.*')
-          filter = filter.replace(/\*/g, ".*");
+        filter = $.ui.autocomplete.escapeRegex(filter);
 
-          var regex = new RegExp("^" + filter + "$", "gi");
-          var result = value.match(regex);
+        var regex = new RegExp(filter, "gi");
+        var result = value.match(regex);
 
-          return (!result || result.length == 0);
-        }
-        else
-        {
-          // plain equals match
-          if (areNumbers(value, filter))
-          {
-            return (parseFloat(value) != parseFloat(filter));
-          }
-          else if (areStrings(value, filter))
-          {
-            return (value.toUpperCase() !== filter.toUpperCase());
-          }
-          else
-          {
-            return (value !== filter);
-          }
-        }
+        return (!result || result.length == 0);
       }
     }
 
@@ -997,18 +995,95 @@
     }
 
     /**
+     * Perform the filter of data.  This is typically called from the input
+     * field, but is useful as a test function here.
+     *
+     * @param _value      The input value.
+     * @param _columnID   The Column ID to tie to.
+     */
+    function doFilter(_value, _columnID)
+    {
+      if (_columnID)
+      {
+        getColumnFilters()[_columnID] = $.trim(_value);
+        getDataView().refresh();
+      }
+    }
+
+    function setupHeader(checkboxSelector, args)
+    {
+      $(args.node).empty();
+
+      // Display the label for the checkbox column filter row.
+      if (checkboxSelector
+          && (args.column.id == checkboxSelector.getColumnDefinition().id))
+      {
+        $("<div class='filter-boxes-label' "
+          + "title='Enter values into the boxes to further filter results.'>Filter:</div>").
+            appendTo(args.node);
+      }
+
+      // Do not display for the checkbox column.
+      else if (args.column.filterable === true)
+      {
+        var datatype = args.column.datatype;
+        var tooltipTitle;
+
+        if (datatype.isNumeric())
+        {
+          tooltipTitle = "Number: 10 or >=10 or 10..20 for a range , ! to negate";
+        }
+        else
+        {
+          tooltipTitle = "String: abc (exact match) or *ab*c* , ! to negate";
+        }
+
+        var $filterInput =
+            $("<input type='text'>")
+                .data("columnId", args.column.id)
+                .val(getColumnFilters()[args.column.id])
+                .attr("title", tooltipTitle)
+                .attr("id", args.column.id + "_filter")
+                .addClass("cadcvotv-filter-input")
+                .appendTo(args.node);
+
+        // Story 1647
+        //
+        // Having a big if/else is really a bad idea, but I don't know how to
+        // dynamically specify a plugin name.
+        //
+        // jenkinsd 2014.12.03
+        //
+        if (getColumnFilterPluginName() === "suggest")
+        {
+          $filterInput.cadcVOTV_filter_suggest(_self);
+        }
+        else
+        {
+          $filterInput.cadcVOTV_filter_default(_self);
+        }
+      }
+      else
+      {
+        // Allow for overrides per column.
+        $("<span class=\"empty\"></span>").appendTo(args.node);
+        $(args.node).css("height", "100%");
+      }
+    }
+
+    /**
      * Initialize this VOViewer.
      */
     function init()
     {
       var dataView = getDataView();
       var forceFitMax = (getColumnManager().forceFitColumns
-                             && getColumnManager().forceFitColumnMode
-          && (getColumnManager().forceFitColumnMode
-          == "max"));
+                         && getColumnManager().forceFitColumnMode
+                         && (getColumnManager().forceFitColumnMode
+                             == "max"));
       var checkboxSelector;
       var enableSelection = !getOptions().enableSelection
-          || getOptions().enableSelection == true;
+                            || getOptions().enableSelection == true;
 
       if ((typeof CADC !== 'undefined')
           && (typeof CADC.CheckboxSelectColumn !== 'undefined'))
@@ -1032,7 +1107,7 @@
         checkboxSelector = null;
       }
 
-      if (checkboxSelector && enableSelection) 
+      if (checkboxSelector && enableSelection)
       {
         var checkboxColumn = checkboxSelector.getColumnDefinition();
         var colsToCheck = (getDisplayColumns().length == 0)
@@ -1076,12 +1151,11 @@
         }
 
         return "<span class='cellValue " + columnDef.id
-                   + "' title='" + returnValue + "'>" + returnValue + "</span>";
+               + "' title='" + returnValue + "'>" + returnValue + "</span>";
       };
 
-      var grid = new Slick.Grid(getTargetNodeSelector(),
-                                dataView, getDisplayColumns(),
-                                getOptions());
+      var grid = new Slick.Grid(getTargetNodeSelector(), dataView,
+                                getDisplayColumns(), getOptions());
       var rowSelectionModel;
 
       if (checkboxSelector)
@@ -1090,17 +1164,17 @@
             && (typeof CADC.RowSelectionModel !== 'undefined'))
         {
           rowSelectionModel =
-            new CADC.RowSelectionModel({
-                                         selectActiveRow: getOptions().selectActiveRow,
-                                         selectClickedRow: getOptions().selectClickedRow
-                                       });
+          new CADC.RowSelectionModel({
+                                       selectActiveRow: getOptions().selectActiveRow,
+                                       selectClickedRow: getOptions().selectClickedRow
+                                     });
         }
         else if (Slick.RowSelectionModel)
         {
           rowSelectionModel =
-            new Slick.RowSelectionModel({
-                                          selectActiveRow: getOptions().selectActiveRow
-                                        });
+          new Slick.RowSelectionModel({
+                                        selectActiveRow: getOptions().selectActiveRow
+                                      });
         }
         else
         {
@@ -1135,8 +1209,8 @@
                                                    var rowCount =
                                                        getGridData().length;
                                                    $gridHeaderLabel.text("Showing " + pagingInfo.totalRows
-                                                                            + " rows (" + rowCount
-                                                                            + " before filtering).");
+                                                                         + " rows (" + rowCount
+                                                                         + " before filtering).");
                                                  });
         }
       }
@@ -1173,7 +1247,7 @@
             columnPicker.onSortAlphabetically.subscribe(resetColumnWidths);
           }
 
-          columnPicker.onColumnAddOrRemove.subscribe(function(e, args)
+          columnPicker.onColumnAddOrRemove.subscribe(function (e, args)
                                                      {
                                                        if (rowSelectionModel)
                                                        {
@@ -1190,7 +1264,7 @@
 
       if (columnPicker)
       {
-        columnPicker.onResetColumnOrder.subscribe(function()
+        columnPicker.onResetColumnOrder.subscribe(function ()
                                                   {
                                                     // Clear the hash.
                                                     parent.location.hash = '';
@@ -1251,7 +1325,7 @@
       /**
        * Tell the dataview to do the comparison.
        */
-      var doGridSort = function()
+      var doGridSort = function ()
       {
         if (_self.sortcol)
         {
@@ -1280,7 +1354,7 @@
        *
        * WebRT 53730
        */
-      subscribe(cadc.vot.events.onSort, function(eventData, args)
+      subscribe(cadc.vot.events.onSort, function (eventData, args)
       {
         _self.sortAsc = args.sortAsc;
         _self.sortcol = args.sortCol;
@@ -1307,10 +1381,10 @@
 
       if (getRowManager().onRowRendered)
       {
-        grid.onRowsRendered.subscribe(function(e, args)
+        grid.onRowsRendered.subscribe(function (e, args)
                                       {
                                         $.each(args.renderedRowIndexes,
-                                               function(rowIndexIndex, rowIndex)
+                                               function (rowIndexIndex, rowIndex)
                                                {
                                                  var $rowItem =
                                                      dataView.getItem(rowIndex);
@@ -1324,6 +1398,9 @@
                                        {
                                          grid.invalidateRows(args.rows);
                                          grid.render();
+
+                                         trigger(cadc.vot.events.onRowsChanged,
+                                                 args);
                                        });
 
       dataView.onPagingInfoChanged.subscribe(function (e, pagingInfo)
@@ -1363,68 +1440,10 @@
                                   grid.setSelectedRows(rows);
                                 });
 
-
-      var columnFilters = getColumnFilters();
-
-      $(grid.getHeaderRow()).delegate(":input", "change keyup",
-                                      function (e)
-                                      {
-                                        var $thisInput = $(this);
-                                        var columnId =
-                                            $thisInput.data("columnId");
-                                        if (columnId)
-                                        {
-                                          columnFilters[columnId] =
-                                          $.trim($thisInput.val());
-                                          dataView.refresh();
-                                        }
-                                      });
-
-      grid.onHeaderRowCellRendered.subscribe(function (e, args)
+      grid.onHeaderRowCellRendered.subscribe(function(e, args)
                                              {
-                                               $(args.node).empty();
-
-                                               // Display the label for the checkbox column filter row.
-                                               if (checkboxSelector
-                                                   && (args.column.id == checkboxSelector.getColumnDefinition().id))
-                                               {
-                                                 $("<div class='filter-boxes-label' "
-                                                       + "title='Enter values into the boxes to further filter results.'>Filter:</div>").
-                                                     appendTo(args.node);
-                                               }
-
-                                               // Do not display for the checkbox column.
-                                               else if (args.column.filterable === true)
-                                               {
-                                                 var datatype =
-                                                     args.column.datatype;
-                                                 var tooltipTitle;
-
-                                                 if (datatype.isNumeric())
-                                                 {
-                                                   tooltipTitle = "Number: 10 or >=10 or 10..20 for a range , ! to negate";
-                                                 }
-                                                 else
-                                                 {
-                                                   tooltipTitle = "String: abc (exact match) or *ab*c* , ! to negate";
-                                                 }
-
-                                                 $("<input type='text'>")
-                                                     .data("columnId", args.column.id)
-                                                     .val(columnFilters[args.column.id])
-                                                     .prop("title", tooltipTitle)
-                                                     .prop("id", args.column.utype + "_filter")
-                                                     .appendTo(args.node);
-                                               }
-                                               else
-                                               {
-                                                 // Allow for overrides per column.
-                                                 $("<span class=\"empty\"></span>").
-                                                     appendTo(args.node);
-
-                                                 $(args.node).css("height",
-                                                                  "100%");
-                                               }
+                                               setupHeader(checkboxSelector,
+                                                           args);
                                              });
 
       if (Slick.Plugins && Slick.Plugins.UnitSelection)
@@ -1451,17 +1470,20 @@
 
         grid.registerPlugin(unitSelectionPlugin);
       }
-      
+
       // Track the width of resized columns.
-      grid.onColumnsResized.subscribe(function(e, args) {
-        var columns = args.grid.getColumns();
-        $.each(columns, function(index, column) {
-            if (column.width !== column.previousWidth) {
-                getResizedColumns[column.id] = column.width;
-                return false;
-            }
-        });
-      });
+      grid.onColumnsResized.subscribe(function (e, args)
+                                      {
+                                        var columns = args.grid.getColumns();
+                                        $.each(columns, function (index, column)
+                                        {
+                                          if (column.width !== column.previousWidth)
+                                          {
+                                            getResizedColumns[column.id] = column.width;
+                                            return false;
+                                          }
+                                        });
+                                      });
 
       setDataView(dataView);
       setGrid(grid);
@@ -1509,34 +1531,6 @@
       {
         refreshData(table);
       }
-    }
-
-    /**
-     * Update the columns in the grid with the cached ones.  This method exists
-     * to make use of the fitMax option.
-     */
-    function refreshGridColumns()
-    {
-      var allCols = getGrid().getColumns();
-      var visibleColumns = getGrid().getColumns();
-      var dupColumns = visibleColumns.slice(0);
-
-      for (var i = 0; i < allCols.length; i++)
-      {
-        var nextCol = allCols[i];
-        var nextVisibleColumn = visibleColumns[i];
-
-        if (nextCol)
-        {
-          if (getOptionsForColumn(nextCol.id).fitMax)
-          {
-            nextCol.width = calculateColumnWidth(nextCol);
-            dupColumns[i].width = nextCol.width;
-          }
-        }
-      }
-
-      getGrid().setColumns(dupColumns);
     }
 
     /**
@@ -1595,8 +1589,8 @@
 
         // Default is to be sortable.
         columnObject.sortable =
-          ((colOpts.sortable != null) && (colOpts.sortable != undefined))
-              ? colOpts.sortable : true;
+        ((colOpts.sortable != null) && (colOpts.sortable != undefined))
+            ? colOpts.sortable : true;
 
         if (datatype)
         {
@@ -1760,6 +1754,7 @@
                "build": build,
                "render": render,
                "load": load,
+               "doFilter": doFilter,
                "areNumbers": areNumbers,
                "areStrings": areStrings,
                "getOptions": getOptions,
@@ -1786,6 +1781,9 @@
                "getUpdatedColumnSelects": getUpdatedColumnSelects,
                "setViewportHeight": setViewportHeight,
                "setViewportOffset": setViewportOffset,
+
+               // Used for testing
+               "setupHeader": setupHeader,
 
                // Event subscription
                "subscribe": subscribe

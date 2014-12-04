@@ -80,10 +80,10 @@ server, you can set the PROXY_URL filter token value to "".
       <param name="js-test-name" value="cadc.votable.js" />
     </antcall>
 
-    <echo message="CADC VOTV Search Filter tests"/>
+    <echo message="CADC VOTV Plugin default filter tests"/>
     <antcall target="js-test">
-      <param name="js-test-dir" value="test/src/search_filter" />
-      <param name="js-test-name" value="cadc.votv.search-filter.js" />
+      <param name="js-test-dir" value="test/src/plugin_filter_default" />
+      <param name="js-test-name" value="cadc.votv.plugin_filter_default.js" />
     </antcall>
 
     <echo message="CADC VOTV Value Filter tests"/>
