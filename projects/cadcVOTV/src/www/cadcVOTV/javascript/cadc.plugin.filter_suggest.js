@@ -16,10 +16,12 @@
   /**
    * Make use of autocomplete suggestions on filtering.
    *
-   * @param _viewer     The VOTable viewer object.
+   * @param _viewer           The VOTable viewer object.
+   * @param _columnFormatter  The formatter object.  Should have a
+   *                          format(_columnObj, _value) method.
    * @constructor
    */
-  function cadcVOTV_filter_suggest(_viewer)
+  function cadcVOTV_filter_suggest(_viewer, _columnFormatter)
   {
     var $inputField = $(this);
     var suggestionKeys = [];
@@ -38,14 +40,20 @@
       return self.indexOf(value) === index;
     }
 
+    // Conditional logic to not use autocomplete, such as range searches.
     $inputField.on("change keyup", function(e)
     {
       var inputVal = $inputField.val();
       var trimmedVal = $.trim(inputVal);
       var space = " ";
+      var numericRangeSearchRegex = /^(>|<|=)/i;
+      var rangeSearchString = "..";
+      var endsWithSpace =
+          (inputVal.indexOf(space, (inputVal.length - space.length)) !== -1);
 
       // Ends with space, so exact match.
-      if (inputVal.indexOf(space, (inputVal.length - space.length)) !== -1)
+      if (endsWithSpace || trimmedVal.match(numericRangeSearchRegex)
+          || (trimmedVal.indexOf(rangeSearchString) !== -1))
       {
         $inputField.autocomplete("close");
         _viewer.doFilter(trimmedVal, columnID);
@@ -57,6 +65,7 @@
       }
     });
 
+    // Autocomplete the items from the Grid's data.
     $inputField.autocomplete({
                                // Define the minimum search string length
                                // before the suggested values are shown.
@@ -81,8 +90,18 @@
 
                                           if (nextVal)
                                           {
-                                            var nextStringVal =
-                                                nextVal.toString();
+                                            var nextStringVal;
+
+                                            if (_columnFormatter
+                                                && _columnFormatter.format)
+                                            {
+                                              nextStringVal =
+                                                _columnFormatter.format(column, nextVal);
+                                            }
+                                            else
+                                            {
+                                              nextStringVal = nextVal.toString();
+                                            }
 
                                             if (nextStringVal.match(regex))
                                             {
