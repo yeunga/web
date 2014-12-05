@@ -85,3 +85,13 @@ test("Handle multiple values for single key.", 1, function()
   deepEqual(testSubject.getQueryValues("A"), ["Eh", "S"],
             "Query values for 'A' should have two items ['Eh', 'S'].");
 });
+
+test("Encoded relative URI.", 1, function()
+{
+  var testSubject =
+      new cadc.web.util.URI("http://www.mysite.com/path/item.txt?A=Eh&A=S#/go/here");
+
+  equal(testSubject.encodeRelativeURI(),
+        "/path/item.txt?A=Eh&A=S%23%2Fgo%2Fhere",
+        "Encoded relative URI is wrong.");
+});

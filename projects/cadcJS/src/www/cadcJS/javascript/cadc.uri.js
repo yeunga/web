@@ -67,6 +67,38 @@
       return relativeURI;
     }
 
+    /**
+     * Encode the relative URI.  This is useful when this URI will be passed
+     * as a parameter.
+     *
+     * Also, since the hash needs to be encoded separately, the logic is well
+     * re-used here.
+     *
+     * @return  {string} Encoded Relative URI.
+     */
+    function encodeRelativeURI()
+    {
+      var encodedRelativeURI;
+      var relativeURI = getPath();
+      var queryString = getQueryString();
+      var hashString = getHash();
+
+      if (queryString)
+      {
+        relativeURI += "?" + queryString;
+      }
+
+      encodedRelativeURI = encodeURI(relativeURI);
+
+      // Treat the has separately.
+      if (hashString)
+      {
+        encodedRelativeURI += encodeURIComponent("#" + hashString);
+      }
+
+      return encodedRelativeURI;
+    }
+
     function getURIComponents()
     {
       return _self.uriComponents;
@@ -236,6 +268,7 @@
                "getFile": getFile,
                "getURI": getURI,
                "getRelativeURI": getRelativeURI,
+               "encodeRelativeURI": encodeRelativeURI,
                "getHash": getHash,
                "getScheme": getScheme
              });
