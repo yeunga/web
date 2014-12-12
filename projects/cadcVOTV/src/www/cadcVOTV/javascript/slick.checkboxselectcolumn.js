@@ -59,12 +59,13 @@
       if (selectedRows.length && selectedRows.length == _grid.getDataLength())
       {
         _grid.updateColumnHeader(_options.columnId,
-                                 "<input type='checkbox' class='slick-header-column-checkboxsel' checked='checked'>",
+                                 "Mark<input type='checkbox' class='slick-header-column-checkboxsel' checked='checked'>",
                                  _options.toolTip);
       }
       else
       {
-        _grid.updateColumnHeader(_options.columnId, "<input class='slick-header-column-checkboxsel' type='checkbox'>",
+        _grid.updateColumnHeader(_options.columnId,
+                                 "Mark<input class='slick-header-column-checkboxsel' type='checkbox'>",
                                  _options.toolTip);
       }
     }
@@ -138,7 +139,7 @@
     function getColumnDefinition() {
       return {
         id: _options.columnId,
-        name: "<input type='checkbox'>",
+        name: "Mark<input type='checkbox'>",
         toolTip: _options.toolTip,
         field: "sel",
         width: _options.width,

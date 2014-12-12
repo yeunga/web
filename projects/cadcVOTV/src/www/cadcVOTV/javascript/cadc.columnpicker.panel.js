@@ -16,7 +16,7 @@
     // Cached value to reset to.
     var originalColumns;
 
-    var $link;
+    var $changeColumns;
     var $menu;
     var thresholdListItemSelector =
         "li.slick-column-picker-tooltip-threshold";
@@ -64,33 +64,61 @@
         originalColumns.push(gridColumn);
       });
 
-      // Clean up first.
-      panel.find("a.slick-columnpicker-panel-link-label").remove();
-
-      var $linkHolder = $("<span class='slick-columnpicker-panel-link-holder'></span>").appendTo(panel);
-
-      $link = $("<a name='slick-columnpicker-panel-link' class='slick-columnpicker-panel-link-label'></a>").appendTo($linkHolder);
-      $link.text(options.linkText);
-      $link.mouseover(function (e)
-                      {
-                        buildTooltipPicker(e);
-                      });
+      if (options.buttonText)
+      {
+        // Clean up first.
+        panel.find("button.slick-columnpicker-panel-change-column-label").remove();
+        var $changeColumnHolder = $("<span class='slick-columnpicker-panel-change-column-holder'></span>").appendTo(panel.children());
+        $changeColumns = $("<button type='button' name='slick-columnpicker-panel-change-column' class='slick-columnpicker-panel-change-column-label button'></button>").appendTo($changeColumnHolder);
+        $changeColumns.text(options.buttonText);
+        $changeColumns.click(function (e)
+        {
+          buildTooltipPicker(e);
+          var tip = $(this).data("tooltip");
+          if (tip.isShown(true))
+          {
+            tip.hide();
+            $(this).removeClass("button-disabled");
+          }
+          else
+          {
+            tip.show();
+            $(this).addClass("button-disabled");
+          }
+          e.stopImmediatePropagation();
+          return false;
+        }).on("mouseleave", function(e) {
+          return e.stopImmediatePropagation();
+        });
+      }
+      else
+      {
+        // Clean up first.
+        panel.find("a.slick-columnpicker-panel-change-column-label").remove();
+        var $changeColumnHolder = $("<span class='slick-columnpicker-panel-change-column-holder'></span>").appendTo(panel.children());
+        $changeColumns = $("<a name='slick-columnpicker-panel-change-column' class='slick-columnpicker-panel-change-column-label'></a>").appendTo($changeColumnHolder);
+        $changeColumns.text(options.linkText);
+        $changeColumns.mouseover(function (e)
+        {
+          buildTooltipPicker(e);
+        });
+      }
 
       // Used to support the outdated jQuery.tools tooltip.
       if (tooltipOptions.appendTooltipContent)
       {
         $(tooltipOptions.tooltipContent).remove();
-        $link.after(tooltipOptions.tooltipContent);
+        $changeColumns.after(tooltipOptions.tooltipContent);
       }
 
       // Assume default tooltip attachment.
       if (!tooltipOptions.tooltipInit)
       {
-        $link.tooltip(tooltipOptions);
+        $changeColumns.tooltip(tooltipOptions);
       }
       else
       {
-        tooltipOptions.tooltipInit($link, tooltipOptions);
+        tooltipOptions.tooltipInit($changeColumns, tooltipOptions);
       }
 
       // Clean up existing button holder.
