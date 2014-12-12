@@ -44,6 +44,17 @@
       _viewer.doFilter(val, columnID);
     }
 
+    $inputField.on("change keyup", function(event)
+    {
+      var trimmedVal = $.trim($inputField.val());
+
+      // Clear it if the input is cleared.
+      if (!trimmedVal || (trimmedVal === ''))
+      {
+        filter("");
+      }
+    });
+
     // Autocomplete the items from the Grid's data.
     $inputField.autocomplete({
                                // Define the minimum search string length
