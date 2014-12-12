@@ -17,11 +17,9 @@
    * Make use of autocomplete suggestions on filtering.
    *
    * @param _viewer           The VOTable viewer object.
-   * @param _columnFormatter  The formatter object.  Should have a
-   *                          format(_columnObj, _value) method.
    * @constructor
    */
-  function cadcVOTV_filter_suggest(_viewer, _columnFormatter)
+  function cadcVOTV_filter_suggest(_viewer)
   {
     var $inputField = $(this);
     var suggestionKeys = [];
@@ -40,30 +38,11 @@
       return self.indexOf(value) === index;
     }
 
-    // Conditional logic to not use autocomplete, such as range searches.
-    $inputField.on("change keyup", function(e)
+    function filter(val)
     {
-      var inputVal = $inputField.val();
-      var trimmedVal = $.trim(inputVal);
-      var space = " ";
-      var numericRangeSearchRegex = /^(>|<|=)/i;
-      var rangeSearchString = "..";
-      var endsWithSpace =
-          (inputVal.indexOf(space, (inputVal.length - space.length)) !== -1);
-
-      // Ends with space, so exact match.
-      if (endsWithSpace || trimmedVal.match(numericRangeSearchRegex)
-          || (trimmedVal.indexOf(rangeSearchString) !== -1))
-      {
-        $inputField.autocomplete("close");
-        _viewer.doFilter(trimmedVal, columnID);
-      }
-      // Clear it if the input is cleared.
-      else if (!trimmedVal || (trimmedVal === ''))
-      {
-        _viewer.doFilter("", columnID);
-      }
-    });
+      $inputField.autocomplete("close");
+      _viewer.doFilter(val, columnID);
+    }
 
     // Autocomplete the items from the Grid's data.
     $inputField.autocomplete({
@@ -76,47 +55,59 @@
                                {
                                  var column = _viewer.getColumn(columnID);
                                  var enteredValue = req.term;
-                                 var regex =
-                                     new RegExp($.ui.autocomplete.escapeRegex(enteredValue),
-                                                "gi");
 
                                  // Reset each time as they type.
                                  suggestionKeys = [];
 
-                                 $.each(_viewer.getDataView().getItems(),
-                                        function(idx, item)
-                                        {
-                                          var nextVal = item[column.id];
+                                 // Conditional logic to not use autocomplete, such as range searches.
+                                 var trimmedVal = $.trim(enteredValue);
+                                 var space = " ";
+                                 var numericRangeSearchRegex = /^(>|<|=)/i;
+                                 var rangeSearchString = "..";
+                                 var endsWithSpace =
+                                     (enteredValue.indexOf(space,
+                                                           (enteredValue.length - space.length)) !== -1);
 
-                                          if (nextVal)
+                                 // Ends with space, so exact match.
+                                 if (endsWithSpace
+                                     || trimmedVal.match(numericRangeSearchRegex)
+                                     || (trimmedVal.indexOf(rangeSearchString) !== -1))
+                                 {
+                                   filter(trimmedVal);
+                                 }
+                                 // Clear it if the input is cleared.
+                                 else if (!trimmedVal || (trimmedVal === ''))
+                                 {
+                                   filter("");
+                                 }
+                                 else
+                                 {
+                                   $.each(_viewer.getDataView().getItems(),
+                                          function (idx, item)
                                           {
-                                            var nextStringVal;
+                                            var columnFilterObject = {};
+                                            columnFilterObject[columnID] =
+                                            enteredValue;
 
-                                            if (_columnFormatter
-                                                && _columnFormatter.format)
-                                            {
-                                              nextStringVal =
-                                                _columnFormatter.format(column, nextVal);
-                                            }
-                                            else
-                                            {
-                                              nextStringVal = nextVal.toString();
-                                            }
-
-                                            if (nextStringVal.match(regex))
+                                            if (_viewer.searchFilter(
+                                                    item,
+                                                    {
+                                                      columnFilters: columnFilterObject,
+                                                      grid: _viewer.getGrid(),
+                                                      doFilter: _viewer.valueFilters
+                                                    }))
                                             {
                                               suggestionKeys.push(
-                                                  nextStringVal);
+                                                  $.trim(item[column.id].toString()));
                                             }
-                                          }
-                                        });
+                                          });
+                                 }
 
                                  callback(suggestionKeys.filter(onlyUnique));
                                },
                                select: function (event, ui)
                                {
-                                 var trimmedVal = $.trim(ui.item.value);
-                                 _viewer.doFilter((trimmedVal || ""), columnID);
+                                 filter($.trim(ui.item.value) || "");
                                }
                              });
 

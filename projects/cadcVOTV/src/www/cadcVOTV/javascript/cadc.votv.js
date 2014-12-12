@@ -1035,7 +1035,7 @@
         }
         else
         {
-          tooltipTitle = "String: abc (exact match) or *ab*c* , ! to negate";
+          tooltipTitle = "String: Substring match , ! to negate matches";
         }
 
         var $filterInput =
@@ -1056,8 +1056,7 @@
         //
         if (getColumnFilterPluginName() === "suggest")
         {
-          $filterInput.cadcVOTV_filter_suggest(_self,
-                                               getColumnManager().formatter);
+          $filterInput.cadcVOTV_filter_suggest(_self);
         }
         else
         {
@@ -1661,6 +1660,7 @@
             filterValue = filterValue.substring(1);
           }
 
+          // The args.doFilter method is in the Grid's DataView object.
           var filterOut = args.doFilter(filterValue, cellValue);
 
           if ((!negate && filterOut) || (!filterOut && negate))

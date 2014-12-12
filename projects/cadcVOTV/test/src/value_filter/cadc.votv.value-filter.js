@@ -63,11 +63,11 @@ test("String exact match filter.", 7, function ()
   var viewer = new cadc.vot.Viewer("#myGrid", options);
 
   var testVal = "pull";
-  equal(viewer.valueFilters(testVal, "null"), true, "Should not filter");
-  equal(viewer.valueFilters(testVal, "Neverland"), true, "Should not filter");
-  equal(viewer.valueFilters(testVal, "pull"), false, "Should filter");
+  equal(viewer.valueFilters(testVal, "null"), true, "Should filter");
+  equal(viewer.valueFilters(testVal, "Neverland"), true, "Should filter");
+  equal(viewer.valueFilters(testVal, "pull"), false, "Should not filter");
   equal(viewer.valueFilters(testVal, -45), true, "Should filter");
   equal(viewer.valueFilters(testVal, 9), true, "Should filter");
-  equal(viewer.valueFilters(testVal, "Pension"), true, "Should not filter");
-  equal(viewer.valueFilters(testVal, "abseNce"), true, "Should not filter");
+  equal(viewer.valueFilters(testVal, "Pension"), true, "Should filter");
+  equal(viewer.valueFilters(testVal, "abseNce"), true, "Should filter");
 });

@@ -880,10 +880,12 @@
         var contentType = req.getResponseHeader("Content-Type");
 
         // Only CSV supports streaming!
-        if (contentType && (contentType.indexOf("csv") >= 0))
+        if (contentType && ((contentType.indexOf("csv") >= 0)
+                            || (contentType.indexOf("text/plain") >= 0)))
         {
           __MAIN_BUILDER.setInternalBuilder(
-                new cadc.vot.CSVBuilder(maxRowLimit, input, __MAIN_BUILDER.buildRowData));
+                new cadc.vot.CSVBuilder(maxRowLimit, input,
+                                        __MAIN_BUILDER.buildRowData));
 
           if (readyCallback)
           {
