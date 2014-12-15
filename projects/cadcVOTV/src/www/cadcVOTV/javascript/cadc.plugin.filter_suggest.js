@@ -118,7 +118,7 @@
                                      || (trimmedVal.indexOf(rangeSearchString) !== -1))
                                  {
                                    // Exact match on space at end.
-                                   filter(("=" + trimmedVal), true);
+                                   filter(trimmedVal, true);
                                  }
                                  // Clear it if the input is cleared.
                                  else if (!trimmedVal || (trimmedVal === ''))
@@ -189,7 +189,7 @@
                                            if (enteredValue)
                                            {
                                              // Exact match on blur.
-                                             filter(("=" + enteredValue), true);
+                                             filter(enteredValue, true);
                                            }
                                            else
                                            {
