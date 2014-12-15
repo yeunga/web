@@ -17,6 +17,7 @@
    * Make use of autocomplete suggestions on filtering.
    *
    * @param _viewer           The VOTable viewer object.
+   * @param _returnCount      The optional maximum number of items to return.
    * @constructor
    */
   function cadcVOTV_filter_suggest(_viewer, _returnCount)
@@ -25,18 +26,6 @@
     var suggestionKeys = [];
     var columnID = $inputField.data("columnId");
 
-    /**
-     * Ensure unique values in an array.
-     *
-     * @param value       A value to check.
-     * @param index       The index of the current value.
-     * @param self        This array.
-     * @returns {boolean} If it needs to be omitted.
-     */
-    function onlyUnique(value, index, self)
-    {
-      return self.indexOf(value) === index;
-    }
 
     function filter(val, closeAutocompleteFlag)
     {
