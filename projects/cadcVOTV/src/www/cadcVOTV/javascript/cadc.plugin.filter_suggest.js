@@ -12,7 +12,6 @@
   $.extend(true, $.fn, {
     "cadcVOTV_filter_suggest": cadcVOTV_filter_suggest
   });
-B
 
   /**
    * Make use of autocomplete suggestions on filtering.
@@ -20,7 +19,7 @@ B
    * @param _viewer           The VOTable viewer object.
    * @constructor
    */
-  function cadcVOTV_filter_suggest(_viewer)
+  function cadcVOTV_filter_suggest(_viewer, _returnCount)
   {
     var $inputField = $(this);
     var suggestionKeys = [];
@@ -49,7 +48,7 @@ B
       _viewer.doFilter(val, columnID);
     }
 
-    $inputField.on("change keyup", function(event)
+    $inputField.on("change keyup", function (event)
     {
       var trimmedVal = $.trim($inputField.val());
 
@@ -69,7 +68,6 @@ B
                                // Define callback to format results
                                source: function (req, callback)
                                {
-                                 var column = _viewer.getColumn(columnID);
                                  var enteredValue = req.term;
 
                                  // Reset each time as they type.
@@ -100,36 +98,47 @@ B
                                  {
                                    var grid = _viewer.getGrid();
                                    var dataView = grid.getData();
+                                   var uniqueItems = [];
+                                   var l = dataView.getLength();
                                    var ii;
 
-                                   for (ii = 0; ii < dataView.getLength(); ii++)
+                                   for (ii = 0; ((ii < l)
+                                                 && (!_returnCount
+                                                     || (suggestionKeys.length <= _returnCount))); ii++)
                                    {
                                      var item = dataView.getItem(ii);
                                      var columnFilterObject = {};
+                                     var nextItem =
+                                         _viewer.formatCellValue(item, grid,
+                                                                 columnID);
+
                                      columnFilterObject[columnID] = enteredValue;
 
-                                     if (_viewer.searchFilter(
-                                               item,
-                                                    {
-                                                      columnFilters: columnFilterObject,
-                                                      grid: grid,
-                                                      doFilter: _viewer.valueFilters,
-                                                      formatCellValue: _viewer.formatCellValue
-                                                    }))
-                                            {
-                                              suggestionKeys.push(_viewer.formatCellValue(item, grid, columnID));
-                                            }
+                                     if (!uniqueItems[nextItem]
+                                         && _viewer.searchFilter(
+                                             item,
+                                             {
+                                               columnFilters: columnFilterObject,
+                                               grid: grid,
+                                               doFilter: _viewer.valueFilters,
+                                               formatCellValue: _viewer.formatCellValue
+                                             }))
+                                     {
+                                       uniqueItems[nextItem] = true;
+                                       suggestionKeys.push(nextItem);
+                                     }
                                    }
                                  }
 
-                                 var uniqueKeys = suggestionKeys.filter(onlyUnique);
+                                 //var uniqueKeys = suggestionKeys.filter(onlyUnique);
+
                                  // For a single available value, pre select it.
-                                 if (uniqueKeys.length == 1)
-                                 {  
-                                   filter(uniqueKeys[0], false);
+                                 if (suggestionKeys.length == 1)
+                                 {
+                                   filter(suggestionKeys[0], false);
                                  }
 
-                                 callback(uniqueKeys);
+                                 callback(suggestionKeys);
                                },
                                select: function (event, ui)
                                {

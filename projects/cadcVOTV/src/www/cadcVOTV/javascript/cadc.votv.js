@@ -1056,7 +1056,8 @@
         //
         if (getColumnFilterPluginName() === "suggest")
         {
-          $filterInput.cadcVOTV_filter_suggest(_self);
+          $filterInput.cadcVOTV_filter_suggest(_self,
+                                               getOptions().suggest_maxRowCount);
         }
         else
         {
