@@ -1612,6 +1612,34 @@
       });
     }
 
+    function formatCellValue(rowItem, grid, columnID)
+    {
+      var columnIndex = grid.getColumnIndex(columnID);
+      var column = grid.getColumns()[columnIndex];
+      var cellValue = rowItem[column.field];
+      var rowID = rowItem["id"];
+      var columnFormatter = column.formatter;
+      var formattedCellValue;
+
+      // Reformatting the cell value could potentially be quite expensive!
+      // This may require some re-thinking.
+      // jenkinsd 2013.04.30
+      if (columnFormatter)
+      {
+        var row = grid.getData().getIdxById(rowID);
+        var columnFormattedValue =
+                columnFormatter(row, columnIndex, cellValue, column, rowItem);
+        formattedCellValue = columnFormattedValue && $(columnFormattedValue).text
+                ? $(columnFormattedValue).text() : columnFormattedValue;
+      }
+      else
+      {
+        formattedCellValue = cellValue;
+      }
+
+      return formattedCellValue;
+    }
+
     /**
      * Function for the search filter to run.  This is meant to be in the
      * context of the dataView, so 'this' will refer to the current instance of
@@ -1633,24 +1661,7 @@
         var filterValue = filters[columnId];
         if ((columnId !== undefined) && (filterValue !== ""))
         {
-          var columnIndex = grid.getColumnIndex(columnId);
-          var column = grid.getColumns()[columnIndex];
-          var cellValue = item[column.field];
-          var rowID = item["id"];
-          var columnFormatter = column.formatter;
-
-          // Reformatting the cell value could potentially be quite expensive!
-          // This may require some re-thinking.
-          // jenkinsd 2013.04.30
-          if (columnFormatter)
-          {
-            var row = grid.getData().getIdxById(rowID);
-            var formattedCellValue =
-                columnFormatter(row, columnIndex, cellValue, column, item);
-
-            cellValue = formattedCellValue && $(formattedCellValue).text
-                ? $(formattedCellValue).text() : formattedCellValue;
-          }
+          var cellValue = args.formatCellValue(item, grid, columnId);
 
           filterValue = $.trim(filterValue);
           var negate = filterValue.indexOf("!") == 0;
@@ -1701,6 +1712,7 @@
       dataView.setFilterArgs({
                                columnFilters: getColumnFilters(),
                                grid: g,
+                               formatCellValue: formatCellValue,
                                doFilter: valueFilters
                              });
       dataView.setFilter(searchFilter);
@@ -1777,6 +1789,7 @@
                "getDisplayedColumns": getDisplayedColumns,
                "valueFilters": valueFilters,
                "searchFilter": searchFilter,
+               "formatCellValue": formatCellValue,
                "setSortColumn": setSortColumn,
                "getResizedColumns": getResizedColumns,
                "getUpdatedColumnSelects": getUpdatedColumnSelects,

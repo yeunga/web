@@ -12,6 +12,7 @@
   $.extend(true, $.fn, {
     "cadcVOTV_filter_suggest": cadcVOTV_filter_suggest
   });
+B
 
   /**
    * Make use of autocomplete suggestions on filtering.
@@ -38,9 +39,13 @@
       return self.indexOf(value) === index;
     }
 
-    function filter(val)
+    function filter(val, closeAutocompleteFlag)
     {
-      $inputField.autocomplete("close");
+      if (closeAutocompleteFlag)
+      {
+        $inputField.autocomplete("close");
+      }
+
       _viewer.doFilter(val, columnID);
     }
 
@@ -84,41 +89,51 @@
                                      || trimmedVal.match(numericRangeSearchRegex)
                                      || (trimmedVal.indexOf(rangeSearchString) !== -1))
                                  {
-                                   filter(trimmedVal);
+                                   filter(trimmedVal, true);
                                  }
                                  // Clear it if the input is cleared.
                                  else if (!trimmedVal || (trimmedVal === ''))
                                  {
-                                   filter("");
+                                   filter("", true);
                                  }
                                  else
                                  {
-                                   $.each(_viewer.getDataView().getItems(),
-                                          function (idx, item)
-                                          {
-                                            var columnFilterObject = {};
-                                            columnFilterObject[columnID] =
-                                            enteredValue;
+                                   var grid = _viewer.getGrid();
+                                   var dataView = grid.getData();
+                                   var ii;
 
-                                            if (_viewer.searchFilter(
-                                                    item,
+                                   for (ii = 0; ii < dataView.getLength(); ii++)
+                                   {
+                                     var item = dataView.getItem(ii);
+                                     var columnFilterObject = {};
+                                     columnFilterObject[columnID] = enteredValue;
+
+                                     if (_viewer.searchFilter(
+                                               item,
                                                     {
                                                       columnFilters: columnFilterObject,
-                                                      grid: _viewer.getGrid(),
-                                                      doFilter: _viewer.valueFilters
+                                                      grid: grid,
+                                                      doFilter: _viewer.valueFilters,
+                                                      formatCellValue: _viewer.formatCellValue
                                                     }))
                                             {
-                                              suggestionKeys.push(
-                                                  $.trim(item[column.id].toString()));
+                                              suggestionKeys.push(_viewer.formatCellValue(item, grid, columnID));
                                             }
-                                          });
+                                   }
                                  }
 
-                                 callback(suggestionKeys.filter(onlyUnique));
+                                 var uniqueKeys = suggestionKeys.filter(onlyUnique);
+                                 // For a single available value, pre select it.
+                                 if (uniqueKeys.length == 1)
+                                 {  
+                                   filter(uniqueKeys[0], false);
+                                 }
+
+                                 callback(uniqueKeys);
                                },
                                select: function (event, ui)
                                {
-                                 filter($.trim(ui.item.value) || "");
+                                 filter(($.trim(ui.item.value) || ""), true);
                                }
                              });
 
