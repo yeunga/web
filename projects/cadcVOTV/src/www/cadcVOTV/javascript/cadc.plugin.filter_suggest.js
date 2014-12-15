@@ -37,6 +37,46 @@
       _viewer.doFilter(val, columnID);
     }
 
+    /**
+     * Verify whether to match against all of the data, or only the current
+     * subset (already filtered by another column).
+     *
+     * The logic is to check the current column filters in the Viewer, and if
+     * there is just one (the driver filter), and it is this current column
+     * filter, then match against the entire data set.
+     *
+     * @returns {boolean|*}
+     */
+    function matchAgainstFullData()
+    {
+      // Existing column filters.  We need this to
+      // check if we should match against what is
+      // in the Grid only, or to go back and match
+      // against the full set of data.
+      //
+      // This is done by checking if there is a
+      // single column filter in play, and if it
+      // matches this one.
+      //
+      // jenkinsd 2014.12.15
+      var existingColumnFilters =
+          _viewer.getColumnFilters();
+
+      var keyCount = 0;
+
+      for (var k in existingColumnFilters)
+      {
+        if (existingColumnFilters.hasOwnProperty(k)
+            && existingColumnFilters[k])
+        {
+          keyCount++;
+        }
+      }
+
+      return ((keyCount === 0)
+              || ((keyCount === 1) && existingColumnFilters[columnID]));
+    }
+
     $inputField.on("change keyup", function (event)
     {
       var trimmedVal = $.trim($inputField.val());
@@ -44,7 +84,8 @@
       // Clear it if the input is cleared.
       if (!trimmedVal || (trimmedVal === ''))
       {
-        filter("");
+        _viewer.getColumnFilters()[columnID] = '';
+        filter("", true);
       }
     });
 
@@ -76,7 +117,8 @@
                                      || trimmedVal.match(numericRangeSearchRegex)
                                      || (trimmedVal.indexOf(rangeSearchString) !== -1))
                                  {
-                                   filter(trimmedVal, true);
+                                   // Exact match on space at end.
+                                   filter(("=" + trimmedVal), true);
                                  }
                                  // Clear it if the input is cleared.
                                  else if (!trimmedVal || (trimmedVal === ''))
@@ -88,20 +130,26 @@
                                    var grid = _viewer.getGrid();
                                    var dataView = grid.getData();
                                    var uniqueItems = [];
-                                   var l = dataView.getLength();
-                                   var ii;
+                                   var columnFilterObject = {};
+                                   var fullDataMatch =
+                                       matchAgainstFullData();
 
-                                   for (ii = 0; ((ii < l)
+                                   var l = fullDataMatch ?
+                                           dataView.getItems().length :
+                                           dataView.getLength();
+
+                                   columnFilterObject[columnID] = enteredValue;
+
+                                   for (var ii = 0; ((ii < l)
                                                  && (!_returnCount
                                                      || (suggestionKeys.length <= _returnCount))); ii++)
                                    {
-                                     var item = dataView.getItem(ii);
-                                     var columnFilterObject = {};
+                                     var item = fullDataMatch
+                                         ? dataView.getItemByIdx(ii)
+                                         : dataView.getItem(ii);
                                      var nextItem =
                                          _viewer.formatCellValue(item, grid,
                                                                  columnID);
-
-                                     columnFilterObject[columnID] = enteredValue;
 
                                      if (!uniqueItems[nextItem]
                                          && _viewer.searchFilter(
@@ -133,7 +181,21 @@
                                {
                                  filter(($.trim(ui.item.value) || ""), true);
                                }
-                             });
+                             }).blur(function(e)
+                                         {
+                                           var enteredValue =
+                                               $.trim($inputField.val());
+
+                                           if (enteredValue)
+                                           {
+                                             // Exact match on blur.
+                                             filter(("=" + enteredValue), true);
+                                           }
+                                           else
+                                           {
+                                             filter("", true);
+                                           }
+                                         });
 
     return this;
   }

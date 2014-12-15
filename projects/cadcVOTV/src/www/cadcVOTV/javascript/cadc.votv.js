@@ -678,15 +678,18 @@
     function valueFilters(filter, value)
     {
       var operator = '';
+      var exactMatch = false;
       filter = $.trim(filter);
 
       // determine the operator and filter value
       if (filter.indexOf('= ') == 0)
       {
+        exactMatch = true;
         filter = filter.substring(2);
       }
       else if (filter.indexOf('=') == 0)
       {
+        exactMatch = true;
         filter = filter.substring(1);
       }
       else if (filter.indexOf('>= ') == 0)
@@ -825,6 +828,11 @@
         {
           return value > filter;
         }
+      }
+      else if (exactMatch === true)
+      {
+        return (value.toString().toUpperCase()
+                !== filter.toString().toUpperCase());
       }
       else
       {
