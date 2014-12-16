@@ -19,7 +19,7 @@
    * A sample Model implementation.
    * Provides a filtered view of the underlying data.
    *
-   * Relies on the data item having an "id" property uniquely identifying it.
+   * Relies on the data item having an "id" property uniquely identifyinFg it.
    */
   function DataView(options)
   {
