@@ -70,8 +70,9 @@
 
 .slick-header-column.slick-header-column-checkboxsel span.slick-column-name input
 {
-  /*margin-left: 16px;*/
-  margin-left: 0.3em;
+  margin-left: 3px;
+  margin-bottom: 5px;
+  vertical-align: middle;
 }
 
 .slick-header-column.slick-header-column-checkboxsel

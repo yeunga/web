@@ -34,6 +34,10 @@
       _handler.unsubscribeAll();
     }
 
+    function getCheckboxLabel() {
+      return _options.checkboxLabel ? options.checkboxLabel : "";
+    }
+
     function handleSelectedRowsChanged(e, args)
     {
       var selectedRows = _grid.getSelectedRows();
@@ -59,13 +63,15 @@
       if (selectedRows.length && selectedRows.length == _grid.getDataLength())
       {
         _grid.updateColumnHeader(_options.columnId,
-                                 "Mark<input type='checkbox' class='slick-header-column-checkboxsel' checked='checked'>",
+                                 getCheckboxLabel() +
+                                 "<input type='checkbox' class='slick-header-column-checkboxsel' checked='checked'>",
                                  _options.toolTip);
       }
       else
       {
         _grid.updateColumnHeader(_options.columnId,
-                                 "Mark<input class='slick-header-column-checkboxsel' type='checkbox'>",
+                                 getCheckboxLabel() +
+                                 "<input class='slick-header-column-checkboxsel' type='checkbox'>",
                                  _options.toolTip);
       }
     }
@@ -139,7 +145,7 @@
     function getColumnDefinition() {
       return {
         id: _options.columnId,
-        name: "Mark<input type='checkbox'>",
+        name: getCheckboxLabel() + "<input type='checkbox'>",
         toolTip: _options.toolTip,
         field: "sel",
         width: _options.width,

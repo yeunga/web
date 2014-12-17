@@ -1121,7 +1121,8 @@
         checkboxSelector = new Slick.CheckboxSelectColumn({
                                                             cssClass: "slick-cell-checkboxsel",
                                                             width: 55,
-                                                            headerCssClass: "slick-header-column-checkboxsel"
+                                                            headerCssClass: "slick-header-column-checkboxsel",
+                                                            checkboxLabel: "Mark"
                                                           });
       }
       else
