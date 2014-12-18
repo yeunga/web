@@ -74,16 +74,15 @@
         $changeColumns.click(function (e)
         {
           buildTooltipPicker(e);
-          var tip = $(this).data("tooltip");
+          var $thisButton = $(this);
+          var tip = $thisButton.data("tooltip");
           if (tip.isShown(true))
           {
             tip.hide();
-            $(this).removeClass("button-disabled");
           }
           else
           {
             tip.show();
-            $(this).addClass("button-disabled");
           }
           e.stopImmediatePropagation();
           return false;
@@ -119,6 +118,15 @@
       else
       {
         tooltipOptions.tooltipInit($changeColumns, tooltipOptions);
+      }
+
+      if (tooltipOptions.tooltipContent)
+      {
+        $(tooltipOptions.tooltipContent).find(".tooltip-close").click(
+            function(e)
+            {
+              $changeColumns.data("tooltip").hide();
+            });
       }
 
       // Clean up existing button holder.
