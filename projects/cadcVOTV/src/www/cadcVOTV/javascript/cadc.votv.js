@@ -83,6 +83,8 @@
         : false;
     this.viewportOffset = 0;
 
+    this.rowCountMessage = options.rowCountMessage ? options.rowCountMessage : defaultRowCountMessage;
+
 
     /**
      * @param input  Object representing the input.
@@ -237,6 +239,17 @@
                            }, errorCallBack);
     }
 
+    function defaultRowCountMessage(totalRows, rowCount)
+    {
+      return "Showing " + totalRows + " rows (" + rowCount
+             + " before filtering).";
+    }
+
+    function getRowCountMessage(totalRows, rowCount)
+    {
+      return _self.rowCountMessage(totalRows, rowCount);
+    }
+
     function getTargetNodeSelector()
     {
       return _self.targetNodeSelector;
@@ -254,7 +267,7 @@
 
     function getHeader()
     {
-      return $(getTargetNodeSelector()).prev(getHeaderNodeSelector());
+      return $(getTargetNodeSelector()).prev();
     }
 
     function getHeaderLabel()
@@ -1108,7 +1121,8 @@
         checkboxSelector = new Slick.CheckboxSelectColumn({
                                                             cssClass: "slick-cell-checkboxsel",
                                                             width: 55,
-                                                            headerCssClass: "slick-header-column-checkboxsel"
+                                                            headerCssClass: "slick-header-column-checkboxsel",
+                                                            checkboxLabel: "Mark"
                                                           });
       }
       else
@@ -1215,11 +1229,10 @@
         {
           dataView.onPagingInfoChanged.subscribe(function (e, pagingInfo)
                                                  {
-                                                   var rowCount =
-                                                       getGridData().length;
-                                                   $gridHeaderLabel.text("Showing " + pagingInfo.totalRows
-                                                                         + " rows (" + rowCount
-                                                                         + " before filtering).");
+                                                   var rowCount = getGridData().length;
+                                                   $gridHeaderLabel.text(
+                                                     getRowCountMessage(pagingInfo.totalRows,
+                                                                        rowCount));
                                                  });
         }
       }

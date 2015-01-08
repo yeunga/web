@@ -63,9 +63,16 @@
   border-right: 0.1em solid silver;
 }
 
+.slick-header-column.slick-header-column-checkboxsel span
+{
+  font-size: 0.9em;
+}
+
 .slick-header-column.slick-header-column-checkboxsel span.slick-column-name input
 {
-  margin-left: 16px;
+  margin-left: 3px;
+  margin-bottom: 5px;
+  vertical-align: middle;
 }
 
 .slick-header-column.slick-header-column-checkboxsel
@@ -110,8 +117,8 @@
   border: 1px solid gray;
   background-color: #EEF3F5;
   color: black;
-  height: 24px;
-  line-height: 24px;
+  height: 34px;
+  line-height: 30px;
 }
 
 .grid-header label, .grid-header-label
@@ -119,7 +126,7 @@
   display: inline-block;
   font-family: Arial, serif;
   font-size: 8pt;
-  margin: auto auto auto 6px;
+  margin: auto 12px auto 6px;
 }
 
 /*.slick-columnpicker*/
@@ -142,13 +149,13 @@
     /*height: 1px;*/
 /*}*/
 
-/*.slick-headerrow-column*/
-/*{*/
-    /*background: #87ceeb;*/
+.slick-headerrow-column
+{
+    background: #f8f8ff !important;
     /*text-overflow: clip;*/
     /*-moz-box-sizing: border-box;*/
     /*box-sizing: border-box;*/
-/*}*/
+}
 
 .slick-headerrow-column input
 {
