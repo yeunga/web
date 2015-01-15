@@ -117,3 +117,21 @@ test("Set query parameters.", 2, function()
           "Wrong error message.");
   }
 });
+
+test("Remove query parameters.", 3, function()
+{
+  var testSubject =
+      new cadc.web.util.URI("http://www.mysite.com/path/item.txt?param1=val1&param2=val2&param2=val3&param3=val4");
+
+  testSubject.removeQueryValues("param1");
+
+  equal(testSubject.getQueryValue("param1"), null, "Still has param1.");
+
+  testSubject.removeQueryValues("param2");
+
+  equal(testSubject.getQueryValue("param2"), null, "Still has param2.");
+
+  // Should still have param3.
+  equal(testSubject.getQueryValue("param3"), "val4",
+        "Should still have param3.");
+});

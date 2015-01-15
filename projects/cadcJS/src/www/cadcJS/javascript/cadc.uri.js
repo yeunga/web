@@ -270,6 +270,15 @@
       return val;
     }
 
+    /**
+     * Remove ALL of the query parameters for the given key.
+     * @param _key    The query parameter name.
+     */
+    function removeQueryValues(_key)
+    {
+      getQuery()[_key] = null;
+    }
+
     $.extend(this,
              {
                "getQuery": getQuery,
@@ -278,6 +287,7 @@
                "getQueryValue": getQueryValue,
                "setQueryValue": setQueryValue,
                "getQueryValues": getQueryValues,
+               "removeQueryValues": removeQueryValues,
                "getPath": getPath,
                "getHost": getHost,
                "getPathItems": getPathItems,
