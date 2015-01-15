@@ -233,6 +233,21 @@
       return val;
     }
 
+    function setQueryValue(_key, _val)
+    {
+      var existingValues = getQueryValues(_key);
+
+      if (existingValues.length > 1)
+      {
+        throw new Error("There are multiple parameters with the name '" + _key
+                        + "'.");
+      }
+      else
+      {
+        getQuery()[_key] = [_val];
+      }
+    }
+
     /**
      * Return an array of values for the given key.
      *
@@ -261,6 +276,7 @@
                "getQueryString": getQueryString,
                "getQueryStringObject": getQueryStringObject,
                "getQueryValue": getQueryValue,
+               "setQueryValue": setQueryValue,
                "getQueryValues": getQueryValues,
                "getPath": getPath,
                "getHost": getHost,

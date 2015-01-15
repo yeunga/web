@@ -95,3 +95,25 @@ test("Encoded relative URI.", 1, function()
         "/path/item.txt?A=Eh&A=S%23%2Fgo%2Fhere",
         "Encoded relative URI is wrong.");
 });
+
+test("Set query parameters.", 2, function()
+{
+  var testSubject =
+      new cadc.web.util.URI("http://www.mysite.com/path/item.txt?param1=val1&param2=val2&param2=val3&param3=val4");
+
+  testSubject.setQueryValue("param1", "valX");
+
+  equal(testSubject.getQueryValue("param1"), "valX",
+        "Parameter replacement is wrong.");
+
+  try
+  {
+    testSubject.setQueryValue("param2", "valY");
+  }
+  catch (e)
+  {
+    equal(e.message,
+          "There are multiple parameters with the name 'param2'.",
+          "Wrong error message.");
+  }
+});
