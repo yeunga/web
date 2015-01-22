@@ -135,3 +135,20 @@ test("Remove query parameters.", 3, function()
   equal(testSubject.getQueryValue("param3"), "val4",
         "Should still have param3.");
 });
+
+test("Convert back to string.", 3, function()
+{
+  var testSubject =
+      new cadc.web.util.URI("http://www.mysite.com/path/item.txt?param1=val1&param2=val2&param2=val3&param3=val4#hash=42");
+
+  equal(testSubject.toString(),
+        "http://www.mysite.com/path/item.txt?param1=val1&param2=val2&param2=val3&param3=val4#hash=42",
+        "Wrong URI string.");
+
+  testSubject.removeQueryValues("param1");
+
+  equal(testSubject.getQueryValue("param1"), null, "Still has param1.");
+  equal(testSubject.toString(),
+        "http://www.mysite.com/path/item.txt?param2=val2&param2=val3&param3=val4#hash=42",
+        "Wrong URI string.");
+});

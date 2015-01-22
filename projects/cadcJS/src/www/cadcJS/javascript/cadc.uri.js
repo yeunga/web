@@ -276,7 +276,49 @@
      */
     function removeQueryValues(_key)
     {
-      getQuery()[_key] = null;
+      delete getQuery()[_key];
+    }
+
+    /**
+     *
+     *       components.scheme = parsedURI[1] || "";
+     components.host = parsedURI[2] || "";
+     components.path = parsedURI[3] || "";
+     components.query = parsedURI[4] || "";
+     components.hash = parsedURI[5] || "";
+     components.file = ((components.path && components.path.match(/\/([^\/?#]+)$/i)) || [,''])[1];
+     *
+     */
+    function toString()
+    {
+      var queryString = $.isEmptyObject(getQuery()) ? "" : "?";
+
+      $.each(getQuery(), function(param, values)
+      {
+        for (var valIndex = 0; valIndex < values.length; valIndex++)
+        {
+          queryString += param + "=" + values[valIndex] + "&";
+        }
+      });
+
+      if (queryString.charAt(queryString.length - 1) === ("&"))
+      {
+        queryString = queryString.substr(0, (queryString.length - 1));
+      }
+
+      var hashString;
+
+      if (getHash() != '')
+      {
+        hashString = "#" + getHash();
+      }
+      else
+      {
+        hashString = "";
+      }
+
+      return getScheme() + "://" + getHost() + getPath() + queryString
+          + hashString;
     }
 
     $.extend(this,
@@ -296,7 +338,8 @@
                "getRelativeURI": getRelativeURI,
                "encodeRelativeURI": encodeRelativeURI,
                "getHash": getHash,
-               "getScheme": getScheme
+               "getScheme": getScheme,
+               "toString": toString
              });
   }
 })(jQuery);
