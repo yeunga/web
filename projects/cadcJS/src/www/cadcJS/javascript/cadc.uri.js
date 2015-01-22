@@ -14,8 +14,8 @@
   {
     var _self = this;
     this.uri = uri;
-    this.uriComponents = parse();
-    this.query = parseQuery();
+    this.uriComponents = {};
+    this.query = {};
 
     function getURI()
     {
@@ -25,11 +25,26 @@
     // This function creates a new anchor element and uses location
     // properties (inherent) to get the desired URL data. Some String
     // operations are used (to normalize results across browsers).
-    function parse()
+    function init()
+    {
+      reparse(_self.uri);
+    }
+
+    /**
+     * Parse the given URI into this object.  This method preserves the uri
+     * property in this object as the 'original' uri.
+     *
+     * @param _uri    The new URI.
+     */
+    function reparse(_uri)
     {
       var parser = /^(?:([^:\/?\#]+):)?(?:\/\/([^\/?\#]*))?([^?\#]*)(?:\?([^\#]*))?(?:\#(.*))?/;
-      var parsedURI = getURI().match(parser);
+      var parsedURI = _uri.match(parser);
       var components = {};
+
+      // Reset the objects.
+      _self.uriComponents = {};
+      _self.query = {};
 
       components.scheme = parsedURI[1] || "";
       components.host = parsedURI[2] || "";
@@ -39,7 +54,10 @@
       components.file = ((components.path
                           && components.path.match(/\/([^\/?#]+)$/i)) || [,''])[1];
 
-      return components;
+      console.log("Combining components " + components);
+
+      $.extend(_self.uriComponents, components);
+      $.extend(_self.query, parseQuery());
     }
 
     /**
@@ -113,7 +131,7 @@
     {
       var nvpair = {};
       var qs = getURIComponents().query;
-      if (qs.trim())
+      if ($.trim(qs))
       {
         var pairs = (qs != "") ? qs.split("&") : [];
         $.each(pairs, function(i, v)
@@ -246,6 +264,8 @@
       {
         getQuery()[_key] = [_val];
       }
+
+      reparse(toString());
     }
 
     /**
@@ -277,16 +297,11 @@
     function removeQueryValues(_key)
     {
       delete getQuery()[_key];
+      reparse(toString());
     }
 
     /**
-     *
-     *       components.scheme = parsedURI[1] || "";
-     components.host = parsedURI[2] || "";
-     components.path = parsedURI[3] || "";
-     components.query = parsedURI[4] || "";
-     components.hash = parsedURI[5] || "";
-     components.file = ((components.path && components.path.match(/\/([^\/?#]+)$/i)) || [,''])[1];
+     * Build the string
      *
      */
     function toString()
@@ -317,9 +332,14 @@
         hashString = "";
       }
 
-      return getScheme() + "://" + getHost() + getPath() + queryString
+      var scheme = getScheme();
+
+      return (($.trim(scheme) == '') ? "" : (scheme + "://"))
+             + getHost() + getPath() + queryString
           + hashString;
     }
+
+    init();
 
     $.extend(this,
              {
