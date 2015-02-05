@@ -95,3 +95,71 @@ test("Encoded relative URI.", 1, function()
         "/path/item.txt?A=Eh&A=S%23%2Fgo%2Fhere",
         "Encoded relative URI is wrong.");
 });
+
+test("Set query parameters.", 2, function()
+{
+  var testSubject =
+      new cadc.web.util.URI("http://www.mysite.com/path/item.txt?param1=val1&param2=val2&param2=val3&param3=val4");
+
+  testSubject.setQueryValue("param1", "valX");
+
+  equal(testSubject.getQueryValue("param1"), "valX",
+        "Parameter replacement is wrong.");
+
+  try
+  {
+    testSubject.setQueryValue("param2", "valY");
+  }
+  catch (e)
+  {
+    equal(e.message,
+          "There are multiple parameters with the name 'param2'.",
+          "Wrong error message.");
+  }
+});
+
+test("Remove query parameters.", 3, function()
+{
+  var testSubject =
+      new cadc.web.util.URI("http://www.mysite.com/path/item.txt?param1=val1&param2=val2&param2=val3&param3=val4");
+
+  testSubject.removeQueryValues("param1");
+
+  equal(testSubject.getQueryValue("param1"), null, "Still has param1.");
+
+  testSubject.removeQueryValues("param2");
+
+  equal(testSubject.getQueryValue("param2"), null, "Still has param2.");
+
+  // Should still have param3.
+  equal(testSubject.getQueryValue("param3"), "val4",
+        "Should still have param3.");
+});
+
+test("Convert back to string.", 5, function()
+{
+  var testSubject =
+      new cadc.web.util.URI("http://www.mysite.com/path/item.txt?param1=val1&param2=val2&param2=val3&param3=val4#hash=42");
+
+  equal(testSubject.toString(),
+        "http://www.mysite.com/path/item.txt?param1=val1&param2=val2&param2=val3&param3=val4#hash=42",
+        "Wrong URI string.");
+
+  testSubject.removeQueryValues("param1");
+
+  equal(testSubject.getQueryValue("param1"), null, "Still has param1.");
+  equal(testSubject.toString(),
+        "http://www.mysite.com/path/item.txt?param2=val2&param2=val3&param3=val4#hash=42",
+        "Wrong URI string.");
+
+  testSubject = new cadc.web.util.URI("http://www.mysite.com:4080/aq/");
+
+  equal(testSubject.toString(), "http://www.mysite.com:4080/aq/",
+        "Wrong URI string.");
+
+  // Query string only.
+  testSubject = new cadc.web.util.URI("?param1=val1&param2=val2&param2=val3&param3=val4");
+
+  equal(testSubject.toString(), "?param1=val1&param2=val2&param2=val3&param3=val4",
+        "Wrong URI query string.");
+});

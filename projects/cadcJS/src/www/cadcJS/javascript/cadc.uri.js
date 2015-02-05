@@ -14,8 +14,8 @@
   {
     var _self = this;
     this.uri = uri;
-    this.uriComponents = parse();
-    this.query = parseQuery();
+    this.uriComponents = {};
+    this.query = {};
 
     function getURI()
     {
@@ -25,11 +25,26 @@
     // This function creates a new anchor element and uses location
     // properties (inherent) to get the desired URL data. Some String
     // operations are used (to normalize results across browsers).
-    function parse()
+    function init()
+    {
+      reparse(_self.uri);
+    }
+
+    /**
+     * Parse the given URI into this object.  This method preserves the uri
+     * property in this object as the 'original' uri.
+     *
+     * @param _uri    The new URI.
+     */
+    function reparse(_uri)
     {
       var parser = /^(?:([^:\/?\#]+):)?(?:\/\/([^\/?\#]*))?([^?\#]*)(?:\?([^\#]*))?(?:\#(.*))?/;
-      var parsedURI = getURI().match(parser);
+      var parsedURI = _uri.match(parser);
       var components = {};
+
+      // Reset the objects.
+      _self.uriComponents = {};
+      _self.query = {};
 
       components.scheme = parsedURI[1] || "";
       components.host = parsedURI[2] || "";
@@ -39,7 +54,10 @@
       components.file = ((components.path
                           && components.path.match(/\/([^\/?#]+)$/i)) || [,''])[1];
 
-      return components;
+      console.log("Combining components " + components);
+
+      $.extend(_self.uriComponents, components);
+      $.extend(_self.query, parseQuery());
     }
 
     /**
@@ -113,7 +131,7 @@
     {
       var nvpair = {};
       var qs = getURIComponents().query;
-      if (qs.trim())
+      if ($.trim(qs))
       {
         var pairs = (qs != "") ? qs.split("&") : [];
         $.each(pairs, function(i, v)
@@ -233,6 +251,23 @@
       return val;
     }
 
+    function setQueryValue(_key, _val)
+    {
+      var existingValues = getQueryValues(_key);
+
+      if (existingValues.length > 1)
+      {
+        throw new Error("There are multiple parameters with the name '" + _key
+                        + "'.");
+      }
+      else
+      {
+        getQuery()[_key] = [_val];
+      }
+
+      reparse(toString());
+    }
+
     /**
      * Return an array of values for the given key.
      *
@@ -255,13 +290,66 @@
       return val;
     }
 
+    /**
+     * Remove ALL of the query parameters for the given key.
+     * @param _key    The query parameter name.
+     */
+    function removeQueryValues(_key)
+    {
+      delete getQuery()[_key];
+      reparse(toString());
+    }
+
+    /**
+     * Build the string
+     *
+     */
+    function toString()
+    {
+      var queryString = $.isEmptyObject(getQuery()) ? "" : "?";
+
+      $.each(getQuery(), function(param, values)
+      {
+        for (var valIndex = 0; valIndex < values.length; valIndex++)
+        {
+          queryString += param + "=" + values[valIndex] + "&";
+        }
+      });
+
+      if (queryString.charAt(queryString.length - 1) === ("&"))
+      {
+        queryString = queryString.substr(0, (queryString.length - 1));
+      }
+
+      var hashString;
+
+      if (getHash() != '')
+      {
+        hashString = "#" + getHash();
+      }
+      else
+      {
+        hashString = "";
+      }
+
+      var scheme = getScheme();
+
+      return (($.trim(scheme) == '') ? "" : (scheme + "://"))
+             + getHost() + getPath() + queryString
+          + hashString;
+    }
+
+    init();
+
     $.extend(this,
              {
                "getQuery": getQuery,
                "getQueryString": getQueryString,
                "getQueryStringObject": getQueryStringObject,
                "getQueryValue": getQueryValue,
+               "setQueryValue": setQueryValue,
                "getQueryValues": getQueryValues,
+               "removeQueryValues": removeQueryValues,
                "getPath": getPath,
                "getHost": getHost,
                "getPathItems": getPathItems,
@@ -270,7 +358,8 @@
                "getRelativeURI": getRelativeURI,
                "encodeRelativeURI": encodeRelativeURI,
                "getHash": getHash,
-               "getScheme": getScheme
+               "getScheme": getScheme,
+               "toString": toString
              });
   }
 })(jQuery);
