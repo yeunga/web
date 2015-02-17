@@ -888,29 +888,6 @@
     }
 
     /**
-     * Check if this Viewer contains the given column.  Used to stop duplicate
-     * checkbox columns being added.
-     *
-     * @return  boolean True if the viewer has the given column, false otherwise.
-     */
-    function hasColumn(columnDefinition)
-    {
-      var cols = getColumns();
-
-      for (var col in cols)
-      {
-        var nextCol = cols[col];
-
-        if (nextCol.id && (nextCol.id == columnDefinition.id))
-        {
-          return true;
-        }
-      }
-
-      return false;
-    }
-
-    /**
      * Calculate the width of a column from its longest value.
      * @param _column     The column to calculate for.
      * @returns {number}  The integer width.
@@ -918,7 +895,7 @@
     function calculateColumnWidth(_column)
     {
       var columnName = _column.name;
-      var colOpts = getOptionsForColumn(columnName);
+      var colOpts = getOptionsForColumn(_column.id);
       var minWidth = columnName.length;
       var longestCalculatedWidth = getLongestValue(_column.id);
       var textWidthToUse = (longestCalculatedWidth > minWidth)
@@ -955,7 +932,7 @@
       for (var i = 0; i < allCols.length; i++)
       {
         var col = allCols[i];
-        var initialWidth = getOptionsForColumn(col.name).width;
+        var initialWidth = getOptionsForColumn(col.id).width;
 
         if (initialWidth && (initialWidth !== Number(0)))
         {
