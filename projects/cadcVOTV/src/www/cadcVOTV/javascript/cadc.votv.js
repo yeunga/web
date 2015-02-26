@@ -1387,7 +1387,7 @@
                                                {
                                                  var $rowItem =
                                                      dataView.getItem(rowIndex);
-                                                 getRowManager().onRowRendered($rowItem);
+                                                 getRowManager().onRowRendered($rowItem, rowIndex);
                                                });
                                       });
       }
