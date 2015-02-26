@@ -54,8 +54,6 @@
       components.file = ((components.path
                           && components.path.match(/\/([^\/?#]+)$/i)) || [,''])[1];
 
-      console.log("Combining components " + components);
-
       $.extend(_self.uriComponents, components);
       $.extend(_self.query, parseQuery());
     }
