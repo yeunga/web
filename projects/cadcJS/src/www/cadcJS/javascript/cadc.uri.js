@@ -337,10 +337,20 @@
           + hashString;
     }
 
+    function clearQuery()
+    {
+      $.each(getQuery(), function(param, values)
+      {
+        delete getQuery()[param];
+      });
+      reparse(toString());
+    }
+
     init();
 
     $.extend(this,
              {
+               "clearQuery": clearQuery,
                "getQuery": getQuery,
                "getQueryString": getQueryString,
                "getQueryStringObject": getQueryStringObject,
