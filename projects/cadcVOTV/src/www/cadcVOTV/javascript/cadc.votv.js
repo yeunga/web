@@ -227,15 +227,10 @@
                                                         {
                                                           addRow(row, null);
                                                         });
+                             }
 
-                               voTableBuilder.build(
-                                   voTableBuilder.buildRowData);
-                             }
-                             else
-                             {
-                               voTableBuilder.build(
-                                   voTableBuilder.buildRowData);
-                             }
+                             voTableBuilder.build(
+                                 voTableBuilder.buildRowData);
 
                              if (completeCallback)
                              {
