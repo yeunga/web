@@ -17,7 +17,8 @@
           "onSort": new jQuery.Event("cadcVOTV:onSort"),
           "onColumnOrderReset": new jQuery.Event("cadcVOTV:onColumnOrderReset"),
           "onRowsChanged": new jQuery.Event("cadcVOTV:onRowsChanged"),
-          "onDataLoaded": new jQuery.Event("cadcVOTV:onDataLoaded")
+          "onDataLoaded": new jQuery.Event("cadcVOTV:onDataLoaded"),
+          "onUnitChanged": new jQuery.Event("cadcVOTV:onUnitChanged")
         }
       }
     }
@@ -340,6 +341,11 @@
     function getColumnFilters()
     {
       return _self.columnFilters;
+    }
+
+    function setColumnFilter(columnID, filterValue)
+    {
+      getColumnFilters()[columnID] = filterValue;
     }
 
     function getColumnFilterPluginName()
@@ -1459,12 +1465,16 @@
                                                            "unitValue",
                                                            args.unitValue);
                                                      }
+
                                                      // track select changes.
                                                      _self.updatedColumnSelects[args.column.id] = args.unitValue;
 
                                                      // Invalidate to force column
                                                      // reformatting.
                                                      grid.invalidate();
+
+                                                     trigger(cadc.vot.events.onUnitChanged,
+                                                             args);
                                                    });
 
         grid.registerPlugin(unitSelectionPlugin);
@@ -1784,6 +1794,7 @@
                "addRow": addRow,
                "clearColumnFilters": clearColumnFilters,
                "getColumnFilters": getColumnFilters,
+               "setColumnFilter": setColumnFilter,
                "setDisplayColumns": setDisplayColumns,
                "getDisplayedColumns": getDisplayedColumns,
                "valueFilters": valueFilters,
