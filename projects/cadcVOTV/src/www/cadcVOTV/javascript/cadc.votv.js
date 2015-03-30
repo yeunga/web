@@ -110,6 +110,50 @@
                            input,
                            function (voTableBuilder)
                            {
+                             voTableBuilder.subscribe(cadc.vot.onDataLoadComplete,
+                                                      function (event, args)
+                                                      {
+                                                        if (args)
+                                                        {
+                                                          setLongestValues(args.longestValues);
+                                                        }
+
+                                                        if (input.xmlDOM)
+                                                        {
+                                                          _self.load(args.builder.getVOTable(),
+                                                                     !hasDisplayColumns, true);
+                                                          _self.init();
+                                                        }
+
+                                                        resetColumnWidths();
+
+                                                        // Display spinner only if paging is off
+                                                        if (!usePager())
+                                                        {
+                                                          if ($gridHeaderIcon)
+                                                          {
+                                                            // clear the wait icon
+                                                            $gridHeaderIcon.attr("src", "/cadcVOTV/images/transparent-20.png");
+                                                            if (options.maxRowLimit <= getDataView().getPagingInfo().totalRows)
+                                                            {
+                                                              var $gridHeaderLabel = getHeaderLabel();
+                                                              // and display warning message if maximum row limit is reached
+                                                              $gridHeaderLabel.text($gridHeaderLabel.text() + " " + options.maxRowLimitWarning);
+                                                              $resultsGridHeader.css("background-color", "rgb(235, 235, 49)");
+                                                            }
+                                                          }
+                                                        }
+
+                                                        if (getGridData().length === 0)
+                                                        {
+                                                          $(getTargetNodeSelector()).addClass("cadcvotv-empty-results-overlay");
+                                                          _self.$emptyResultsMessage.show();
+                                                        }
+
+                                                        trigger(cadc.vot.events.onDataLoaded,
+                                                                args);
+                                                      });
+
                              var hasDisplayColumns =
                                  (_self.displayColumns
                                   && (_self.displayColumns.length > 0));
@@ -155,39 +199,6 @@
                                  refreshColumns(inputFields);
                                }
 
-                               voTableBuilder.subscribe(cadc.vot.onDataLoadComplete,
-                                                        function (event, args)
-                                                        {
-                                                          setLongestValues(args.longestValues);
-                                                          resetColumnWidths();
-
-                                                          // Display spinner only if paging is off
-                                                          if (!usePager())
-                                                          {
-                                                            if ($gridHeaderIcon)
-                                                            {
-                                                              // clear the wait icon
-                                                              $gridHeaderIcon.attr("src", "/cadcVOTV/images/transparent-20.png");
-                                                              if (options.maxRowLimit <= getDataView().getPagingInfo().totalRows)
-                                                              {
-                                                                var $gridHeaderLabel = getHeaderLabel();
-                                                                // and display warning message if maximum row limit is reached
-                                                                $gridHeaderLabel.text($gridHeaderLabel.text() + " " + options.maxRowLimitWarning);
-                                                                $resultsGridHeader.css("background-color", "rgb(235, 235, 49)");
-                                                              }
-                                                            }
-                                                          }
-
-                                                          if (getGridData().length === 0)
-                                                          {
-                                                            $(getTargetNodeSelector()).addClass("cadcvotv-empty-results-overlay");
-                                                            _self.$emptyResultsMessage.show();
-                                                          }
-
-                                                          trigger(cadc.vot.events.onDataLoaded,
-                                                                  args);
-                                                        });
-
                                clearRows();
 
                                // Setup the Grid and DataView to be loaded.
@@ -216,21 +227,10 @@
                                                         {
                                                           addRow(row, null);
                                                         });
-
-                               voTableBuilder.build(
-                                   voTableBuilder.buildRowData);
                              }
-                             else
-                             {
-                               voTableBuilder.build(
-                                   voTableBuilder.buildRowData);
-                               _self.load(voTableBuilder.getVOTable(),
-                                          !hasDisplayColumns, true);
 
-                               trigger(cadc.vot.events.onDataLoaded, {});
-
-                               _self.init();
-                             }
+                             voTableBuilder.build(
+                                 voTableBuilder.buildRowData);
 
                              if (completeCallback)
                              {
