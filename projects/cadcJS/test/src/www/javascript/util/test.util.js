@@ -1,4 +1,4 @@
-test("Test String util.", 6, function()
+test("Test String util.", 7, function()
 {
   var stringUtil = new cadc.web.util.StringUtil("MY&&<>VAL");
 
