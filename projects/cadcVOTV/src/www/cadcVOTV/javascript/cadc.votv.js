@@ -345,7 +345,11 @@
 
     function setColumnFilter(columnID, filterValue)
     {
-      getColumnFilters()[columnID] = filterValue;
+      $(getTargetNodeSelector()).find("input[id='" + columnID
+                                      + "_filter']").val(filterValue);
+
+      //getColumnFilters()[columnID] = filterValue;
+      //getDataView().refresh();
     }
 
     function getColumnFilterPluginName()
@@ -1009,6 +1013,7 @@
     {
       if (_columnID)
       {
+        setColumnFilter(_columnID, $.trim(_value));
         getColumnFilters()[_columnID] = $.trim(_value);
         getDataView().refresh();
       }

@@ -162,6 +162,7 @@
       var unitValue = $(e.target).val();
       var handler = $(this).data("unitChangeHandler");
 
+      $(columnDef).data("previousUnitValue", $(columnDef).data("unitValue"));
       $(columnDef).data("unitValue", unitValue);
 
       _self.onUnitChange.notify({
