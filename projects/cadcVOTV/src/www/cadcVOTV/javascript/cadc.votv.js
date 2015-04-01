@@ -1013,8 +1013,12 @@
     {
       if (_columnID)
       {
-        setColumnFilter(_columnID, $.trim(_value));
-        getColumnFilters()[_columnID] = $.trim(_value);
+        var filter = $.trim(_value);
+        setColumnFilter(_columnID, filter);
+        getColumnFilters()[_columnID] = filter;
+
+        $(getGridColumn(_columnID)).data("pureFilterValue", filter);
+
         getDataView().refresh();
       }
     }

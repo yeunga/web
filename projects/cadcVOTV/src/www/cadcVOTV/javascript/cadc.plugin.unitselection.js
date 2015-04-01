@@ -134,9 +134,7 @@
           unitPullDown.data("unitChangeHandler", unitDefinition.handler);
         }
 
-        unitPullDown
-            .bind("change", handleUnitChange)
-            .appendTo(node);
+        unitPullDown.bind("change", handleUnitChange).appendTo(node);
       }
     }
 
