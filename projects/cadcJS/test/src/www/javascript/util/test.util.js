@@ -1,4 +1,4 @@
-test("Test String util.", 7, function()
+test("Test String util.", 6, function()
 {
   var stringUtil = new cadc.web.util.StringUtil("MY&&<>VAL");
 
@@ -47,4 +47,3 @@ test("Test Number Format", 5, function()
   equal(testSubject.formatExponentOrFloat(), "548428932789.256835937500",
         "Wrong %.g equivalent");
 });
-

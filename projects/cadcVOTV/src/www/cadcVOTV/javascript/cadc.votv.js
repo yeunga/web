@@ -347,9 +347,6 @@
     {
       $(getTargetNodeSelector()).find("input[id='" + columnID
                                       + "_filter']").val(filterValue);
-
-      //getColumnFilters()[columnID] = filterValue;
-      //getDataView().refresh();
     }
 
     function getColumnFilterPluginName()
@@ -1778,6 +1775,7 @@
     {
       $(_self).on(_event.type, __handler);
     }
+
 
     $.extend(this,
              {
