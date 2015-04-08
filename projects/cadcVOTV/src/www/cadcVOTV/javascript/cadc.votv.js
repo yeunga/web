@@ -1762,7 +1762,7 @@
       var args = _args || {};
       args.application = _self;
 
-      return $(_self).trigger(_event, _args);
+      return $(_self).trigger(_event, args);
     }
 
     /**
