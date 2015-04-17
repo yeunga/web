@@ -120,6 +120,18 @@
       return hasLength() && ($.trim(getString()) != "");
     }
 
+    function format()
+    {
+      // Create new string.
+      var s = "" + getString();
+      var args = arguments;
+
+      return s.replace(/{(\d+)}/g, function(match, number)
+      {
+        return args[number] ? args[number] : match;
+      });
+    }
+
     function sanitize()
     {
       var returnValue;
@@ -147,6 +159,7 @@
                "sanitize": sanitize,
                "hasLength": hasLength,
                "hasText": hasText,
+               "format": format,
                "matches": matches
              });
   }
