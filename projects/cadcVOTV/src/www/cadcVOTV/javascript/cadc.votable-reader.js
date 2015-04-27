@@ -597,6 +597,21 @@
 
       _selfXMLBuilder.voTable = new cadc.vot.VOTable(voTableMetadata,
                                                      voTableResources);
+
+      fireEvent(cadc.vot.onDataLoadComplete, null);
+    }
+
+    function fireEvent(event, eventData)
+    {
+      eventData = eventData || {};
+      eventData.builder = _selfXMLBuilder;
+
+      $(_selfXMLBuilder).trigger(event, eventData);
+    }
+
+    function subscribe(event, eHandler)
+    {
+      $(_selfXMLBuilder).on(event.type, eHandler);
     }
 
     $.extend(this,
@@ -604,7 +619,9 @@
                "build": build,
                "evaluateXPath": getElements,
                "getData": getData,
-               "getVOTable": getVOTable
+               "getVOTable": getVOTable,
+
+               "subscribe": subscribe
              });
 
     init();

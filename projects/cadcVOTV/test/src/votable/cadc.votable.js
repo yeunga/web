@@ -131,3 +131,28 @@ test("Field insertions to Metadata.", 4, function()
   var fr3 = testSubject.getFields()[9];
   equal(fr3.getID(), "F3", "Field should be F1 at index 9.");
 });
+
+test("Get field from metadata.", 4, function()
+{
+  var testSubject = new cadc.vot.Metadata(null, null, null, null, null, null);
+
+  var f1 = new cadc.vot.Field("F1", "F1", "UCD1", "UTYPE1", "UNIT1",
+                              null, null, null, null, "F1");
+  var f2 = new cadc.vot.Field("F2", "F2", "UCD2", "UTYPE2", "UNIT2",
+                              null, null, null, null, "F2");
+  var f3 = new cadc.vot.Field("F3", "F3", "UCD3", "UTYPE3", "UNIT3",
+                              null, null, null, null, "F3");
+
+  testSubject.addField(f1);
+  testSubject.addField(f2);
+  testSubject.addField(f3);
+
+  var resultField1 = testSubject.getField("F1");
+  equal(resultField1.getID(), f1.getID(), "Wrong field retrieved.");
+
+  var resultField2 = testSubject.getField("F3");
+  equal(resultField2.getID(), f3.getID(), "Wrong field retrieved.");
+
+  equal(null, testSubject.getField("BOGUS"), "Wrong field retrieved.");
+  equal(null, testSubject.getField(null), "Wrong field retrieved.");
+});
