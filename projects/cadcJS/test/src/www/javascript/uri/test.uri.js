@@ -6,7 +6,7 @@ test("Test URI components from full URL.", 1, function()
         "Output should be /path/1/2/item.txt");
 });
 
-test("Test URI components from full URL 2.", 3, function()
+test("Test URI components from full URL 2.", 6, function()
 {
   var myURI = new cadc.web.util.URI("http://www.mysite.com/path/item.txt?a=b&c=d");
 
@@ -16,7 +16,27 @@ test("Test URI components from full URL 2.", 3, function()
   var q = myURI.getQuery();
 
   equal("b", q.a[0], "Query string param a is wrong.");
-  equal("d", q.c[0], "Query string param a is wrong.");
+  equal("d", q.c[0], "Query string param c is wrong.");
+
+  // the path should remain unchanged
+  var path = myURI.getPath();
+  myURI.clearQuery();
+  equal(path, "/path/item.txt",
+        "clearQuery: Path should be /path/item.txt");
+  // the relative path should be cleaned up
+  equal(path, myURI.getRelativeURI(),
+        "clearQuery: RelativeURI should be same as Path after clearQuery");
+
+  q = myURI.getQuery();
+  var unused;
+  try
+  {
+    unused = q.a[0];
+  }
+  catch(e)
+  {
+    equal(undefined, unused, "clearQuery: didn't get unused");
+  }
 });
 
 test("Test empty query.", 1, function()
