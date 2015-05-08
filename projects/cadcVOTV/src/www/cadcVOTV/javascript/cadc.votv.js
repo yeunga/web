@@ -1178,7 +1178,8 @@
           rowSelectionModel =
           new CADC.RowSelectionModel({
                                        selectActiveRow: getOptions().selectActiveRow,
-                                       selectClickedRow: getOptions().selectClickedRow
+                                       selectClickedRow: getOptions().selectClickedRow,
+                                       propagateEvents: getOptions().propagateEvents
                                      });
         }
         else if (Slick.RowSelectionModel)

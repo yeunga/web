@@ -4,12 +4,30 @@
     "cadc": {
       "web": {
         "util": {
-          "URI": URI
+          "URI": URI,
+          "currentURI": currentURI
         }
       }
     }
   });
 
+  /**
+   * Obtain the current URI object of the location in context.
+   *
+   * @return {URI}
+   */
+  function currentURI()
+  {
+    return new URI(window.location.href);
+  }
+
+
+  /**
+   * URI object.
+   *
+   * @param uri     The uri string.
+   * @constructor
+   */
   function URI(uri)
   {
     var _self = this;
