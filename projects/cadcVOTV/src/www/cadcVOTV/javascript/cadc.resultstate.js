@@ -61,7 +61,6 @@
 
       if (_self.sortColumn)
       {
-//        url.push("&");
         if (url.join().indexOf("#") < 0)
         {
           url.push("#");
@@ -108,9 +107,6 @@
 
       // Replace end ampersand, if present.
       return url.join("").replace(/\&$/, "");
-
-      // Replace ?& in the query with ?.
-//      return url.join("").replace("?&", "?").replace("#?", "?");
     }
 
     /**
