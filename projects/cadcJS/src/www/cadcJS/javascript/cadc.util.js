@@ -241,9 +241,31 @@
       return output;
     }
 
+    /**
+     * Default format function.
+     *
+     * @return {string}
+     */
+    function format()
+    {
+      var formattedValue;
+
+      if (getSignificantDigits())
+      {
+        formattedValue = formatFixation();
+      }
+      else
+      {
+        formattedValue = getNumberValue().toString();
+      }
+
+      return formattedValue;
+    }
+
+
     $.extend(this,
              {
-               "format": formatFixation,
+               "format": format,
                "formatFixation": formatFixation,
                "formatPrecision": formatPrecision,
                "formatExponentOrFloat": formatExponentOrFloat

@@ -2291,8 +2291,7 @@ if (typeof Slick === "undefined")
       var frozenRowOffset = getFrozenRowOffset(row);
 
       var rowHtml = "<div class='ui-widget-content " + rowCss + "' style='top:"
-                        + (getRowTop(row) - frozenRowOffset )
-          + "px'>";
+                        + (getRowTop(row) - frozenRowOffset ) + "px'>";
 
       stringArrayL.push(rowHtml);
 
