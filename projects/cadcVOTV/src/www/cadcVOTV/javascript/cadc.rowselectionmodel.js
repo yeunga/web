@@ -17,7 +17,8 @@
     var _options;
     var _defaults = {
       selectActiveRow: true,
-      selectClickedRow: false
+      selectClickedRow: false,
+      propagateEvents: false
     };
 
     function init(grid)
@@ -236,7 +237,11 @@
         _ranges = rowsToRanges(selection);
         setSelectedRanges(_ranges);
       }
-      e.stopImmediatePropagation();
+
+      if (_options.propagateEvents === false)
+      {
+        e.stopImmediatePropagation();
+      }
 
       return true;
     }
