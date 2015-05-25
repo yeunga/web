@@ -74,11 +74,38 @@
       "web": {
         "util": {
           "StringUtil": StringUtil,
-          "NumberFormat": NumberFormat
+          "NumberFormat": NumberFormat,
+          "GUID": GUID
         }
       }
     }
   });
+
+
+  /**
+   * GUID generator.
+   *
+   * @constructor
+   */
+  function GUID()
+  {
+    function s4()
+    {
+      return Math.floor((1 + Math.random()) * 0x10000).
+          toString(16).substring(1);
+    }
+
+    function generate()
+    {
+      return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+             s4() + '-' + s4() + s4() + s4();
+    }
+
+    $.extend(this,
+        {
+          "generate": generate
+        });
+  }
 
   /**
    * Basic String utility class.
@@ -92,15 +119,8 @@
 
     this.string = function ()
     {
-      if (_string === Number(0))
-      {
-        // want a string with content 0, not the JavaScript boolean default
-        return "0";
-      }
-      else
-      {
-        return  _string ? _string.toString() : "";
-      }
+      return (_string === Number(0)) ? "0"
+          : (_string ? _string.toString() : "");
     }();
 
 
