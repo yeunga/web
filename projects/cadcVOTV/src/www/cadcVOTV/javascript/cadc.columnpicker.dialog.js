@@ -18,14 +18,13 @@
                 // Options for the dialog
                 modal: true,
                 autoOpen: false,
-                closeDialogSelector: ".dialog_close",
-
+                closeDialogSelector: ".dialog_close"
+              },
+              "defaultSortableOptions": {
                 // Options for the sortable menus.
                 opacity: 0.8,
-                containment: "parent",
-                tolerance: "pointer",
-                axis: "y",
-                helper: "original"
+                refreshPositions: true,
+                cancel: ".ui-state-disabled"
               },
               "events": {
                 "onColumnPickerInit": new Slick.Event(),
@@ -58,6 +57,7 @@
 
     // Cached value to reset to.
     this.originalColumns = _grid.getColumns();
+
     this.$dialog = $("#column_manager_container");
     this.$selectedItems =
         $("<ul class='slick-columnpicker slick-columnpicker-tooltip' />").
@@ -78,46 +78,6 @@
      */
     function init()
     {
-      selfColumnPicker.$dialog.find(".column_manager_columns").
-          append(selfColumnPicker.$selectedItems).
-          append($("<div class='span-1'></div>")).
-          append(selfColumnPicker.$availableItems);
-
-      selfColumnPicker.$dialog.on("popupbeforeposition", function (event, ui)
-        {
-          buildMenu(event);
-        });
-
-      selfColumnPicker.$selectedItems.sortable({
-        connectWith: selfColumnPicker.$availableItems.attr("id")
-      });
-
-      selfColumnPicker.$availableItems.sortable({
-        connectWith: selfColumnPicker.$selectedItems.attr("id")
-      });
-
-      selfColumnPicker.$dialog.find(
-          getOption(cadc.vot.picker.DIALOG_CLOSE_SELECTOR_KEY)).click(function(e)
-      {
-        selfColumnPicker.$dialog.popup("close");
-      });
-
-      selfColumnPicker.$selectedItems.on("sortstart", function (event, ui)
-      {
-        ui.helper.css('margin-top', $(window).scrollTop());
-      }).on("sortbeforestop", function (event, ui)
-      {
-        ui.helper.css('margin-top', 0);
-      });
-
-      selfColumnPicker.$availableItems.on("sortstart", function (event, ui)
-      {
-        ui.helper.css('margin-top', $(window).scrollTop());
-      }).on("sortbeforestop", function (event, ui)
-      {
-        ui.helper.css('margin-top', 0);
-      });
-
       var $buttonHolder =
           $("<div class='slick-column-picker-tooltip-button-holder span-3'></div>")
               .appendTo(selfColumnPicker.$target);
@@ -133,9 +93,62 @@
           $("<span class='slick-column-picker-button'>Order alphabetically</span>")
               .appendTo($buttonHolder);
 
-      selfColumnPicker.$target.append(selfColumnPicker.$selectedItems);
+      // Clear before the menus.
+      selfColumnPicker.$target.append("<div class='clear'></div>")
 
-      selfColumnPicker.$target.append(selfColumnPicker.$availableItems);
+      selfColumnPicker.$dialog.find(".column_manager_columns").
+          append(selfColumnPicker.$selectedItems).
+          append($("<div class='span-1'></div>")).
+          append(selfColumnPicker.$availableItems);
+
+      selfColumnPicker.$dialog.on("popupbeforeposition", function (event, ui)
+        {
+          buildMenu(event);
+        });
+
+      /**
+       * Function issued when the jQuery UI's Sortable menu feature has ended.
+       *
+       * @param event   The jQuery event.
+       * @param ui      The UI object.
+       */
+      var onStop = function(event, ui)
+      {
+        var $liItems = selfColumnPicker.$selectedItems.find("li");
+        var newColumns = [];
+
+        for (var sii = 0, sil = $liItems.length; sii < sil; sii++)
+        {
+          var $liItem = $($liItems[sii]);
+          newColumns.push(getColumn($liItem.data("column-id")));
+        }
+
+        setColumns(newColumns, event);
+      };
+
+      var selectedItemsOptions =
+          $.extend({},
+              {
+                "connectWith": "#" + selfColumnPicker.$availableItems.attr("id"),
+                "stop": onStop
+              },
+              cadc.vot.picker.defaultSortableOptions);
+      var availableItemsOptions =
+          $.extend({},
+              {
+                "connectWith": "#" + selfColumnPicker.$selectedItems.attr("id"),
+                "stop": onStop
+              },
+              cadc.vot.picker.defaultSortableOptions);
+
+      selfColumnPicker.$selectedItems.sortable(selectedItemsOptions);
+      selfColumnPicker.$availableItems.sortable(availableItemsOptions);
+
+      selfColumnPicker.$dialog.find(
+          getOption(cadc.vot.picker.DIALOG_CLOSE_SELECTOR_KEY)).click(function(e)
+      {
+        selfColumnPicker.$dialog.popup("close");
+      });
 
       $resetSpan.click(function (e)
       {
@@ -155,7 +168,7 @@
           allCols.push(gColDef);
         });
 
-        $.each(self.allColumns, function (colKey, colDef)
+        $.each(selfColumnPicker.allColumns, function (colKey, colDef)
         {
           var colID = colDef.id;
           var isInGrid = false;
@@ -175,7 +188,7 @@
           }
         });
 
-        setColumns(allCols);
+        setColumns(allCols, e);
         trigger(selfColumnPicker.onShowAllColumns, null, null);
       });
 
@@ -193,7 +206,7 @@
                      ? -1 : 0;
         });
 
-        setColumns(arr);
+        setColumns(arr, e);
         trigger(selfColumnPicker.onSortAlphabetically, null, null);
       });
 
@@ -203,8 +216,8 @@
 
     function refresh(event)
     {
-      grid.invalidate();
-      grid.resizeCanvas();
+      selfColumnPicker.grid.invalidate();
+      selfColumnPicker.grid.resizeCanvas();
       buildMenu(event);
       refreshMenus();
     }
@@ -219,6 +232,27 @@
     {
       return selfColumnPicker.options.hasOwnProperty(_key)
           ? selfColumnPicker.options[_key] : null;
+    }
+
+    /**
+     * Obtain the column object for the given column ID.
+     * @param _colID    The ID of the column to look for.
+     *
+     * @return {Object} Column object.
+     */
+    function getColumn(_colID)
+    {
+      for (var aci = 0, acl = selfColumnPicker.allColumns.length; aci < acl;
+           aci++)
+      {
+        var nextColumn = selfColumnPicker.allColumns[aci];
+        if (nextColumn.id == _colID)
+        {
+          return nextColumn;
+        }
+      }
+
+      return null;
     }
 
     /**
@@ -247,14 +281,15 @@
       var $menu = isDisplayedColumn ? selfColumnPicker.$selectedItems
           : selfColumnPicker.$availableItems;
 
-      var $li = $("<li class=\"ui-state-default\"></li>").appendTo($menu);
+      var $li = $("<li class=\"ui-state-default\"></li>");
       $li.prop("id", "ITEM_" + _col.id);
       $li.data("column-id", _col.id);
 
       // Omit the checkbox column.
-      if (_col.id == cadc.vot.CHECKBOX_ID)
+      if (_col.id == cadc.vot.picker.CHECKBOX_ID)
       {
-        $li.hide();
+        $li.addClass("ui-state-disabled");
+        selfColumnPicker.$selectedItems.append($li);
       }
       else
       {
@@ -283,6 +318,8 @@
 
         $columnLabel.prepend($input);
         $columnLabel.appendTo($li);
+
+        $menu.append($li);
       }
     }
 
@@ -323,12 +360,12 @@
     {
       trigger(cadc.vot.picker.events.onSort,
           {
-            "visibleColumns": visibleColumns
+            "visibleColumns": selfColumnPicker.grid.getColumns()
           }, null);
 
       trigger(cadc.vot.picker.events.onColumnAddOrRemove,
           {
-            "visibleColumns": visibleColumns
+            "visibleColumns": selfColumnPicker.grid.getColumns()
           }, null);
     }
 

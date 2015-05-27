@@ -1,5 +1,6 @@
 ul.slick-columnpicker
 {
+  /*position: relative;*/
   list-style-type: none;
   margin: 0;
   border: 1px solid #718BB7;
@@ -9,7 +10,8 @@ ul.slick-columnpicker
   -webkit-box-shadow: 2px 2px 2px silver;
   cursor: default;
   width: 350px;
-  overflow-y: scroll;
+  /*overflow-y: scroll;*/
+  /*overflow-x: hidden;*/
   max-height: 400px;
 }
 
