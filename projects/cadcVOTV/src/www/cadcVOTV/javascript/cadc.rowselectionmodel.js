@@ -238,7 +238,7 @@
         setSelectedRanges(_ranges);
       }
 
-      if (_options.propagateEvents === false)
+      if ((_options.propagateEvents === false) || $(e.target).is(":checkbox"))
       {
         e.stopImmediatePropagation();
       }
