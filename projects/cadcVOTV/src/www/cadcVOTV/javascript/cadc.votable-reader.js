@@ -13,7 +13,7 @@
 
         "xml": {
           "VOTableXPathEvaluator": VOTableXPathEvaluator,
-          "votable": "http://www.ivoa.net/xml/VOTable/v1.3"
+          "votable": "http://www.ivoa.net/xml/VOTable/v1.2"
         },
 
         // Events

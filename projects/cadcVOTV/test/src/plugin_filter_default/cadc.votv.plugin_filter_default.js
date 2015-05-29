@@ -6,7 +6,7 @@
 
 var xmlData =
     "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-    + "<VOTABLE xmlns=\"http://www.ivoa.net/xml/VOTable/v1.3\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" version=\"1.3\">\n"
+    + "<VOTABLE xmlns=\"http://www.ivoa.net/xml/VOTable/v1.2\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" version=\"1.2\">\n"
     + "  <RESOURCE>\n"
     + "    <TABLE>\n"
     + "      <DESCRIPTION>TEST VOTABLE</DESCRIPTION>\n"
