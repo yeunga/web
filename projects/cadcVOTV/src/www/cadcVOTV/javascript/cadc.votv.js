@@ -1238,7 +1238,7 @@
         {
           columnPicker =
               new cadc.vot.picker.DialogColumnPicker(getColumns(), grid,
-                  columnPickerConfig.panel, columnPickerConfig.options);
+                                                     columnPickerConfig.options);
 
           if (forceFitMax)
           {

@@ -146,3 +146,54 @@ test("Array Util subtractions", 7, function ()
     }
   ], "Should only be missing [4, 88]");
 });
+
+test("Array sort.", 3, function ()
+{
+  var testSubject = new cadc.web.util.Array(["one", "four", "alpha", "zed", "98"]);
+
+  var result1 = testSubject.sort();
+  deepEqual(result1, ["98", "alpha", "four", "one", "zed"], "Wrong result.");
+
+  try
+  {
+    testSubject.sort("BOGUS");
+  }
+  catch (e)
+  {
+    equal(e.message,
+          "Property 'BOGUS' does not exist in the objects being compared.",
+          "Wrong error message.");
+  }
+
+  testSubject = new cadc.web.util.Array(
+      [
+        {
+          id: 4,
+          name: "four"
+        },
+        {
+          id: 5,
+          name: "five"
+        },
+        {
+          id: 88,
+          name: "eighty-eight"
+        }
+      ]);
+
+  var result2 = testSubject.sort("name");
+  deepEqual(result2, [
+    {
+      id: 88,
+      name: "eighty-eight"
+    },
+    {
+      id: 5,
+      name: "five"
+    },
+    {
+      id: 4,
+      name: "four"
+    }
+  ], "Wrong sorted array.");
+});

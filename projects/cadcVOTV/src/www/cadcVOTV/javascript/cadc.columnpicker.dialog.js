@@ -42,15 +42,16 @@
 
 
   /**
-   * New Dialog column picker.
+   * New Dialog column picker.  To reduce complexity, it's practice here to
+   * ensure the menu lists are updated first, then the refresh process will
+   * use that to then set the columns.
    *
    * @param _columns   The columns to put.
    * @param _grid      The underlying Grid.
-   * @param _$panel     The container to put the link/button in.
    * @param _options   Optional items.
    * @constructor
    */
-  function DialogColumnPicker(_columns, _grid, _$panel, _options)
+  function DialogColumnPicker(_columns, _grid, _options)
   {
     var selfColumnPicker = this;
 
@@ -58,6 +59,7 @@
 
     // Cached value to reset to.
     this.originalColumns = _grid.getColumns();
+    this.checkboxColumn = selfColumnPicker.originalColumns[0];
 
     this.$dialog = $("#column_manager_container");
     this.$selectedItems =
@@ -69,7 +71,6 @@
             attr("id", "cadc_columnpicker_available_items").
             addClass("row-end").addClass("span-3");
     this.grid = _grid;
-    this.$panel = _$panel;
     this.allColumns = _columns;
     this.$target = $(getOption(cadc.vot.picker.TARGET_SELECTOR_OPTION_KEY));
 
@@ -95,16 +96,16 @@
               .appendTo($buttonHolder);
 
       // Clear before the menus.
-      selfColumnPicker.$target.append("<div class='clear'></div>")
+      selfColumnPicker.$target.append("<div class='clear'></div>");
 
       selfColumnPicker.$dialog.find(".column_manager_columns").
           append(selfColumnPicker.$selectedItems).
           append($("<div class='span-1'></div>")).
           append(selfColumnPicker.$availableItems);
 
-      selfColumnPicker.$dialog.on("popupbeforeposition", function (event, ui)
+      selfColumnPicker.$dialog.on("popupbeforeposition", function ()
       {
-        buildMenu(event);
+        buildMenus();
       });
 
       /**
@@ -147,18 +148,34 @@
           function ()
           {
             selfColumnPicker.$dialog.popup("close");
+            return false;
           });
 
+
+      /*
+       *************************************
+       *
+       * Top button handling.
+       *
+       *************************************
+       */
       $resetSpan.click(function ()
                        {
+                         // Setup the grid first, then rebuild the menus.
                          setColumns(selfColumnPicker.originalColumns.slice(0));
-                         trigger(cadc.vot.picker.events.onResetColumnOrder, null, null);
+                         buildMenus();
+
+                         //trigger(cadc.vot.picker.events.onResetColumnOrder,
+                         //        null, null);
+
+                         return false;
                        });
 
       $showAllSpan.click(function ()
                          {
                            var colIDs = [];
-                           var gridCols = selfColumnPicker.grid.getColumns().slice(0);
+                           var gridCols =
+                               selfColumnPicker.grid.getColumns().slice(0);
                            var allCols = [];
 
                            $.each(gridCols, function (gcKey, gColDef)
@@ -167,49 +184,56 @@
                              allCols.push(gColDef);
                            });
 
-                           $.each(selfColumnPicker.allColumns, function (colKey, colDef)
-                           {
-                             var colID = colDef.id;
-                             var isInGrid = false;
+                           $.each(selfColumnPicker.allColumns,
+                                  function (colKey, colDef)
+                                  {
+                                    var colID = colDef.id;
+                                    var isInGrid = false;
 
-                             $.each(colIDs, function (ccKey, cColID)
-                             {
-                               if (cColID == colID)
-                               {
-                                 isInGrid = true;
-                                 return false;
-                               }
-                             });
+                                    $.each(colIDs, function (ccKey, cColID)
+                                    {
+                                      if (cColID == colID)
+                                      {
+                                        isInGrid = true;
+                                        return false;
+                                      }
+                                    });
 
-                             if (!isInGrid)
-                             {
-                               allCols.push(colDef);
-                             }
-                           });
+                                    if (!isInGrid)
+                                    {
+                                      allCols.push(colDef);
+                                    }
+                                  });
 
                            setColumns(allCols);
-                           trigger(cadc.vot.picker.events.onShowAllColumns, null, null);
+                           buildMenus();
+
+                           trigger(cadc.vot.picker.events.onShowAllColumns,
+                                   null, null);
+
+                           return false;
                          });
 
-      $orderAlphaSpan.click(function (e)
-                            {
-                              var arr =
-                                  selfColumnPicker.grid.getColumns().slice(0);
-                              arr.sort(function (o1, o2)
-                                       {
-                                         var lowerO1Name =
-                                             o1.name.toLowerCase();
-                                         var lowerO2Name =
-                                             o2.name.toLowerCase();
-                                         return lowerO1Name > lowerO2Name
-                                             ? 1 : lowerO1Name < lowerO2Name
-                                                    ? -1 : 0;
-                                       });
+      $orderAlphaSpan.click(
+          function ()
+          {
+            // Slice at index 1 to omit the checkbox column.  We'll add it in
+            // later.
+            var arr =
+                new cadc.web.util.Array(
+                    selfColumnPicker.grid.getColumns().slice(1));
+            var sortedArray = arr.sort("name");
 
-                              setColumns(arr);
-                              trigger(cadc.vot.picker.events.onSortAlphabetically,
-                                      null, null);
-                            });
+            sortedArray.splice(0, 0, selfColumnPicker.checkboxColumn);
+
+            setColumns(sortedArray);
+            buildMenus();
+
+            trigger(cadc.vot.picker.events.onSortAlphabetically,
+                    null, null);
+
+            return false;
+          });
 
       selfColumnPicker.$availableItems.disableSelection();
       selfColumnPicker.$selectedItems.disableSelection();
@@ -225,6 +249,9 @@
 
       var $liItems = selfColumnPicker.$selectedItems.find("li");
       var newColumns = [];
+
+      // Always first.
+      newColumns.push(selfColumnPicker.checkboxColumn);
 
       for (var sii = 0, sil = $liItems.length; sii < sil; sii++)
       {
@@ -266,15 +293,20 @@
     /**
      * Build the columns menus.
      **/
-    function addColumns()
+    function addMenuItems()
     {
       // Displayed columns.
       var gridColumns = selfColumnPicker.grid.getColumns();
 
       for (var gi = 0, gl = gridColumns.length; gi < gl; gi++)
       {
-        var $selectedItemDOM = createColumnDOM(gridColumns[gi], true);
-        selfColumnPicker.$selectedItems.append($selectedItemDOM);
+        var nextSelectedColumn = gridColumns[gi];
+
+        if (nextSelectedColumn.id != cadc.vot.picker.CHECKBOX_ID)
+        {
+          selfColumnPicker.$selectedItems.append(
+              createColumnDOM(nextSelectedColumn, true));
+        }
       }
 
       // Get the rest.
@@ -291,10 +323,18 @@
 
                      return true;
                    });
+
       for (var i = 0, l = availableCols.length; i < l; i++)
       {
-        var $availableItemDOM = createColumnDOM(availableCols[i], false);
-        selfColumnPicker.$availableItems.append($availableItemDOM);
+        var nextAvailableColumn = availableCols[i];
+
+        // Should never happen since the checkbox column is never not in the
+        // 'selected' menu list, but here we are anyway.
+        if (nextAvailableColumn.id != cadc.vot.picker.CHECKBOX_ID)
+        {
+          selfColumnPicker.$availableItems.append(
+              createColumnDOM(nextAvailableColumn, false));
+        }
       }
     }
 
@@ -309,61 +349,47 @@
       $li.prop("id", "ITEM_" + _col.id);
       $li.data("column-id", _col.id);
 
-      // Omit the checkbox column.
-      if (_col.id == cadc.vot.picker.CHECKBOX_ID)
-      {
-        $li.addClass("ui-state-disabled");
-        selfColumnPicker.$selectedItems.append($li);
-      }
-      else
-      {
-        var $input = $("<input type='checkbox' id='column-picker-" + _col.id
-                       + "' name='column-picker-"+ _col.id + "' />").
-            data("column-id", _col.id);
+      var $input = $("<input type='checkbox' id='column-picker-" + _col.id
+                     + "' name='column-picker-" + _col.id + "' />").
+          data("column-id", _col.id);
 
-        $input.prop("checked", __isDisplayed);
+      $input.prop("checked", __isDisplayed);
 
-        // Occurs after the actual checkbox is checked.
-        $input.change(function ()
-                     {
-                       var $listItem = $(this).parent().parent();
+      // Occurs after the actual checkbox is modified (changed).
+      $input.change(function ()
+                    {
+                      var $listItem = $(this).parent().parent();
 
-                       // Add the clone to its destination.
-                       $listItem.appendTo((this.checked)
+                      // Add the clone to its destination.
+                      $listItem.appendTo((this.checked)
                                              ? selfColumnPicker.$selectedItems
-                                             : selfColumnPicker.$availableItems);
+                                             :
+                                         selfColumnPicker.$availableItems);
 
-                       // Refresh the list.
-                       refreshColumns();
-                     });
+                      // Refresh the list.
+                      refreshColumns();
+                    });
 
-        var $columnLabel =
-            $("<div class='slick-column-picker-label-text'></div>").text(
-                _col.name);
-        $columnLabel.prop("id", "LABEL_" + _col.id);
+      var $columnLabel =
+          $("<div class='slick-column-picker-label-text'></div>").text(
+              _col.name);
+      $columnLabel.prop("id", "LABEL_" + _col.id);
 
-        $columnLabel.prepend($input);
-        $columnLabel.appendTo($li);
+      $columnLabel.prepend($input);
+      $columnLabel.appendTo($li);
 
-        return $li;
-      }
+      return $li;
     }
 
     /**
      * Construct the unordered list of items.
-     * @param e   An event to pass in.  Optional.
      */
-    function buildMenu(e)
+    function buildMenus()
     {
       selfColumnPicker.$selectedItems.empty();
       selfColumnPicker.$availableItems.empty();
 
-      addColumns();
-
-      if (e)
-      {
-        selfColumnPicker.$panel.css("top", e.pageY).css("left", e.pageX);
-      }
+      addMenuItems();
     }
 
     /**
@@ -378,7 +404,7 @@
     {
       e = e || new Slick.EventData();
       args = args || {};
-      args.grid = grid;
+      //args.grid = selfColumnPicker.grid;
       return evt.notify(args, e, selfColumnPicker);
     }
 
@@ -409,7 +435,7 @@
         {
           "updateColumnData": function (_colID, _dataKey, _dataObject)
           {
-            $.each(columns, function (cI, cO)
+            $.each(selfColumnPicker.allColumns, function (cI, cO)
             {
               if (cO.id == _colID)
               {

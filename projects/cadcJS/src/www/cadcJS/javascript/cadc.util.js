@@ -159,9 +159,88 @@
       }
     }
 
+    /**
+     * Sort this Array in _ascendingFlag ? order.  This will clone the base
+     * array and return it sorted.  The base array remains unaffected.
+     *
+     * @param {*} _propertyName  The name of the property to search on, if this
+     *                       is an array of objects.  It is null otherwise.
+     * @returns {Blob|ArrayBuffer|Array|string|*}
+     */
+    function sort(_propertyName)
+    {
+      var cloneArray = self.baseArray.slice(0);
+
+      cloneArray.sort(function (o1, o2)
+                      {
+                        var score;
+
+                        if (_propertyName)
+                        {
+                          if (o1.hasOwnProperty(_propertyName)
+                              && o2.hasOwnProperty(_propertyName))
+                          {
+                            score = _doSort(o1[_propertyName],
+                                            o2[_propertyName]);
+                          }
+                          else
+                          {
+                            throw new Error("Property '" + _propertyName
+                                            + "' does not exist in the objects "
+                                            + "being compared.")
+                          }
+                        }
+                        else
+                        {
+                          score = _doSort(o1, o2);
+                        }
+
+                        return score;
+                      });
+
+      return cloneArray;
+    }
+
+    /**
+     * Inner sort method.  This will determine data types and do appropriate
+     * comparisons.
+     *
+     * @param _left {*}     Anything under the sun.
+     * @param _right {*}    Anything under the other sun.
+     * @returns {number}    The Score of the sort comparison.
+     * @private
+     */
+    function _doSort(_left, _right)
+    {
+      var leftCompare, rightCompare;
+
+      if ((typeof _left === 'string') && ((typeof _right === 'string')))
+      {
+        leftCompare = _left.toLowerCase();
+        rightCompare = _right.toLowerCase();
+      }
+      else if (((typeof _left === 'object') && ((typeof _right === 'object')))
+               || ((typeof _left === 'function')
+                   && ((typeof _right === 'function'))))
+      {
+        leftCompare = _left.toString();
+        rightCompare = _right.toString();
+      }
+      else
+      {
+        leftCompare = _left;
+        rightCompare = _right;
+      }
+
+      return (leftCompare > rightCompare)
+          ? 1 : (leftCompare < rightCompare) ? -1 : 0;
+    }
+
+
     $.extend(this,
         {
-          "subtract": subtract
+          "subtract": subtract,
+          "sort": sort
         });
   }
 
