@@ -326,19 +326,12 @@
         // Occurs after the actual checkbox is checked.
         $input.change(function ()
                      {
-                       var $checkbox = $(this);
-                       var $listItem = $checkbox.parent().parent();
+                       var $listItem = $(this).parent().parent();
 
-                       if ($checkbox.checked)
-                       {
-                         selfColumnPicker.$availableItems.remove($listItem);
-                         selfColumnPicker.$selectedItems.append($listItem);
-                       }
-                       else
-                       {
-                         selfColumnPicker.$selectedItems.remove($listItem);
-                         selfColumnPicker.$availableItems.append($listItem);
-                       }
+                       // Add the clone to its destination.
+                       $listItem.appendTo((this.checked)
+                                             ? selfColumnPicker.$selectedItems
+                                             : selfColumnPicker.$availableItems);
 
                        // Refresh the list.
                        refreshColumns();
