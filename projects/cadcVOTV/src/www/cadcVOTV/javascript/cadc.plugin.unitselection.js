@@ -134,9 +134,7 @@
           unitPullDown.data("unitChangeHandler", unitDefinition.handler);
         }
 
-        unitPullDown
-            .bind("change", handleUnitChange)
-            .appendTo(node);
+        unitPullDown.bind("change", handleUnitChange).appendTo(node);
       }
     }
 
@@ -161,13 +159,16 @@
       var unitPullDown = $(this).data("unitPullDown");
       var unitValue = $(e.target).val();
       var handler = $(this).data("unitChangeHandler");
+      var previousUnit = $(columnDef).data("unitValue");
 
+      $(columnDef).data("previousUnitValue", previousUnit);
       $(columnDef).data("unitValue", unitValue);
 
       _self.onUnitChange.notify({
                                "grid": _grid,
                                "column": columnDef,
                                "unitValue" : unitValue,
+                               "previousUnitValue": previousUnit,
                                "unitPullDown": unitPullDown,
                                "handler": handler
                              }, e, _self);

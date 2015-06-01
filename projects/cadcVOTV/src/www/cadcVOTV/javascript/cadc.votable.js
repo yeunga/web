@@ -187,20 +187,35 @@
 
     function hasFieldWithID(_fieldID)
     {
-      var currFields = getFields();
-
-    	for (var f = 0; f < currFields.length; f++)
-    	{
-        var nextField = currFields[f];
-
-    		if (nextField && (currFields[f].getID() == _fieldID))
-    		{
-    			return true;
-    		}    	
-    	}
-    
-      return false;
+      return (getField(_fieldID) != null);
     }
+
+    /**
+     * Obtain a Field by its ID.
+     * @param _fieldID    The field ID to obtain a field for.
+     *
+     * @return {cadc.vot.Field}   Field instance, or null if not found.
+     */
+    function getField(_fieldID)
+    {
+      if (_fieldID)
+      {
+        var currFields = getFields();
+
+        for (var f = 0; f < currFields.length; f++)
+        {
+          var nextField = currFields[f];
+
+          if (nextField && (currFields[f].getID() == _fieldID))
+          {
+            return nextField;
+          }
+        }
+      }
+
+      return null;
+    }
+
 
     $.extend(this,
              {
@@ -208,6 +223,7 @@
                "getDescription": getDescription,
                "getParameters": getParameters,
                "getFields": getFields,
+               "getField": getField,
                "setFields": setFields,
                "getLinks": getLinks,
                "getGroups": getGroups,

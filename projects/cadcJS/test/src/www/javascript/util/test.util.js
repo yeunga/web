@@ -1,4 +1,4 @@
-test("Test String util.", 5, function()
+test("Test String util.", 6, function()
 {
   var stringUtil = new cadc.web.util.StringUtil("MY&&<>VAL");
 
@@ -17,6 +17,10 @@ test("Test String util.", 5, function()
 
   stringUtil = new cadc.web.util.StringUtil(0);
   equal(stringUtil.hasText(), true, "Should return true.");
+
+  stringUtil = new cadc.web.util.StringUtil("Val {0} is {1} but not {2}");
+  equal(stringUtil.format("ZERO", "ONE"), "Val ZERO is ONE but not {2}",
+        "String does not match.");
 });
 
 test("Test Number Format", 5, function()
