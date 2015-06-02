@@ -9,10 +9,13 @@ ul.slick-columnpicker
   -moz-box-shadow: 2px 2px 2px silver;
   -webkit-box-shadow: 2px 2px 2px silver;
   cursor: default;
-  width: 200px;
-  max-width: 200px;
   max-height: 500px;
   overflow-y: scroll;
+}
+
+ul#cadc_columnpicker_available_items li div.slick-column-picker-label-text
+{
+  color: rgba(125, 125, 125, 0.6);
 }
 
 .slick-columnpicker li
@@ -26,6 +29,22 @@ ul.slick-columnpicker
   font-weight: normal;
   color: #000;
 }
+
+li.add_it
+{
+  background: rgba(40, 170, 40, 0.4)
+}
+
+li.remove_it
+{
+  background: rgba(170, 40, 40, 0.4)
+}
+
+/*.ui-placeholder*/
+/*{*/
+  /*height: 2.0em;*/
+  /*min-height: 2.0em;*/
+/*}*/
 
 .slick-columnpicker input
 {

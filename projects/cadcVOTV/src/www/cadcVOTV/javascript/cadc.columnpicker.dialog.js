@@ -5,6 +5,7 @@
         "cadc": {
           "vot": {
             "picker": {
+              "CLEAR_BLOCK": "<div class='clear'></div>",
               "CHECKBOX_ID": "_checkbox_selector",
               "TARGET_SELECTOR_OPTION_KEY": "targetSelector",
               "DIALOG_TRIGGER_ID_OPTION_KEY": "dialogTriggerID",
@@ -22,7 +23,7 @@
               },
               "defaultSortableOptions": {
                 // Options for the sortable menus.
-                helper: 'clone',
+                //helper: 'clone',
                 opacity: 0.8,
                 refreshPositions: true,
                 cancel: ".ui-state-disabled"
@@ -64,12 +65,10 @@
     this.$dialog = $("#column_manager_container");
     this.$selectedItems =
         $("<ul class='slick-columnpicker slick-columnpicker-tooltip' />").
-            attr("id", "cadc_columnpicker_selected_items").
-            addClass("row-start").addClass("span-3");
+            attr("id", "cadc_columnpicker_selected_items");
     this.$availableItems =
         $("<ul class='slick-columnpicker slick-columnpicker-tooltip' />").
-            attr("id", "cadc_columnpicker_available_items").
-            addClass("row-end").addClass("span-3");
+            attr("id", "cadc_columnpicker_available_items")
     this.grid = _grid;
     this.allColumns = _columns;
     this.$target = $(getOption(cadc.vot.picker.TARGET_SELECTOR_OPTION_KEY));
@@ -80,11 +79,15 @@
      */
     function init()
     {
+      // Start fresh each time.
+      selfColumnPicker.$target.empty();
+
       var $buttonHolder =
-          $("<div class='slick-column-picker-tooltip-button-holder span-3'></div>")
+          $("<div class='slick-column-picker-tooltip-button-holder'></div>")
               .appendTo(selfColumnPicker.$target);
-      selfColumnPicker.$target.append("<div class='clear'></div>").
+      selfColumnPicker.$target.append(cadc.vot.picker.CLEAR_BLOCK).
           append("<hr />");
+
       var $showAllSpan =
           $("<span class='slick-column-picker-button'>Show all columns</span>")
               .appendTo($buttonHolder);
@@ -96,12 +99,22 @@
               .appendTo($buttonHolder);
 
       // Clear before the menus.
-      selfColumnPicker.$target.append("<div class='clear'></div>");
+      selfColumnPicker.$target.append(cadc.vot.picker.CLEAR_BLOCK);
 
-      selfColumnPicker.$dialog.find(".column_manager_columns").
-          append(selfColumnPicker.$selectedItems).
-          append($("<div class='span-1'></div>")).
-          append(selfColumnPicker.$availableItems);
+      var $mainContainer = $("<div class='equalize' />");
+      var $selectedItemsContainer =
+          $("<div>").addClass("row-start").addClass("span-2").
+              append(selfColumnPicker.$selectedItems);
+      var $availableItemsContainer =
+          $("<div>").addClass("row-end").addClass("span-2").
+              addClass("float-right").append(selfColumnPicker.$availableItems);
+
+      $mainContainer.append($selectedItemsContainer).
+          append($availableItemsContainer).
+          append(cadc.vot.picker.CLEAR_BLOCK);
+
+      selfColumnPicker.$dialog.find(".column_manager_columns").append(
+          $mainContainer);
 
       selfColumnPicker.$dialog.on("popupbeforeposition", function ()
       {
@@ -110,6 +123,9 @@
 
       /**
        * Function issued when the jQuery UI's Sortable menu feature has ended.
+       *
+       * @param event   The event object.
+       * @param ui      The ui object.
        */
       var onDrop = function (event, ui)
       {
@@ -118,6 +134,56 @@
             (ui.sender[0].id === selfColumnPicker.$availableItems.attr("id"));
         $liItem.find("input[id='column-picker-" + $liItem.data("column-id")
                      + "']").prop("checked", itemChecked);
+        $liItem.removeClass("add_it");
+        $liItem.removeClass("remove_it");
+        refreshColumns();
+      };
+
+      /**
+       * On hover of a sortable list.
+       *
+       * @param event   The event object.
+       * @param ui      The ui object.
+       */
+      var onHover = function (event, ui)
+      {
+        var $liItem = $(ui.item[0]);
+
+        // Looking for the opposite as this is on OVER.
+        var itemChecked = !$liItem.find(":checkbox").prop("checked");
+
+        // Only change the style if it's moving to a different menu.
+        if (ui.sender)
+        {
+          // The same menu.
+          if (ui.sender[0].id === $(this).attr("id"))
+          {
+            $liItem.removeClass("add_it");
+            $liItem.removeClass("remove_it");
+          }
+          else
+          {
+            $liItem.addClass((itemChecked === true) ? "add_it" : "remove_it");
+          }
+        }
+        else
+        {
+          $liItem.removeClass("add_it");
+          $liItem.removeClass("remove_it");
+        }
+
+        return true;
+      };
+
+      /**
+       * Stop sorting for the selected items only.
+       *
+       * @param event   The event object.
+       * @param ui      The ui object.
+       */
+      var onStop = function (event, ui)
+      {
+        $(ui.item[0]).removeClass("add_it").removeClass("remove_it");
         refreshColumns();
       };
 
@@ -127,6 +193,8 @@
                 "connectWith": "#" +
                                selfColumnPicker.$availableItems.attr("id"),
                 "receive": onDrop,
+                "stop": onStop,
+                "over": onHover,
                 "appendTo": selfColumnPicker.$dialog
               },
               cadc.vot.picker.defaultSortableOptions);
@@ -136,6 +204,7 @@
                 "connectWith": "#" +
                                selfColumnPicker.$selectedItems.attr("id"),
                 "receive": onDrop,
+                "over": onHover,
                 "appendTo": selfColumnPicker.$dialog
               },
               cadc.vot.picker.defaultSortableOptions);
@@ -404,7 +473,6 @@
     {
       e = e || new Slick.EventData();
       args = args || {};
-      //args.grid = selfColumnPicker.grid;
       return evt.notify(args, e, selfColumnPicker);
     }
 
