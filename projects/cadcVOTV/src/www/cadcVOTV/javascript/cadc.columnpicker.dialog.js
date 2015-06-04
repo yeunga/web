@@ -55,6 +55,7 @@
    */
   function DialogColumnPicker(_columns, _grid, _options)
   {
+    var LINE_BREAK_HTML = "<br />";
     var selfColumnPicker = this;
 
     this.options = $.extend({}, cadc.vot.picker.defaultOptions, _options);
@@ -76,12 +77,88 @@
 
 
     /**
+     * Order alphabetically one menu.
+     *
+     * @param _$menu    The <UL> menu to order the items of.
+     * @param _reverseFlag  Whether to sort in reverse.
+     * @private
+     */
+    function _alphaOrder(_$menu, _reverseFlag)
+    {
+      var arrayUtil = new cadc.web.util.ArrayUtil();
+      var $arr = _$menu.find("li");
+
+      // Make a copy to use later to reset the data-column-id attribute.
+      var $arrCopy = $arr.clone(true, true);
+
+      $arr.sort(function (o1, o2)
+                {
+                  if (_reverseFlag === true)
+                  {
+                    return arrayUtil.compare(
+                      $(o2).find("div:first-child").text(),
+                      $(o1).find("div:first-child").text())
+                  }
+                  else
+                  {
+                    return arrayUtil.compare(
+                      $(o1).find("div:first-child").text(),
+                      $(o2).find("div:first-child").text())
+                  }
+                });
+
+      _$menu.empty();
+
+      // Re-instate the data-column-id attributes as they are lost during
+      // array sorting! jenkinsd 2015.06.03
+      for (var sai = 0, sal = $arr.length; sai < sal; sai++)
+      {
+        var $nextSorted = $($arr[sai]);
+
+        for (var ai = 0, al = $arrCopy.length; ai < al; ai++)
+        {
+          var $nextItemWithID = $($arrCopy[ai]);
+          if ($nextItemWithID.attr("id") === $nextSorted.attr("id"))
+          {
+            _$menu.append($nextItemWithID);
+            break;
+          }
+        }
+      }
+    }
+
+
+    /**
      * Initialize this column picker.
      */
     function init()
     {
       // Start fresh each time.
       selfColumnPicker.$target.empty();
+
+
+      cadc.vot.picker.events.onSortAlphabetically.subscribe(function (event, args)
+                                                            {
+                                                              if (args.$menu.attr("id")
+                                                                  ===
+                                                                  selfColumnPicker.$selectedItems.attr("id"))
+                                                              {
+                                                                setColumns();
+                                                              }
+                                                            });
+
+      cadc.vot.picker.events.onShowAllColumns.subscribe(function ()
+                                                        {
+                                                          setColumns();
+                                                        });
+
+      cadc.vot.picker.events.onResetColumnOrder.subscribe(function (event)
+                                                          {
+                                                            setColumns();
+
+                                                            event.stopImmediatePropagation();
+                                                            return false;
+                                                          });
 
       var $buttonHolder =
         $("<div class='slick-column-picker-tooltip-button-holder'></div>")
@@ -95,20 +172,72 @@
       var $resetSpan =
         $("<span class='slick-column-picker-button'></span>").text(
           getOption("resetButtonText")).appendTo($buttonHolder);
-      var $orderAlphaSpan =
-        $("<span class='slick-column-picker-button'></span>").text(
-          getOption("orderAlphaButtonText")).appendTo($buttonHolder);
 
       // Clear before the menus.
       selfColumnPicker.$target.append(cadc.vot.picker.CLEAR_BLOCK);
 
+      var alphaButtonHTML =
+        "<span class='slick-column-picker-button alpha-sort margin-left-none'>&darr;&nbsp;&uarr;</span>";
+
+      var $selectedAlphaSortButton = $(alphaButtonHTML);
+      $selectedAlphaSortButton.attr("id", selfColumnPicker.$selectedItems.attr("id") +
+                                          "_ALPHASORT");
+      $selectedAlphaSortButton.data("reverse-sort", false);
+
+      var $availableAlphaSortButton = $(alphaButtonHTML);
+      $availableAlphaSortButton.attr("id", selfColumnPicker.$availableItems.attr("id") +
+                                           "_ALPHASORT");
+      $availableAlphaSortButton.data("reverse-sort", false);
+
       var $mainContainer = $("<div class='equalize' />");
       var $selectedItemsContainer =
         $("<div>").addClass("row-start").addClass("span-2").
-          append(selfColumnPicker.$selectedItems);
+          append($selectedAlphaSortButton).append(LINE_BREAK_HTML).append(
+          selfColumnPicker.$selectedItems);
       var $availableItemsContainer =
         $("<div>").addClass("row-end").addClass("span-2").
-          addClass("float-right").append(selfColumnPicker.$availableItems);
+          addClass("float-right").append($availableAlphaSortButton).append(
+          LINE_BREAK_HTML).append(selfColumnPicker.$availableItems);
+
+      /**
+       * Post alpha sort.
+       *
+       * @param _$menu        The menu to pass to the event.
+       * @param _$origin      The clicked element
+       * @returns {boolean}   Return false to prevent default click behaviour.
+       * @private
+       */
+      var _onAlphaSort = function (_$menu, _$origin)
+      {
+        var reverseSortFlag = _$origin.data("reverse-sort");
+
+        _alphaOrder(_$menu, reverseSortFlag);
+
+        // Switch the reverse sort for next time.
+        _$origin.data("reverse-sort", !reverseSortFlag);
+
+        trigger(cadc.vot.picker.events.onSortAlphabetically,
+          {
+            "$menu": _$menu
+          }, null);
+
+        return false;
+      };
+
+      $selectedAlphaSortButton.click(function ()
+                                     {
+                                       return _onAlphaSort(
+                                         selfColumnPicker.$selectedItems,
+                                         $(this));
+                                     });
+
+      $availableAlphaSortButton.click(function ()
+                                      {
+                                        return _onAlphaSort(
+                                          selfColumnPicker.$availableItems,
+                                          $(this));
+                                      });
+
 
       $mainContainer.append($selectedItemsContainer).
         append($availableItemsContainer).
@@ -202,8 +331,7 @@
       var selectedItemsOptions =
         $.extend({},
           {
-            "connectWith": "#" +
-                           selfColumnPicker.$availableItems.attr("id"),
+            "connectWith": "#" + selfColumnPicker.$availableItems.attr("id"),
             "receive": onDrop,
             "stop": onStop,
             "over": onHover,
@@ -213,8 +341,7 @@
       var availableItemsOptions =
         $.extend({},
           {
-            "connectWith": "#" +
-                           selfColumnPicker.$selectedItems.attr("id"),
+            "connectWith": "#" + selfColumnPicker.$selectedItems.attr("id"),
             "receive": onDrop,
             "over": onHover,
             "appendTo": selfColumnPicker.$dialog
@@ -231,24 +358,6 @@
           selfColumnPicker.$dialog.popup("close");
           return false;
         });
-
-      cadc.vot.picker.events.onSortAlphabetically.subscribe(function ()
-                                                            {
-                                                              setColumns();
-                                                            });
-
-      cadc.vot.picker.events.onShowAllColumns.subscribe(function ()
-                                                        {
-                                                          setColumns();
-                                                        });
-
-      cadc.vot.picker.events.onResetColumnOrder.subscribe(function (event)
-                                                          {
-                                                            setColumns();
-
-                                                            event.stopImmediatePropagation();
-                                                            return false;
-                                                          });
 
 
       /*
@@ -283,60 +392,6 @@
 
                            return false;
                          });
-
-      /**
-       * Order alphabetically one menu.
-       *
-       * @param _$menu    The <UL> menu to order the items of.
-       * @private
-       */
-      function _alphaOrder(_$menu)
-      {
-        var arrayUtil = new cadc.web.util.ArrayUtil();
-        var $arr = _$menu.find("li");
-
-        // Make a copy to use later to reset the data-column-id attribute.
-        var $arrCopy = $arr.clone(true, true);
-
-        $arr.sort(function (o1, o2)
-                  {
-                    return arrayUtil.compare(
-                      $(o1).find("div:first-child").text(),
-                      $(o2).find("div:first-child").text())
-                  });
-
-        _$menu.empty();
-
-        // Re-instate the data-column-id attributes as they are lost during array
-        // sorting!
-        // jenkinsd 2015.06.03
-        for (var sai = 0, sal = $arr.length; sai < sal; sai++)
-        {
-          var $nextSorted = $($arr[sai]);
-
-          for (var ai = 0, al = $arrCopy.length; ai < al; ai++)
-          {
-            var $nextItemWithID = $($arrCopy[ai]);
-            if ($nextItemWithID.attr("id") === $nextSorted.attr("id"))
-            {
-              _$menu.append($nextItemWithID);
-              break;
-            }
-          }
-        }
-      }
-
-      $orderAlphaSpan.click(
-        function ()
-        {
-          _alphaOrder(selfColumnPicker.$selectedItems);
-          _alphaOrder(selfColumnPicker.$availableItems);
-
-          trigger(cadc.vot.picker.events.onSortAlphabetically,
-                  null, null);
-
-          return false;
-        });
 
       selfColumnPicker.$availableItems.disableSelection();
       selfColumnPicker.$selectedItems.disableSelection();

@@ -1,8 +1,7 @@
 ul.slick-columnpicker
 {
-  /*position: relative;*/
   list-style-type: none;
-  margin: 0;
+  margin: 8px 0 0;
   border: 1px solid #718BB7;
   background: #f0f0f0;
   padding: 6px;
@@ -11,6 +10,15 @@ ul.slick-columnpicker
   cursor: default;
   max-height: 500px;
   overflow-y: scroll;
+}
+
+ul.ui-autocomplete li.ui-state-focus
+{
+  background: #fdf5ce;
+  border: none;
+  font-weight: normal;
+  color: inherit;
+  margin: 0;
 }
 
 .slick-columnpicker li
