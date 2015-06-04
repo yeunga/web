@@ -1,45 +1,46 @@
 (function ($)
 {
   $.extend(true, window,
-      {
-        "cadc": {
-          "vot": {
-            "picker": {
-              "CLEAR_BLOCK": "<div class='clear'></div>",
-              "CHECKBOX_ID": "_checkbox_selector",
-              "TARGET_SELECTOR_OPTION_KEY": "targetSelector",
-              "DIALOG_TRIGGER_ID_OPTION_KEY": "dialogTriggerID",
-              "DIALOG_CLOSE_SELECTOR_KEY": "closeDialogSelector",
-              "DialogColumnPicker": DialogColumnPicker,
-              "defaultOptions": {
-                fadeSpeed: 250,
-                linkText: "More columns...",
-                dialogButtonID: "slick-columnpicker-panel-change-column",
+    {
+      "cadc": {
+        "vot": {
+          "picker": {
+            "CLEAR_BLOCK": "<div class='clear'></div>",
+            "CHECKBOX_ID": "_checkbox_selector",
+            "TARGET_SELECTOR_OPTION_KEY": "targetSelector",
+            "DIALOG_TRIGGER_ID_OPTION_KEY": "dialogTriggerID",
+            "DIALOG_CLOSE_SELECTOR_KEY": "closeDialogSelector",
+            "DialogColumnPicker": DialogColumnPicker,
+            "defaultOptions": {
+              showAllButtonText: "Show all columns",
+              resetButtonText: "Default columns",
+              orderAlphaButtonText: "Order alphabetically",
+              dialogButtonID: "slick-columnpicker-panel-change-column",
 
-                // Options for the dialog
-                modal: true,
-                autoOpen: false,
-                closeDialogSelector: ".dialog_close"
-              },
-              "defaultSortableOptions": {
-                // Options for the sortable menus.
-                //helper: 'clone',
-                opacity: 0.8,
-                refreshPositions: true,
-                cancel: ".ui-state-disabled"
-              },
-              "events": {
-                "onColumnPickerInit": new Slick.Event(),
-                "onColumnAddOrRemove": new Slick.Event(),
-                "onSort": new Slick.Event(),
-                "onResetColumnOrder": new Slick.Event(),
-                "onShowAllColumns": new Slick.Event(),
-                "onSortAlphabetically": new Slick.Event()
-              }
+              // Options for the dialog
+              modal: true,
+              autoOpen: false,
+              closeDialogSelector: ".dialog_close"
+            },
+            "defaultSortableOptions": {
+              // Options for the sortable menus.
+              //helper: 'clone',
+              opacity: 0.8,
+              refreshPositions: true,
+              cancel: ".ui-state-disabled"
+            },
+            "events": {
+              "onColumnPickerInit": new Slick.Event(),
+              "onColumnAddOrRemove": new Slick.Event(),
+              "onSort": new Slick.Event(),
+              "onResetColumnOrder": new Slick.Event(),
+              "onShowAllColumns": new Slick.Event(),
+              "onSortAlphabetically": new Slick.Event()
             }
           }
         }
-      });
+      }
+    });
 
 
   /**
@@ -64,11 +65,11 @@
 
     this.$dialog = $("#column_manager_container");
     this.$selectedItems =
-        $("<ul class='slick-columnpicker slick-columnpicker-tooltip' />").
-            attr("id", "cadc_columnpicker_selected_items");
+      $("<ul class='slick-columnpicker slick-columnpicker-tooltip' />").
+        attr("id", "cadc_columnpicker_selected_items");
     this.$availableItems =
-        $("<ul class='slick-columnpicker slick-columnpicker-tooltip' />").
-            attr("id", "cadc_columnpicker_available_items")
+      $("<ul class='slick-columnpicker slick-columnpicker-tooltip' />").
+        attr("id", "cadc_columnpicker_available_items");
     this.grid = _grid;
     this.allColumns = _columns;
     this.$target = $(getOption(cadc.vot.picker.TARGET_SELECTOR_OPTION_KEY));
@@ -83,38 +84,38 @@
       selfColumnPicker.$target.empty();
 
       var $buttonHolder =
-          $("<div class='slick-column-picker-tooltip-button-holder'></div>")
-              .appendTo(selfColumnPicker.$target);
+        $("<div class='slick-column-picker-tooltip-button-holder'></div>")
+          .appendTo(selfColumnPicker.$target);
       selfColumnPicker.$target.append(cadc.vot.picker.CLEAR_BLOCK).
-          append("<hr />");
+        append("<hr />");
 
       var $showAllSpan =
-          $("<span class='slick-column-picker-button'>Show all columns</span>")
-              .appendTo($buttonHolder);
+        $("<span class='slick-column-picker-button'></span>").text(
+          getOption("showAllButtonText")).appendTo($buttonHolder);
       var $resetSpan =
-          $("<span class='slick-column-picker-button'>Reset column order</span>")
-              .appendTo($buttonHolder);
+        $("<span class='slick-column-picker-button'></span>").text(
+          getOption("resetButtonText")).appendTo($buttonHolder);
       var $orderAlphaSpan =
-          $("<span class='slick-column-picker-button'>Order alphabetically</span>")
-              .appendTo($buttonHolder);
+        $("<span class='slick-column-picker-button'></span>").text(
+          getOption("orderAlphaButtonText")).appendTo($buttonHolder);
 
       // Clear before the menus.
       selfColumnPicker.$target.append(cadc.vot.picker.CLEAR_BLOCK);
 
       var $mainContainer = $("<div class='equalize' />");
       var $selectedItemsContainer =
-          $("<div>").addClass("row-start").addClass("span-2").
-              append(selfColumnPicker.$selectedItems);
+        $("<div>").addClass("row-start").addClass("span-2").
+          append(selfColumnPicker.$selectedItems);
       var $availableItemsContainer =
-          $("<div>").addClass("row-end").addClass("span-2").
-              addClass("float-right").append(selfColumnPicker.$availableItems);
+        $("<div>").addClass("row-end").addClass("span-2").
+          addClass("float-right").append(selfColumnPicker.$availableItems);
 
       $mainContainer.append($selectedItemsContainer).
-          append($availableItemsContainer).
-          append(cadc.vot.picker.CLEAR_BLOCK);
+        append($availableItemsContainer).
+        append(cadc.vot.picker.CLEAR_BLOCK);
 
       selfColumnPicker.$dialog.find(".column_manager_columns").append(
-          $mainContainer);
+        $mainContainer);
 
       selfColumnPicker.$dialog.on("popupbeforeposition", function ()
       {
@@ -122,7 +123,19 @@
       });
 
       /**
-       * Function issued when the jQuery UI's Sortable menu feature has ended.
+       * Clear the list item of state CSS.
+       *
+       * @param _$li    The jQuery list item.
+       * @private
+       */
+      var _clearListItem = function (_$li)
+      {
+        _$li.removeClass("add_it").removeClass("remove_it");
+      };
+
+      /**
+       * Function issued when the jQuery UI's Sortable menu feature has
+       * ended.
        *
        * @param event   The event object.
        * @param ui      The ui object.
@@ -131,12 +144,12 @@
       {
         var $liItem = $(ui.item[0]);
         var itemChecked =
-            (ui.sender[0].id === selfColumnPicker.$availableItems.attr("id"));
+          (ui.sender[0].id ===
+           selfColumnPicker.$availableItems.attr("id"));
         $liItem.find("input[id='column-picker-" + $liItem.data("column-id")
                      + "']").prop("checked", itemChecked);
-        $liItem.removeClass("add_it");
-        $liItem.removeClass("remove_it");
-        refreshColumns();
+        _clearListItem($liItem);
+        setColumns();
       };
 
       /**
@@ -158,18 +171,17 @@
           // The same menu.
           if (ui.sender[0].id === $(this).attr("id"))
           {
-            $liItem.removeClass("add_it");
-            $liItem.removeClass("remove_it");
+            _clearListItem($liItem);
           }
           else
           {
-            $liItem.addClass((itemChecked === true) ? "add_it" : "remove_it");
+            $liItem.addClass((itemChecked === true)
+                               ? "add_it" : "remove_it");
           }
         }
         else
         {
-          $liItem.removeClass("add_it");
-          $liItem.removeClass("remove_it");
+          _clearListItem($liItem);
         }
 
         return true;
@@ -183,42 +195,60 @@
        */
       var onStop = function (event, ui)
       {
-        $(ui.item[0]).removeClass("add_it").removeClass("remove_it");
-        refreshColumns();
+        _clearListItem($(ui.item[0]));
+        setColumns();
       };
 
       var selectedItemsOptions =
-          $.extend({},
-              {
-                "connectWith": "#" +
-                               selfColumnPicker.$availableItems.attr("id"),
-                "receive": onDrop,
-                "stop": onStop,
-                "over": onHover,
-                "appendTo": selfColumnPicker.$dialog
-              },
-              cadc.vot.picker.defaultSortableOptions);
+        $.extend({},
+          {
+            "connectWith": "#" +
+                           selfColumnPicker.$availableItems.attr("id"),
+            "receive": onDrop,
+            "stop": onStop,
+            "over": onHover,
+            "appendTo": selfColumnPicker.$dialog
+          },
+          cadc.vot.picker.defaultSortableOptions);
       var availableItemsOptions =
-          $.extend({},
-              {
-                "connectWith": "#" +
-                               selfColumnPicker.$selectedItems.attr("id"),
-                "receive": onDrop,
-                "over": onHover,
-                "appendTo": selfColumnPicker.$dialog
-              },
-              cadc.vot.picker.defaultSortableOptions);
+        $.extend({},
+          {
+            "connectWith": "#" +
+                           selfColumnPicker.$selectedItems.attr("id"),
+            "receive": onDrop,
+            "over": onHover,
+            "appendTo": selfColumnPicker.$dialog
+          },
+          cadc.vot.picker.defaultSortableOptions);
 
       selfColumnPicker.$selectedItems.sortable(selectedItemsOptions);
       selfColumnPicker.$availableItems.sortable(availableItemsOptions);
 
       selfColumnPicker.$dialog.find(
-          getOption(cadc.vot.picker.DIALOG_CLOSE_SELECTOR_KEY)).click(
-          function ()
-          {
-            selfColumnPicker.$dialog.popup("close");
-            return false;
-          });
+        getOption(cadc.vot.picker.DIALOG_CLOSE_SELECTOR_KEY)).click(
+        function ()
+        {
+          selfColumnPicker.$dialog.popup("close");
+          return false;
+        });
+
+      cadc.vot.picker.events.onSortAlphabetically.subscribe(function ()
+                                                            {
+                                                              setColumns();
+                                                            });
+
+      cadc.vot.picker.events.onShowAllColumns.subscribe(function ()
+                                                        {
+                                                          setColumns();
+                                                        });
+
+      cadc.vot.picker.events.onResetColumnOrder.subscribe(function (event)
+                                                          {
+                                                            setColumns();
+
+                                                            event.stopImmediatePropagation();
+                                                            return false;
+                                                          });
 
 
       /*
@@ -230,52 +260,23 @@
        */
       $resetSpan.click(function ()
                        {
-                         // Setup the grid first, then rebuild the menus.
-                         setColumns(selfColumnPicker.originalColumns.slice(0));
                          buildMenus();
 
-                         //trigger(cadc.vot.picker.events.onResetColumnOrder,
-                         //        null, null);
+                         trigger(cadc.vot.picker.events.onResetColumnOrder,
+                                 null, null);
 
                          return false;
                        });
 
       $showAllSpan.click(function ()
                          {
-                           var colIDs = [];
-                           var gridCols =
-                               selfColumnPicker.grid.getColumns().slice(0);
-                           var allCols = [];
+                           var $items =
+                             selfColumnPicker.$availableItems.find("li");
 
-                           $.each(gridCols, function (gcKey, gColDef)
-                           {
-                             colIDs.push(gColDef.id);
-                             allCols.push(gColDef);
-                           });
+                           selfColumnPicker.$selectedItems.append($items);
+                           $items.find(":checkbox").prop("checked", true);
 
-                           $.each(selfColumnPicker.allColumns,
-                                  function (colKey, colDef)
-                                  {
-                                    var colID = colDef.id;
-                                    var isInGrid = false;
-
-                                    $.each(colIDs, function (ccKey, cColID)
-                                    {
-                                      if (cColID == colID)
-                                      {
-                                        isInGrid = true;
-                                        return false;
-                                      }
-                                    });
-
-                                    if (!isInGrid)
-                                    {
-                                      allCols.push(colDef);
-                                    }
-                                  });
-
-                           setColumns(allCols);
-                           buildMenus();
+                           selfColumnPicker.$availableItems.empty();
 
                            trigger(cadc.vot.picker.events.onShowAllColumns,
                                    null, null);
@@ -283,59 +284,73 @@
                            return false;
                          });
 
-      $orderAlphaSpan.click(
-          function ()
+      /**
+       * Order alphabetically one menu.
+       *
+       * @param _$menu    The <UL> menu to order the items of.
+       * @private
+       */
+      function _alphaOrder(_$menu)
+      {
+        var arrayUtil = new cadc.web.util.ArrayUtil();
+        var $arr = _$menu.find("li");
+
+        // Make a copy to use later to reset the data-column-id attribute.
+        var $arrCopy = $arr.clone(true, true);
+
+        $arr.sort(function (o1, o2)
+                  {
+                    return arrayUtil.compare(
+                      $(o1).find("div:first-child").text(),
+                      $(o2).find("div:first-child").text())
+                  });
+
+        _$menu.empty();
+
+        // Re-instate the data-column-id attributes as they are lost during array
+        // sorting!
+        // jenkinsd 2015.06.03
+        for (var sai = 0, sal = $arr.length; sai < sal; sai++)
+        {
+          var $nextSorted = $($arr[sai]);
+
+          for (var ai = 0, al = $arrCopy.length; ai < al; ai++)
           {
-            // Slice at index 1 to omit the checkbox column.  We'll add it in
-            // later.
-            var arr =
-                new cadc.web.util.Array(
-                    selfColumnPicker.grid.getColumns().slice(1));
-            var sortedArray = arr.sort("name");
+            var $nextItemWithID = $($arrCopy[ai]);
+            if ($nextItemWithID.attr("id") === $nextSorted.attr("id"))
+            {
+              _$menu.append($nextItemWithID);
+              break;
+            }
+          }
+        }
+      }
 
-            sortedArray.splice(0, 0, selfColumnPicker.checkboxColumn);
+      $orderAlphaSpan.click(
+        function ()
+        {
+          _alphaOrder(selfColumnPicker.$selectedItems);
+          _alphaOrder(selfColumnPicker.$availableItems);
 
-            setColumns(sortedArray);
-            buildMenus();
+          trigger(cadc.vot.picker.events.onSortAlphabetically,
+                  null, null);
 
-            trigger(cadc.vot.picker.events.onSortAlphabetically,
-                    null, null);
-
-            return false;
-          });
+          return false;
+        });
 
       selfColumnPicker.$availableItems.disableSelection();
       selfColumnPicker.$selectedItems.disableSelection();
     }
 
     /**
-     * Using the set of selected menu items, refresh the grid's columns.
+     * Obtain an option value by its key.
+     * @param _key      The name of the option.
+     * @returns {*}     The value of the option, or null if not found.
      */
-    function refreshColumns()
-    {
-      selfColumnPicker.$availableItems.sortable("refresh");
-      selfColumnPicker.$selectedItems.sortable("refresh");
-
-      var $liItems = selfColumnPicker.$selectedItems.find("li");
-      var newColumns = [];
-
-      // Always first.
-      newColumns.push(selfColumnPicker.checkboxColumn);
-
-      for (var sii = 0, sil = $liItems.length; sii < sil; sii++)
-      {
-        var $liItem = $($liItems[sii]);
-        var columnID = $liItem.data("column-id");
-        newColumns.push(getColumn(columnID));
-      }
-
-      setColumns(newColumns);
-    }
-
     function getOption(_key)
     {
       return selfColumnPicker.options.hasOwnProperty(_key)
-          ? selfColumnPicker.options[_key] : null;
+        ? selfColumnPicker.options[_key] : null;
     }
 
     /**
@@ -365,7 +380,7 @@
     function addMenuItems()
     {
       // Displayed columns.
-      var gridColumns = selfColumnPicker.grid.getColumns();
+      var gridColumns = selfColumnPicker.originalColumns;
 
       for (var gi = 0, gl = gridColumns.length; gi < gl; gi++)
       {
@@ -374,24 +389,25 @@
         if (nextSelectedColumn.id != cadc.vot.picker.CHECKBOX_ID)
         {
           selfColumnPicker.$selectedItems.append(
-              createColumnDOM(nextSelectedColumn, true));
+            createColumnDOM(nextSelectedColumn, true));
         }
       }
 
       // Get the rest.
       var availableCols = new cadc.web.util.Array(selfColumnPicker.allColumns).
-          subtract(function (element/*, index, array*/)
+        subtract(function (element/*, index, array*/)
+                 {
+                   for (var ii = 0, gcl = gridColumns.length; ii < gcl;
+                        ii++)
                    {
-                     for (var ii = 0, gcl = gridColumns.length; ii < gcl; ii++)
+                     if (gridColumns[ii].id == element.id)
                      {
-                       if (gridColumns[ii].id == element.id)
-                       {
-                         return false;
-                       }
+                       return false;
                      }
+                   }
 
-                     return true;
-                   });
+                   return true;
+                 });
 
       for (var i = 0, l = availableCols.length; i < l; i++)
       {
@@ -402,7 +418,7 @@
         if (nextAvailableColumn.id != cadc.vot.picker.CHECKBOX_ID)
         {
           selfColumnPicker.$availableItems.append(
-              createColumnDOM(nextAvailableColumn, false));
+            createColumnDOM(nextAvailableColumn, false));
         }
       }
     }
@@ -420,7 +436,7 @@
 
       var $input = $("<input type='checkbox' id='column-picker-" + _col.id
                      + "' name='column-picker-" + _col.id + "' />").
-          data("column-id", _col.id);
+        data("column-id", _col.id);
 
       $input.prop("checked", __isDisplayed);
 
@@ -431,17 +447,16 @@
 
                       // Add the clone to its destination.
                       $listItem.appendTo((this.checked)
-                                             ? selfColumnPicker.$selectedItems
-                                             :
-                                         selfColumnPicker.$availableItems);
+                                           ? selfColumnPicker.$selectedItems
+                                           : selfColumnPicker.$availableItems);
 
                       // Refresh the list.
-                      refreshColumns();
+                      setColumns();
                     });
 
       var $columnLabel =
-          $("<div class='slick-column-picker-label-text'></div>").text(
-              _col.name);
+        $("<div class='slick-column-picker-label-text'></div>").text(
+          _col.name);
       $columnLabel.prop("id", "LABEL_" + _col.id);
 
       $columnLabel.prepend($input);
@@ -479,44 +494,63 @@
     function updateColumns()
     {
       trigger(cadc.vot.picker.events.onSort,
-          {
-            "visibleColumns": selfColumnPicker.grid.getColumns()
-          }, null);
+        {
+          "visibleColumns": selfColumnPicker.grid.getColumns()
+        }, null);
 
       trigger(cadc.vot.picker.events.onColumnAddOrRemove,
-          {
-            "visibleColumns": selfColumnPicker.grid.getColumns()
-          }, null);
+        {
+          "visibleColumns": selfColumnPicker.grid.getColumns()
+        }, null);
     }
 
     /**
-     * Commit the given columns to the grid.
-     * @param _cols   The array of columns.
+     * Commit the selected columns to the grid.
      */
-    function setColumns(_cols)
+    function setColumns()
     {
-      selfColumnPicker.grid.setColumns(_cols);
+      var $selectedLIs = selfColumnPicker.$selectedItems.find("li");
+      var selectedCols = [];
+
+      // Prepend the checkbox.
+      selectedCols.push(selfColumnPicker.checkboxColumn);
+
+      for (var slii = 0, slil = $selectedLIs.length; slii < slil; slii++)
+      {
+        selectedCols.push(getColumn($($selectedLIs[slii]).data("column-id")));
+      }
+
+      selfColumnPicker.grid.setColumns(selectedCols);
     }
 
 
     $.extend(this,
+      {
+        /**
+         * Used by the Viewer to set units and other meaningful data things on
+         * a column.
+         *
+         * @param _colID        The ID of the column.
+         * @param _dataKey      The key to set on the data.
+         * @param _dataObject   The item to set for the value of the data.
+         */
+        "updateColumnData": function (_colID, _dataKey, _dataObject)
         {
-          "updateColumnData": function (_colID, _dataKey, _dataObject)
+          $.each(selfColumnPicker.allColumns, function (cI, cO)
           {
-            $.each(selfColumnPicker.allColumns, function (cI, cO)
+            if (cO.id == _colID)
             {
-              if (cO.id == _colID)
-              {
-                $(cO).data(_dataKey, _dataObject);
-              }
-            });
+              $(cO).data(_dataKey, _dataObject);
+            }
+          });
 
-            selfColumnPicker.updateColumns();
-          },
-          "updateColumns": updateColumns
-        });
+          selfColumnPicker.updateColumns();
+        },
+        "updateColumns": updateColumns
+      });
 
     init();
   }
 
-})(jQuery);
+})
+(jQuery);

@@ -180,8 +180,8 @@
                           if (o1.hasOwnProperty(_propertyName)
                               && o2.hasOwnProperty(_propertyName))
                           {
-                            score = _doSort(o1[_propertyName],
-                                            o2[_propertyName]);
+                            score = arrayUtil.compare(o1[_propertyName],
+                                                      o2[_propertyName]);
                           }
                           else
                           {
@@ -192,13 +192,27 @@
                         }
                         else
                         {
-                          score = _doSort(o1, o2);
+                          score = arrayUtil.compare(o1, o2);
                         }
 
                         return score;
                       });
 
       return cloneArray;
+    }
+
+    $.extend(this,
+        {
+          "subtract": subtract,
+          "sort": sort
+        });
+  }
+
+  function ArrayUtil()
+  {
+    function isUninitialized(_arr)
+    {
+      return ((_arr === undefined) || (_arr === null));
     }
 
     /**
@@ -208,9 +222,8 @@
      * @param _left {*}     Anything under the sun.
      * @param _right {*}    Anything under the other sun.
      * @returns {number}    The Score of the sort comparison.
-     * @private
      */
-    function _doSort(_left, _right)
+    function compare(_left, _right)
     {
       var leftCompare, rightCompare;
 
@@ -236,24 +249,10 @@
           ? 1 : (leftCompare < rightCompare) ? -1 : 0;
     }
 
-
     $.extend(this,
         {
-          "subtract": subtract,
-          "sort": sort
-        });
-  }
-
-  function ArrayUtil()
-  {
-    function isUninitialized(_arr)
-    {
-      return ((_arr === undefined) || (_arr === null));
-    }
-
-    $.extend(this,
-        {
-          "isUninitialized": isUninitialized
+          "isUninitialized": isUninitialized,
+          "compare": compare
         });
   }
 
