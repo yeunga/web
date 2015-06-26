@@ -74,6 +74,7 @@
     this.grid = _grid;
     this.allColumns = _columns;
     this.$target = $(getOption(cadc.vot.picker.TARGET_SELECTOR_OPTION_KEY));
+    this.menuInitialized = false;
 
 
     /**
@@ -248,7 +249,10 @@
 
       selfColumnPicker.$dialog.on("popupbeforeposition", function ()
       {
-        buildMenus();
+        if (selfColumnPicker.menuInitialized === false)
+        {
+          buildMenus();
+        }
       });
 
       /**
@@ -529,6 +533,8 @@
       selfColumnPicker.$availableItems.empty();
 
       addMenuItems();
+
+      selfColumnPicker.menuInitialized = true;
     }
 
     /**
