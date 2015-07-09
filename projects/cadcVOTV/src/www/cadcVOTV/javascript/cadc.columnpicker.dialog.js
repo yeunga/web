@@ -61,9 +61,7 @@
     this.options = $.extend({}, cadc.vot.picker.defaultOptions, _options);
 
     // Cached value to reset to.
-    this.originalColumns = _grid.getColumns();
-    this.checkboxColumn = selfColumnPicker.originalColumns[0];
-
+    this.checkboxColumn = _grid.getColumns()[0];
     this.$dialog = $("#column_manager_container");
     this.$selectedItems =
       $("<ul class='slick-columnpicker slick-columnpicker-tooltip' />").
@@ -435,7 +433,7 @@
     function addMenuItems()
     {
       // Displayed columns.
-      var gridColumns = selfColumnPicker.originalColumns;
+      var gridColumns = selfColumnPicker.grid.getColumns();
 
       for (var gi = 0, gl = gridColumns.length; gi < gl; gi++)
       {
