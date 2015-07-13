@@ -1234,7 +1234,37 @@
         var columnPicker;
         var pickerStyle = columnPickerConfig.style;
 
-        if (pickerStyle == "header")
+        if (pickerStyle == "dialog")
+        {
+          columnPicker =
+              new cadc.vot.picker.DialogColumnPicker(getColumns(), grid,
+                                                     columnPickerConfig.options);
+
+          if (forceFitMax)
+          {
+            cadc.vot.picker.events.onSort.subscribe(resetColumnWidths);
+            cadc.vot.picker.events.onResetColumnOrder.subscribe(resetColumnWidths);
+            cadc.vot.picker.events.onShowAllColumns.subscribe(resetColumnWidths);
+            cadc.vot.picker.events.onSortAlphabetically.subscribe(resetColumnWidths);
+          }
+
+          cadc.vot.picker.events.onColumnAddOrRemove.subscribe(function (e, args)
+          {
+            if (rowSelectionModel)
+            {
+              // Refresh.
+              rowSelectionModel.refreshSelectedRanges();
+            }
+          });
+
+          cadc.vot.picker.events.onResetColumnOrder.subscribe(function ()
+          {
+            // Clear the hash.
+            parent.location.hash = '';
+            trigger(cadc.vot.events.onColumnOrderReset, null);
+          });
+        }
+        else if (pickerStyle == "header")
         {
           columnPicker = new Slick.Controls.ColumnPicker(getColumns(),
                                                          grid, getOptions());
@@ -1242,6 +1272,13 @@
           {
             columnPicker.onColumnAddOrRemove.subscribe(resetColumnWidths);
           }
+
+          columnPicker.onResetColumnOrder.subscribe(function ()
+          {
+            // Clear the hash.
+            parent.location.hash = '';
+            trigger(cadc.vot.events.onColumnOrderReset, null);
+          });
         }
         else if (pickerStyle == "tooltip")
         {
@@ -1267,21 +1304,18 @@
                                                          rowSelectionModel.refreshSelectedRanges();
                                                        }
                                                      });
+
+          columnPicker.onResetColumnOrder.subscribe(function ()
+          {
+            // Clear the hash.
+            parent.location.hash = '';
+            trigger(cadc.vot.events.onColumnOrderReset, null);
+          });
         }
         else
         {
           columnPicker = null;
         }
-      }
-
-      if (columnPicker)
-      {
-        columnPicker.onResetColumnOrder.subscribe(function ()
-                                                  {
-                                                    // Clear the hash.
-                                                    parent.location.hash = '';
-                                                    trigger(cadc.vot.events.onColumnOrderReset, null);
-                                                  });
       }
 
       if (forceFitMax)
