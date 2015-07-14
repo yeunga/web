@@ -10,7 +10,7 @@ server, you can set the PROXY_URL filter token value to "".
 
 <!DOCTYPE project>
 
-<project default="build" basedir=".">
+<project default="build" name="cadcVOTV" basedir=".">
   <description>Canadian Astronomy Data Center Virtual Observatory Table Viewer 1.0</description>
 
   <property environment="env" />
@@ -44,7 +44,6 @@ server, you can set the PROXY_URL filter token value to "".
   </target>
 
   <target name="install_www" depends="resourceCopy, test">
-
     <chmod perm="644">
       <fileset dir="${build}/www"/> <!-- files -->
     </chmod>
@@ -59,8 +58,21 @@ server, you can set the PROXY_URL filter token value to "".
       <arg value="${build}/www/" />
       <arg value="${www}/" />
     </exec>
-
   </target>
+
+
+  <!-- Testing -->
+  <condition property="osfamily" value="Windows">
+    <os family="windows"/>
+  </condition>
+  <condition property="osfamily" value="Mac OS X">
+    <os family="mac"/>
+  </condition>
+  <condition property="osfamily" value="Linux">
+    <os family="unix"/>
+  </condition>
+
+  <property name="phantomjs.bin" value="test/phantomjs/${osfamily}/phantomjs" />
 
   <target name="test" depends="build"
           description="Runs QUnit Tests using PhantomJS">
@@ -128,7 +140,7 @@ server, you can set the PROXY_URL filter token value to "".
     <property name="js-test-dir" value="" />
     <property name="js-test-name" value="" />
 
-    <apply executable="test/phantomjs" failonerror="true">
+    <apply executable="${phantomjs.bin}" failonerror="true">
       <arg value="test/qunit-runner.js" />
       <arg line="--qunit test/qunit-1.10.0.js --package ${js-test-dir}/package.json --tests ${js-test-dir}/${js-test-name} --junit ${js-test-dir}/qunit-results.xml" />
       <fileset dir="${js-test-dir}">
