@@ -74,11 +74,212 @@
       "web": {
         "util": {
           "StringUtil": StringUtil,
-          "NumberFormat": NumberFormat
+          "NumberFormat": NumberFormat,
+          "Array": Array,
+          "ArrayUtil": ArrayUtil,
+          "GUID": GUID
         }
       }
     }
   });
+
+
+  /**
+   * Extended Array object to perform operations on arrays.
+   *
+   * @param _arr    The base array.
+   * @constructor
+   */
+  function Array(_arr)
+  {
+    var arrayUtil = new ArrayUtil();
+
+    if (arrayUtil.isUninitialized(_arr))
+    {
+      throw new Error("Base array is required.");
+    }
+
+    var self = this;
+
+    this.baseArray = _arr;
+
+
+    /**
+     * Subtract the contents of _array from ths array.  This is not a diff,
+     * just an overlap find and remove operation.
+     *
+     * @param arguments {Array | function}
+     *  The Array to remove OR
+     *  The function to filter out items.  This is useful for arrays of objects
+     *  whose equality is no concise.  (function (element, index, array) {})
+     */
+    function subtract()
+    {
+      if ((arguments.length !== 1) || !arguments[0])
+      {
+        throw new Error("Subtract requires an array or a filter function.");
+      }
+      else
+      {
+        if (typeof arguments[0] === "function")
+        {
+          return subtractFilterHandler(arguments[0]);
+        }
+        else
+        {
+          return subtractArray(arguments[0])
+        }
+      }
+    }
+
+    function subtractFilterHandler(_filterHandler)
+    {
+      if (!_filterHandler)
+      {
+        throw new Error("Filter handler is required.");
+      }
+      else
+      {
+        return self.baseArray.filter(_filterHandler);
+      }
+    }
+
+    function subtractArray(_array)
+    {
+      if (arrayUtil.isUninitialized(_array))
+      {
+        throw new Error("Array being subtracted is required.");
+      }
+      else
+      {
+        return subtractFilterHandler(function (item)
+                                     {
+                                       return (_array.indexOf(item) < 0);
+                                     });
+      }
+    }
+
+    /**
+     * Sort this Array in _ascendingFlag ? order.  This will clone the base
+     * array and return it sorted.  The base array remains unaffected.
+     *
+     * @param {*} _propertyName  The name of the property to search on, if this
+     *                       is an array of objects.  It is null otherwise.
+     * @returns {Blob|ArrayBuffer|Array|string|*}
+     */
+    function sort(_propertyName)
+    {
+      var cloneArray = self.baseArray.slice(0);
+
+      cloneArray.sort(function (o1, o2)
+                      {
+                        var score;
+
+                        if (_propertyName)
+                        {
+                          if (o1.hasOwnProperty(_propertyName)
+                              && o2.hasOwnProperty(_propertyName))
+                          {
+                            score = arrayUtil.compare(o1[_propertyName],
+                                                      o2[_propertyName]);
+                          }
+                          else
+                          {
+                            throw new Error("Property '" + _propertyName
+                                            + "' does not exist in the objects "
+                                            + "being compared.")
+                          }
+                        }
+                        else
+                        {
+                          score = arrayUtil.compare(o1, o2);
+                        }
+
+                        return score;
+                      });
+
+      return cloneArray;
+    }
+
+    $.extend(this,
+        {
+          "subtract": subtract,
+          "sort": sort
+        });
+  }
+
+  function ArrayUtil()
+  {
+    function isUninitialized(_arr)
+    {
+      return ((_arr === undefined) || (_arr === null));
+    }
+
+    /**
+     * Inner sort method.  This will determine data types and do appropriate
+     * comparisons.
+     *
+     * @param _left {*}     Anything under the sun.
+     * @param _right {*}    Anything under the other sun.
+     * @returns {number}    The Score of the sort comparison.
+     */
+    function compare(_left, _right)
+    {
+      var leftCompare, rightCompare;
+
+      if ((typeof _left === 'string') && ((typeof _right === 'string')))
+      {
+        leftCompare = _left.toLowerCase();
+        rightCompare = _right.toLowerCase();
+      }
+      else if (((typeof _left === 'object') && ((typeof _right === 'object')))
+               || ((typeof _left === 'function')
+                   && ((typeof _right === 'function'))))
+      {
+        leftCompare = _left.toString();
+        rightCompare = _right.toString();
+      }
+      else
+      {
+        leftCompare = _left;
+        rightCompare = _right;
+      }
+
+      return (leftCompare > rightCompare)
+          ? 1 : (leftCompare < rightCompare) ? -1 : 0;
+    }
+
+    $.extend(this,
+        {
+          "isUninitialized": isUninitialized,
+          "compare": compare
+        });
+  }
+
+  /**
+   * GUID generator.
+   *
+   * @constructor
+   */
+  function GUID()
+  {
+    function s4()
+    {
+      return Math.floor((1 + Math.random()) * 0x10000).
+          toString(16).substring(1);
+    }
+
+    function generate()
+    {
+      return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+             s4() + '-' + s4() + s4() + s4();
+    }
+
+    $.extend(this,
+        {
+          "generate": generate
+        });
+  }
 
   /**
    * Basic String utility class.
@@ -92,15 +293,8 @@
 
     this.string = function ()
     {
-      if (_string === Number(0))
-      {
-        // want a string with content 0, not the JavaScript boolean default
-        return "0";
-      }
-      else
-      {
-        return  _string ? _string.toString() : "";
-      }
+      return (_string === Number(0)) ? "0"
+          : (_string ? _string.toString() : "");
     }();
 
 
@@ -126,7 +320,7 @@
       var s = "" + getString();
       var args = arguments;
 
-      return s.replace(/{(\d+)}/g, function(match, number)
+      return s.replace(/{(\d+)}/g, function (match, number)
       {
         return args[number] ? args[number] : match;
       });
@@ -155,13 +349,13 @@
     }
 
     $.extend(this,
-             {
-               "sanitize": sanitize,
-               "hasLength": hasLength,
-               "hasText": hasText,
-               "format": format,
-               "matches": matches
-             });
+        {
+          "sanitize": sanitize,
+          "hasLength": hasLength,
+          "hasText": hasText,
+          "format": format,
+          "matches": matches
+        });
   }
 
   /**
@@ -264,11 +458,11 @@
 
 
     $.extend(this,
-             {
-               "format": format,
-               "formatFixation": formatFixation,
-               "formatPrecision": formatPrecision,
-               "formatExponentOrFloat": formatExponentOrFloat
-             });
+        {
+          "format": format,
+          "formatFixation": formatFixation,
+          "formatPrecision": formatPrecision,
+          "formatExponentOrFloat": formatExponentOrFloat
+        });
   }
 })(jQuery);
