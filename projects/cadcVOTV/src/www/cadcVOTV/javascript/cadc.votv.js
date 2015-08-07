@@ -86,6 +86,10 @@
 
     this.rowCountMessage = options.rowCountMessage ? options.rowCountMessage : defaultRowCountMessage;
 
+    this.atDataLoadComplete = options.atDataLoadComplete
+        ? options.atDataLoadComplete : defaultDataLoadComplete;
+    this.atPageInfoChanged = options.atPageInfoChanged
+        ? options.atPageInfoChanged : defaultPageChanging;
 
     /**
      * @param input  Object representing the input.
@@ -131,18 +135,7 @@
                                                         // Display spinner only if paging is off
                                                         if (!usePager())
                                                         {
-                                                          if ($gridHeaderIcon)
-                                                          {
-                                                            // clear the wait icon
-                                                            $gridHeaderIcon.attr("src", "/cadcVOTV/images/transparent-20.png");
-                                                            if (options.maxRowLimit <= getDataView().getPagingInfo().totalRows)
-                                                            {
-                                                              var $gridHeaderLabel = getHeaderLabel();
-                                                              // and display warning message if maximum row limit is reached
-                                                              $gridHeaderLabel.text($gridHeaderLabel.text() + " " + options.maxRowLimitWarning);
-                                                              $resultsGridHeader.css("background-color", "rgb(235, 235, 49)");
-                                                            }
-                                                          }
+                                                          _self.atDataLoadComplete();
                                                         }
 
                                                         if (getGridData().length === 0)
@@ -1219,10 +1212,12 @@
         {
           dataView.onPagingInfoChanged.subscribe(function (e, pagingInfo)
                                                  {
-                                                   var rowCount = getGridData().length;
-                                                   $gridHeaderLabel.text(
-                                                     getRowCountMessage(pagingInfo.totalRows,
-                                                                        rowCount));
+                                                   console.log("onPagingInfo subscribe function called");
+                                                   //var rowCount = getGridData().length;
+                                                   //$gridHeaderLabel.text(
+                                                   //  getRowCountMessage(pagingInfo.totalRows,
+                                                   //                     rowCount));
+                                                   _self.atPageInfoChanged(pagingInfo);
                                                  });
         }
       }
@@ -1451,6 +1446,7 @@
 
       dataView.onPagingInfoChanged.subscribe(function (e, pagingInfo)
                                              {
+                                               console.log("this is the other location!!");
                                                var isLastPage =
                                                    (pagingInfo.pageNum == pagingInfo.totalPages - 1);
                                                var enableAddRow =
@@ -1811,6 +1807,34 @@
       $(_self).on(_event.type, __handler);
     }
 
+
+    function defaultDataLoadComplete()
+    {
+      var $resultsGridHeader = getHeader();
+      var $gridHeaderIcon =
+          getHeader().find("img.grid-header-icon");
+
+      if ($gridHeaderIcon)
+      {
+        // clear the wait icon
+        $gridHeaderIcon.attr("src", "/cadcVOTV/images/transparent-20.png");
+        if (options.maxRowLimit <= getDataView().getPagingInfo().totalRows)
+        {
+          var $gridHeaderLabel = getHeaderLabel();
+          // and display warning message if maximum row limit is reached
+          $gridHeaderLabel.text($gridHeaderLabel.text() + " " + options.maxRowLimitWarning);
+          $resultsGridHeader.css("background-color", "rgb(235, 235, 49)");
+        }
+      }
+    }
+
+    function defaultPageChanging(pagingInfo)
+    {
+      console.log("defaultPageChanging");
+      var $gridHeaderLabel = getHeaderLabel();
+      var rowCount = getGridData().length;
+      $gridHeaderLabel.text(getRowCountMessage(pagingInfo.totalRows, rowCount));
+    }
 
     $.extend(this,
              {

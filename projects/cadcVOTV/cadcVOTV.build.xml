@@ -134,6 +134,12 @@ server, you can set the PROXY_URL filter token value to "".
       <param name="js-test-name" value="cadc.result-state.js" />
     </antcall>
     
+    <echo message="VOTV tests"/>
+    <antcall target="js-test">
+      <param name="js-test-dir" value="test/src/votv" />
+      <param name="js-test-name" value="test.cadc.votv.js" />
+    </antcall>
+    
   </target>
 
   <target name="js-test">
