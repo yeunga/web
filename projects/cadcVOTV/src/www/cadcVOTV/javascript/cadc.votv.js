@@ -135,7 +135,7 @@
                                                         // Display spinner only if paging is off
                                                         if (!usePager())
                                                         {
-                                                          _self.atDataLoadComplete();
+                                                          _self.atDataLoadComplete(getTotalRows(), getCurrentRows(), getHeaderLabel());
                                                         }
 
                                                         if (getGridData().length === 0)
@@ -1212,12 +1212,9 @@
         {
           dataView.onPagingInfoChanged.subscribe(function (e, pagingInfo)
                                                  {
-                                                   console.log("onPagingInfo subscribe function called");
-                                                   //var rowCount = getGridData().length;
-                                                   //$gridHeaderLabel.text(
-                                                   //  getRowCountMessage(pagingInfo.totalRows,
-                                                   //                     rowCount));
-                                                   _self.atPageInfoChanged(pagingInfo);
+                                                   _self.atPageInfoChanged(getTotalRows(),
+                                                                           getCurrentRows(),
+                                                                           getHeaderLabel());
                                                  });
         }
       }
@@ -1446,7 +1443,6 @@
 
       dataView.onPagingInfoChanged.subscribe(function (e, pagingInfo)
                                              {
-                                               console.log("this is the other location!!");
                                                var isLastPage =
                                                    (pagingInfo.pageNum == pagingInfo.totalPages - 1);
                                                var enableAddRow =
@@ -1819,7 +1815,7 @@
       {
         // clear the wait icon
         $gridHeaderIcon.attr("src", "/cadcVOTV/images/transparent-20.png");
-        if (options.maxRowLimit <= getDataView().getPagingInfo().totalRows)
+        if (options.maxRowLimit <= getTotalRows())
         {
           var $gridHeaderLabel = getHeaderLabel();
           // and display warning message if maximum row limit is reached
@@ -1829,12 +1825,19 @@
       }
     }
 
-    function defaultPageChanging(pagingInfo)
+    function defaultPageChanging(count1, count2, $label)
     {
-      console.log("defaultPageChanging");
-      var $gridHeaderLabel = getHeaderLabel();
-      var rowCount = getGridData().length;
-      $gridHeaderLabel.text(getRowCountMessage(pagingInfo.totalRows, rowCount));
+      $label.text(getRowCountMessage(count1, count2));
+    }
+
+    function getTotalRows()
+    {
+      return getDataView().getPagingInfo().totalRows;
+    }
+
+    function getCurrentRows()
+    {
+      return getDataView().getItems().length;
     }
 
     $.extend(this,

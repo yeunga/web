@@ -46,7 +46,6 @@ function createTestDOM()
   document.body.appendChild(y);
   document.body.appendChild(node);
 
-  //var $myGrid = $("#myGrid");
   var $prevMyGrid = $("#myOtherGrid");
   var $node3 = $("<img src='abc.gif' alt='test image' class='grid-header-icon'/>");
   $prevMyGrid.append($node3);
@@ -62,33 +61,25 @@ var options = {
   maxRowLimit: -1
 };
 
-test("Results page start/end events, over-ridden results.", 7, function ()
+test("Results page start/end events, over-ridden and default results.", 7, function ()
 {
   var sttic = function(count1, count2)
   {
     return "Showing " + count1 + " of " + count2 + " rows. ";
   };
 
-  var changing = function(count1, count2)
-  {
-    return sttic(count1, count2) + " Fetching data ...";
-  };
-
-  // check an over-ridden implementation
-  //options.
-  options.atDataLoadComplete = function(count1, count2)
+  var msgFn = function(msg)
   {
     ok(true, "atDataLoadComplete over-ridden function called");
-    var newMessage = sttic(count1, count2);
-    var $gridHeaderLabel = $(".grid-header-label");
-    $gridHeaderLabel.text(newMessage);
-  };
+    return function(c1, c2, $label)
+    {
+      var newMessage = msg(c1, c2);
+      $label.text(newMessage);
+    }
+  }
 
-  options.atPageInfoChanged = function(pagingInfo)
-  {
-    ok(true, "atPageInfoChanged over-ridden function called");
-    options.rowCountMessage = changing;
-  };
+  // check an over-ridden implementation
+  options.atDataLoadComplete = msgFn(sttic);
 
   createTestDOM();
 
@@ -111,16 +102,6 @@ test("Results page start/end events, over-ridden results.", 7, function ()
     // non-default implementations after event triggering
 
     var dataView = viewer.getDataView();
-    //var pageInfoChangeEvent = viewer.getDataView().onPagingInfoChanged;
-    var pageInfoChangeEvent = dataView.onPagingInfoChanged;
-    //
-    // hack so that jquery/qunit triggering work with Slick.Event objects
-    //
-    //pageInfoChangeEvent.type = "SlickGrid:onPagingInfoChanged";
-    //viewer.trigger(pageInfoChangeEvent);
-    //var $result = $("grid-header-label");
-    //console.log($result);
-    //console.log($result.text());
 
     var $myGrid = $("#myGrid");
     var $prevMyGrid = $("#myOtherGrid");
