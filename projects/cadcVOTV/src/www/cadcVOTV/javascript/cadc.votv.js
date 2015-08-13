@@ -1108,7 +1108,10 @@
           headerCssClass: "slick-header-column-checkboxsel",
           headerCheckboxLabel: getOptions().headerCheckboxLabel,
           enableOneClickDownload: getOptions().enableOneClickDownload,
-          oneClickDownloadURLPath: getOptions().oneClickDownloadURLPath
+          oneClickDownloadURL: getOptions().oneClickDownloadURL,
+
+          // The ID of the column to pull the unique link from.
+          oneClickDownloadURLColumnID: getOptions().oneClickDownloadURLColumnID
         });
       }
       else if (Slick.CheckboxSelectColumn)

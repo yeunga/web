@@ -12,8 +12,8 @@ test("Test formatter.", 5, function ()
 
   var dataView = new Slick.Data.DataView({inlineFilters: true});
 
-  dataView.getItems().push({"id": "01", "name": "COL1"});
-  dataView.getItems().push({"id": "02", "name": "COL2"});
+  dataView.getItems().push({"id": "01", "name": "COL1", "download_id": "schema://download/01"});
+  dataView.getItems().push({"id": "02", "name": "COL2", "download_id": "schema://download/02"});
 
   var grid = new Slick.Grid("#testGrid", dataView,
                             [{"id": "id", "name": "name"}]);
@@ -46,7 +46,8 @@ test("Test formatter.", 5, function ()
     width: 55,
     headerCssClass: "slick-header-column-checkboxsel",
     enableOneClickDownload: true,
-    oneClickDownloadURLPath: "/get"
+    oneClickDownloadURL: "/get",
+    oneClickDownloadURLColumnID: "download_id"
   });
 
   testSubject.init(grid);
@@ -58,13 +59,13 @@ test("Test formatter.", 5, function ()
                                                                dataView.getItems()[1]);
 
   equal(output4, "<input class='_select_02' type='checkbox' checked='checked' />" +
-                 "<a id='_one-click_02' href='/get' class='no-propagate-event'><span class='wb-icon-drive-download margin-left-small no-propagate-event'></span></a>",
+                 "<a id='_one-click_02' href='/get?ID=schema%3A%2F%2Fdownload%2F02' class='no-propagate-event'><span class='wb-icon-drive-download margin-left-small no-propagate-event'></span></a>",
         "Should be checked checkbox output and one-click download link for second row.");
 
   var output5 = testSubject.getColumnDefinition()["formatter"](0, null, null, null,
                                                                grid.getData().getItems()[0]);
 
   equal(output5, "<input class='_select_01' type='checkbox' />" +
-                 "<a id='_one-click_01' href='/get' class='no-propagate-event'><span class='wb-icon-drive-download margin-left-small no-propagate-event'></span></a>",
+                 "<a id='_one-click_01' href='/get?ID=schema%3A%2F%2Fdownload%2F01' class='no-propagate-event'><span class='wb-icon-drive-download margin-left-small no-propagate-event'></span></a>",
         "Should be unchecked checkbox output and one-click download link for second row.");
 });

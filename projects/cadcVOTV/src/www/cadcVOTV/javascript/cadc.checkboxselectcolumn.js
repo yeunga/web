@@ -19,7 +19,7 @@
       cssClass: null,
       toolTip: "Select/Deselect All",
       enableOneClickDownload: false,
-      oneClickDownloadURLPath: null,
+      oneClickDownloadURL: null,
       width: 30
     };
 
@@ -228,8 +228,13 @@
 
         if (isOneClickDownloadEnabled())
         {
+          var linkURL = $.trim(_self.options.oneClickDownloadURL);
+
+          linkURL += "?ID=" + encodeURIComponent(
+              dataContext[_self.options.oneClickDownloadURLColumnID]);
+
           cellOutput +=
-            "<a id='_one-click_" + thisID + "' href='" + _self.options.oneClickDownloadURLPath
+            "<a id='_one-click_" + thisID + "' href='" + linkURL
             + "' class='no-propagate-event'><span class='wb-icon-drive-download margin-left-small no-propagate-event'></span></a>";
         }
 
