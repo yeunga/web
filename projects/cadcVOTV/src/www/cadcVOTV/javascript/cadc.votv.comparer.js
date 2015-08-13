@@ -21,8 +21,10 @@
    */
   function Comparer()
   {
-    var sortColumn;
-    var comparer;
+    var _self = this;
+
+    this.sortColumn = null;
+    this.comparer = contentCompare;
 
     /**
      * For values of the same type, with content.
@@ -88,17 +90,17 @@
      */
     function compare(x,y)
     {
-      return comparer(x[sortColumn], y[sortColumn]);
+      return _self.comparer(x[_self.sortColumn], y[_self.sortColumn]);
     }
 
     function setIsNumeric(isnumeric)
     {
-      comparer = isnumeric ? nanCompare : contentCompare;
+      _self.comparer = isnumeric ? nanCompare : contentCompare;
     }
 
     function setSortColumn(sortcol)
     {
-      sortColumn = sortcol;
+      _self.sortColumn = sortcol;
     }
 
     $.extend(this,

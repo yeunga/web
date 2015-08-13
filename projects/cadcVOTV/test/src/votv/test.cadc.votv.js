@@ -1,4 +1,4 @@
-/**
+/*
  * Created by goliaths on 06/08/15.
  */
 
@@ -61,6 +61,15 @@ var options = {
   maxRowLimit: -1
 };
 
+/**
+ * Check if _str ends with the _subStr value.
+ */
+function endsWith(_str, _subStr)
+{
+  return (_str.indexOf(_subStr) === (_str.length - _subStr.length));
+}
+
+
 test("Results page start/end events, over-ridden and default results.", 7, function ()
 {
   var sttic = function(count1, count2)
@@ -76,7 +85,7 @@ test("Results page start/end events, over-ridden and default results.", 7, funct
       var newMessage = msg(c1, c2);
       $label.text(newMessage);
     }
-  }
+  };
 
   // check an over-ridden implementation
   options.atDataLoadComplete = msgFn(sttic);
@@ -101,8 +110,6 @@ test("Results page start/end events, over-ridden and default results.", 7, funct
 
     // non-default implementations after event triggering
 
-    var dataView = viewer.getDataView();
-
     var $myGrid = $("#myGrid");
     var $prevMyGrid = $("#myOtherGrid");
 
@@ -111,11 +118,13 @@ test("Results page start/end events, over-ridden and default results.", 7, funct
     var $result = $myGrid.prev().css("background-color");
     equal("rgba(0, 0, 0, 0)", $result, "non-default background color checked");
 
-    $result = $prevMyGrid.find("img").prop("src");
-    ok($result.endsWith("/abc.gif"), "non-default file name checked - un-changed from initial");
+    $result = $prevMyGrid.find("img").attr("src");
+    ok(endsWith($result, "/abc.gif"),
+       "non-default file name checked - un-changed from initial");
 
     $result = $prevMyGrid.find(".grid-header-label").text();
-    ok($result.endsWith("rows. "), "non-default row limit warning text checked");
+    ok(endsWith($result, "rows. "),
+                "non-default row limit warning text checked");
 
     // default options
     options.atDataLoadComplete = undefined;
@@ -140,15 +149,16 @@ test("Results page start/end events, over-ridden and default results.", 7, funct
     $result = $myGrid.prev().css("background-color");
     equal("rgb(235, 235, 49)", $result, "background color checked");
 
-    $result = $prevMyGrid.find("img").prop("src");
-    ok($result.endsWith("/cadcVOTV/images/transparent-20.png"), "file name checked");
+    $result = $prevMyGrid.find("img").attr("src");
+    ok(endsWith($result, "/cadcVOTV/images/transparent-20.png"),
+       "file name checked");
 
     $result = $prevMyGrid.find(".grid-header-label").text();
-    ok($result.endsWith(options.maxRowLimitWarning), "row limit warning text checked");
+    ok(endsWith($result, options.maxRowLimitWarning),
+       "row limit warning text checked");
 
   }
-  catch
-      (e)
+  catch (e)
   {
     console.log(e);
     console.log(e.stack);

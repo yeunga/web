@@ -226,7 +226,6 @@ test("Sort asc dec.", 7, function ()
 {
   console.log("Starting ascending Dec.");
   var expectedArray = [ "", "", "-56.008253196459115", "-45.4232993571047", "-45.4232993571047", "0", "33.496328250076225" ];
-  //testComparers("Dec. (J2000.0)", expectedArray, "asc");
   testComparers("Dec", expectedArray, "asc");
 });
 
