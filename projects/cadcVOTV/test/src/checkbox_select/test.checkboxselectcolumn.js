@@ -58,13 +58,13 @@ test("Test formatter.", 5, function ()
                                                                dataView.getItems()[1]);
 
   equal(output4, "<input class='_select_02' type='checkbox' checked='checked' />" +
-                 "<span class=\"wb-icon-drive-download margin-left-small\"></span>",
+                 "<a id='_one-click_02' href='/get' class='no-propagate-event'><span class='wb-icon-drive-download margin-left-small no-propagate-event'></span></a>",
         "Should be checked checkbox output and one-click download link for second row.");
 
   var output5 = testSubject.getColumnDefinition()["formatter"](0, null, null, null,
                                                                grid.getData().getItems()[0]);
 
   equal(output5, "<input class='_select_01' type='checkbox' />" +
-                 "<span class=\"wb-icon-drive-download margin-left-small\"></span>",
+                 "<a id='_one-click_01' href='/get' class='no-propagate-event'><span class='wb-icon-drive-download margin-left-small no-propagate-event'></span></a>",
         "Should be unchecked checkbox output and one-click download link for second row.");
 });

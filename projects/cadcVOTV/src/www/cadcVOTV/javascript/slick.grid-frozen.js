@@ -3701,27 +3701,20 @@ if (typeof Slick === "undefined")
         row: cell.row,
         cell: cell.cell
       }, e);
-      if (e.isImmediatePropagationStopped())
-      {
-        return;
-      }
 
-      if ((activeCell != cell.cell || activeRow != cell.row) && canCellBeActive(cell.row, cell.cell))
+      if (!e.isImmediatePropagationStopped()
+          && ((activeCell != cell.cell) || (activeRow != cell.row))
+          && canCellBeActive(cell.row, cell.cell)
+          && (!getEditorLock().isActive() || getEditorLock().commitCurrentEdit())
+          && hasFrozenRows)
       {
-        if (!getEditorLock().isActive() || getEditorLock().commitCurrentEdit())
-        {
-          if (hasFrozenRows)
+          if (( !( options.frozenBottom ) && ( cell.row >= actualFrozenRow ) )
+              || ( options.frozenBottom && ( cell.row < actualFrozenRow ) ))
           {
-            if (( !( options.frozenBottom ) && ( cell.row >= actualFrozenRow ) )
-                || ( options.frozenBottom && ( cell.row < actualFrozenRow ) )
-                )
-            {
-              scrollRowIntoView(cell.row, false);
-            }
-
-            setActiveCellInternal(getCellNode(cell.row, cell.cell));
+            scrollRowIntoView(cell.row, false);
           }
-        }
+
+          setActiveCellInternal(getCellNode(cell.row, cell.cell));
       }
     }
 

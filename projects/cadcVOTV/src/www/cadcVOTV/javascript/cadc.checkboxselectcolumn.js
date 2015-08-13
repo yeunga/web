@@ -74,18 +74,28 @@
       if (selectedRows.length && (selectedRows.length == (_grid.getDataLength()-disabledRowCount)))
       {
         _grid.updateColumnHeader(_self.options.columnId,
+                                 getHeaderCheckboxLabel() +
                                  "<input type='checkbox' class='slick-header-column-checkboxsel' checked='checked'>",
                                  _self.options.toolTip);
       }
       else
       {
         _grid.updateColumnHeader(_self.options.columnId,
+                                 getHeaderCheckboxLabel() +
                                  "<input type='checkbox' class='slick-header-column-checkboxsel'>",
                                  _self.options.toolTip);
       }
     }
 
+    function getCheckboxLabel()
+    {
+      return _self.options.checkboxLabel ? _self.options.checkboxLabel : "";
+    }
 
+    function getHeaderCheckboxLabel()
+    {
+      return _self.options.headerCheckboxLabel ? _self.options.headerCheckboxLabel : "";
+    }
 
     function handleKeyDown(e, args)
     {
@@ -105,24 +115,17 @@
       }
     }
 
+    /**
+     * This is fired when the cell containing the checkbox is clicked.
+     *
+     * @param e
+     * @param args
+     * @returns {boolean}
+     */
     function handleClick(e, args)
     {
-      // clicking on a row select checkbox
-      if (_grid.getColumns()[args.cell].id === _self.options.columnId && $(e.target).is(":checkbox"))
-      {
-        // if editing, try to commit
-        if (_grid.getEditorLock().isActive() && !_grid.getEditorLock().commitCurrentEdit())
-        {
-          e.preventDefault();
-          e.stopImmediatePropagation();
-        }
-        else
-        {
-          toggleRowSelection(args.row);
-          e.stopPropagation();
-          e.stopImmediatePropagation();
-        }
-      }
+      e.stopPropagation();
+      e.stopImmediatePropagation();
     }
 
     function toggleRowSelection(row)
@@ -201,7 +204,7 @@
     {
       return {
         id: _self.options.columnId,
-        name: "<input type='checkbox'>",
+        name: getHeaderCheckboxLabel() + "<input type='checkbox' />",
         toolTip: _self.options.toolTip,
         field: "sel",
         width: _self.options.width,
@@ -218,14 +221,16 @@
     {
       if (dataContext)
       {
+        var thisID = dataContext["id"];
         var cellOutput =
-          "<input class='_select_" + dataContext["id"] + "' type='checkbox' "
+          "<input class='_select_" + thisID + "' type='checkbox' "
           + (_selectedRowsLookup[row] ? "checked='checked' " : "") + "/>";
 
         if (isOneClickDownloadEnabled())
         {
           cellOutput +=
-            "<span class=\"wb-icon-drive-download margin-left-small\"></span>";
+            "<a id='_one-click_" + thisID + "' href='" + _self.options.oneClickDownloadURLPath
+            + "' class='no-propagate-event'><span class='wb-icon-drive-download margin-left-small no-propagate-event'></span></a>";
         }
 
         return cellOutput;

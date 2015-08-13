@@ -1100,13 +1100,13 @@
       var enableSelection = !getOptions().enableSelection
                             || getOptions().enableSelection == true;
 
-      if ((typeof CADC !== 'undefined')
-          && (typeof CADC.CheckboxSelectColumn !== 'undefined'))
+      if ((typeof CADC !== 'undefined') && CADC.CheckboxSelectColumn)
       {
         checkboxSelector = new CADC.CheckboxSelectColumn({
           cssClass: "slick-cell-checkboxsel",
           width: 55,
           headerCssClass: "slick-header-column-checkboxsel",
+          headerCheckboxLabel: getOptions().headerCheckboxLabel,
           enableOneClickDownload: getOptions().enableOneClickDownload,
           oneClickDownloadURLPath: getOptions().oneClickDownloadURLPath
         });
