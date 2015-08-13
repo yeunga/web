@@ -18,10 +18,12 @@
       columnId: "_checkbox_selector",
       cssClass: null,
       toolTip: "Select/Deselect All",
+      enableOneClickDownload: false,
+      oneClickDownloadURLPath: null,
       width: 30
     };
 
-    var _options = $.extend(true, {}, _defaults, options);
+    this.options = $.extend(true, {}, _defaults, options);
 
     function init(grid)
     {
@@ -42,10 +44,10 @@
     {
       var selectedRows = _grid.getSelectedRows();
 
-      var lookup = {}, row, i;
-      for (i = 0; i < selectedRows.length; i++)
+      var lookup = {};
+      for (var r = 0, ri = selectedRows.length; r < ri; r++)
       {
-        row = selectedRows[i];
+        var row = selectedRows[r];
         lookup[row] = true;
         if (lookup[row] !== _selectedRowsLookup[row])
         {
@@ -53,9 +55,10 @@
           delete _selectedRowsLookup[row];
         }
       }
-      for (i in _selectedRowsLookup)
+
+      for (var rowKey in _selectedRowsLookup)
       {
-        _grid.invalidateRow(i);
+        _grid.invalidateRow(rowKey);
       }
 
       _selectedRowsLookup = lookup;
@@ -70,26 +73,29 @@
 
       if (selectedRows.length && (selectedRows.length == (_grid.getDataLength()-disabledRowCount)))
       {
-        _grid.updateColumnHeader(_options.columnId,
+        _grid.updateColumnHeader(_self.options.columnId,
                                  "<input type='checkbox' class='slick-header-column-checkboxsel' checked='checked'>",
-                                 _options.toolTip);
+                                 _self.options.toolTip);
       }
       else
       {
-        _grid.updateColumnHeader(_options.columnId,
+        _grid.updateColumnHeader(_self.options.columnId,
                                  "<input type='checkbox' class='slick-header-column-checkboxsel'>",
-                                 _options.toolTip);
+                                 _self.options.toolTip);
       }
     }
+
+
 
     function handleKeyDown(e, args)
     {
       if (e.which == 32)
       {
-        if (_grid.getColumns()[args.cell].id === _options.columnId)
+        if (_grid.getColumns()[args.cell].id === _self.options.columnId)
         {
           // if editing, try to commit
-          if (!_grid.getEditorLock().isActive() || _grid.getEditorLock().commitCurrentEdit())
+          if (!_grid.getEditorLock().isActive()
+              || _grid.getEditorLock().commitCurrentEdit())
           {
             toggleRowSelection(args.row);
           }
@@ -102,19 +108,20 @@
     function handleClick(e, args)
     {
       // clicking on a row select checkbox
-      if (_grid.getColumns()[args.cell].id === _options.columnId && $(e.target).is(":checkbox"))
+      if (_grid.getColumns()[args.cell].id === _self.options.columnId && $(e.target).is(":checkbox"))
       {
         // if editing, try to commit
         if (_grid.getEditorLock().isActive() && !_grid.getEditorLock().commitCurrentEdit())
         {
           e.preventDefault();
           e.stopImmediatePropagation();
-          return;
         }
-
-        toggleRowSelection(args.row);
-        e.stopPropagation();
-        e.stopImmediatePropagation();
+        else
+        {
+          toggleRowSelection(args.row);
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+        }
       }
     }
 
@@ -138,6 +145,11 @@
       }));
     }
 
+    function isOneClickDownloadEnabled()
+    {
+      return _self.options.enableOneClickDownload === true;
+    }
+
     function select(row)
     {
       _grid.setSelectedRows(_grid.getSelectedRows().concat(row));
@@ -147,7 +159,7 @@
     {
       var $eventTarget = $(e.target);
 
-      if ((args.column.id === _options.columnId)
+      if ((args.column.id === _self.options.columnId)
           && $eventTarget.is(":checkbox"))
       {
         // if editing, try to commit
@@ -188,15 +200,15 @@
     function getColumnDefinition()
     {
       return {
-        id: _options.columnId,
+        id: _self.options.columnId,
         name: "<input type='checkbox'>",
-        toolTip: _options.toolTip,
+        toolTip: _self.options.toolTip,
         field: "sel",
-        width: _options.width,
+        width: _self.options.width,
         resizable: false,
         sortable: false,
-        headerCssClass: _options.headerCssClass,
-        cssClass: _options.cssClass,
+        headerCssClass: _self.options.headerCssClass,
+        cssClass: _self.options.cssClass,
         formatter: checkboxSelectionFormatter
       };
     }
@@ -206,9 +218,17 @@
     {
       if (dataContext)
       {
-        return _selectedRowsLookup[row]
-            ? "<input class='_select_" + dataContext["id"] + "' type='checkbox' checked='checked'>"
-            : "<input class='_select_" + dataContext["id"] + "' type='checkbox'>";
+        var cellOutput =
+          "<input class='_select_" + dataContext["id"] + "' type='checkbox' "
+          + (_selectedRowsLookup[row] ? "checked='checked' " : "") + "/>";
+
+        if (isOneClickDownloadEnabled())
+        {
+          cellOutput +=
+            "<span class=\"wb-icon-drive-download margin-left-small\"></span>";
+        }
+
+        return cellOutput;
       }
       else
       {

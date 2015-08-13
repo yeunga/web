@@ -2425,6 +2425,7 @@ if (typeof Slick === "undefined")
       {
         makeActiveCellNormal();
       }
+
       for (var row in rowsCache)
       {
         removeRowFromCache(row);
@@ -2455,21 +2456,21 @@ if (typeof Slick === "undefined")
 
     function invalidateRows(rows)
     {
-      var i, rl;
-      if (!rows || !rows.length)
+      if (rows && rows.length)
       {
-        return;
-      }
-      vScrollDir = 0;
-      for (i = 0, rl = rows.length; i < rl; i++)
-      {
-        if (currentEditor && activeRow === rows[i])
+        vScrollDir = 0;
+
+        for (var i = 0, rl = rows.length; i < rl; i++)
         {
-          makeActiveCellNormal();
-        }
-        if (rowsCache[rows[i]])
-        {
-          removeRowFromCache(rows[i]);
+          if (currentEditor && (activeRow === rows[i]))
+          {
+            makeActiveCellNormal();
+          }
+
+          if (rowsCache[rows[i]])
+          {
+            removeRowFromCache(rows[i]);
+          }
         }
       }
     }
@@ -5011,7 +5012,7 @@ if (typeof Slick === "undefined")
     {
       var ranges = [];
       var lastCell = columns.length - 1;
-      for (var i = 0; i < rows.length; i++)
+      for (var i = 0, rl = rows.length; i < rl; i++)
       {
         ranges.push(new Slick.Range(rows[i], 0, rows[i], lastCell));
       }
