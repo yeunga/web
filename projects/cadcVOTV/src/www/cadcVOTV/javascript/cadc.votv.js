@@ -1407,13 +1407,13 @@
           if (sortColumn)
           {
             var isnumeric = sortColumn.datatype.isNumeric();
-            var comparer =
-              new cadc.vot.Comparer(_self.sortcol, isnumeric);
+            sortColumn.comparer.setIsNumeric(isnumeric);
+            sortColumn.comparer.setSortColumn(_self.sortcol);
 
             // using native sort with comparer
             // preferred method but can be very slow in IE
             // with huge datasets
-            dataView.sort(comparer.compare, _self.sortAsc);
+            dataView.sort(sortColumn.comparer.compare, _self.sortAsc);
             dataView.refresh();
           }
         }
@@ -1666,7 +1666,8 @@
           // VOTable attributes.
           unit: field.getUnit(),
           utype: field.getUType(),
-          filterable: filterable
+          filterable: filterable,
+          comparer: colOpts.comparer ? colOpts.comparer : new cadc.vot.Comparer()
         };
 
         // Default is to be sortable.
