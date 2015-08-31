@@ -19,6 +19,7 @@
       cssClass: null,
       toolTip: "Select/Deselect All",
       enableOneClickDownload: false,
+      oneClickDownloadTitle: null,
       oneClickDownloadURL: null,
       width: 30
     };
@@ -234,8 +235,10 @@
               dataContext[_self.options.oneClickDownloadURLColumnID]);
 
           cellOutput +=
-            "<a id='_one-click_" + thisID + "' href='" + linkURL
-            + "' class='no-propagate-event'><span class='wb-icon-drive-download margin-left-small no-propagate-event'></span></a>";
+            "<a id='_one-click_" + thisID + "' href='" + linkURL + "'"
+            + (_self.options.oneClickDownloadTitle
+              ? " title='" + _self.options.oneClickDownloadTitle + "'": "")
+            + " class='no-propagate-event'><span class='wb-icon-drive-download margin-left-small no-propagate-event'></span></a>";
         }
 
         return cellOutput;
