@@ -75,7 +75,6 @@ server, you can set the PROXY_URL filter token value to "".
     <isset property="${testHost}"/>
   </condition>
 
-  <property name="js.test.dir" value="test/src" />
   <property name="runner" value="test/qunit-runner-1.18.0.js" />
   <property name="phantomjs" value="test/phantomjs/${osfamily}/phantomjs" />
 
@@ -142,7 +141,6 @@ server, you can set the PROXY_URL filter token value to "".
     <echo message="VOTV tests"/>
     <antcall target="js-test">
       <param name="js-test-dir" value="test/src/votv" />
-      <param name="js-test-name" value="test.cadc.votv.js" />
     </antcall>
     
   </target>
@@ -153,7 +151,7 @@ server, you can set the PROXY_URL filter token value to "".
 
     <exec executable="${phantomjs}" failonerror="true">
       <arg value="${runner}" />
-      <arg value="http://${test-host}/${project}_test/${js-test-dir}/index.html" />
+      <arg value="file:///${user.dir}/${js-test-dir}/index.html" />
       <arg value="10000" />
     </exec>
   </target>
