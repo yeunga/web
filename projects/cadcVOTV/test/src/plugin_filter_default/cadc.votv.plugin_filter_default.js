@@ -141,7 +141,7 @@ var xmlDOM = new DOMParser().parseFromString(xmlData, "text/xml");
 
 var targetNode = document.createElement("div");
 targetNode.setAttribute("id", "myGrid");
-$(document.body).prepend($(targetNode));
+$(document.body).append($(targetNode));
 
 // Create the options for the Grid.
 var options = {
@@ -174,26 +174,28 @@ var options = {
 test("Suggest items for 73.", 1, function ()
 {
   var viewer = new cadc.vot.Viewer("#myGrid", options);
-
   var callCount = 0;
 
-  viewer.getDataView().onRowCountChanged.subscribe(function (e, args)
-                                                   {
-                                                     console.log("Hit " + callCount + " is " + args.current);
+  viewer.subscribe(cadc.vot.events.onDataLoaded, function (e, args)
+  {
+    viewer.render();
+  });
 
-                                                     if (callCount++ === 1)
-                                                     {
-                                                       equal(args.current, 3, "Should be three items.");
-                                                     }
-                                                   });
+  viewer.subscribe(cadc.vot.events.onRowsChanged, function (e, args)
+  {
+    console.log("Hit " + callCount + " is " + args.current);
+
+    if (callCount++ === 1)
+    {
+      equal(args.current, 3, "Should be three items.");
+    }
+  });
 
   viewer.build({
                  xmlDOM: xmlDOM
                },
                function ()
                {
-                 viewer.render();
-
                  var $grid = $("#myGrid");
                  var $inputFilter = $grid.find("input#jobid_filter");
                  $inputFilter.val("73").change();

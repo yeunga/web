@@ -46,9 +46,9 @@
   function Viewer(targetNodeSelector, options)
   {
     var _self = this;
-    var $_lengthFinder = $("#lengthFinder")
-                         ||
-                         $("<div id='lengthFinder'></div>").appendTo($(document.body));
+    var $_lengthFinder =
+      $("#lengthFinder")
+      || $("<div id='lengthFinder'></div>").appendTo($(document.body));
     this.grid = null;
     this.columnManager = options.columnManager ? options.columnManager : {};
     this.rowManager = options.rowManager ? options.rowManager : {};
@@ -64,7 +64,7 @@
     this.displayColumns = options.displayColumns ? options.displayColumns : [];
     this.resizedColumns = {};  // Columns the user has resized.
     this.columnFilters = options.columnFilters ? options.columnFilters : {};
-    this.columnFilterPluginName = options.columnFilterPluginName;
+    this.columnFilterPluginName = options.columnFilterPluginName | "default";
     this.updatedColumnSelects = {};
     this.targetNodeSelector = targetNodeSelector;
     this.columnOptions = options.columnOptions ? options.columnOptions : {};
@@ -85,13 +85,13 @@
       : false;
     this.viewportOffset = 0;
 
-    this.rowCountMessage = options.rowCountMessage
-      ? options.rowCountMessage : defaultRowCountMessage;
+    this.rowCountMessage = options.rowCountMessage ? options.rowCountMessage :
+                           defaultRowCountMessage;
 
     this.atDataLoadComplete = options.atDataLoadComplete
-      ? options.atDataLoadComplete : defaultDataLoadComplete;
+        ? options.atDataLoadComplete : defaultDataLoadComplete;
     this.atPageInfoChanged = options.atPageInfoChanged
-      ? options.atPageInfoChanged : defaultPageChanging;
+        ? options.atPageInfoChanged : defaultPageChanging;
 
     /**
      * @param input  Object representing the input.
@@ -127,9 +127,20 @@
 
                                                         if (input.xmlDOM)
                                                         {
-                                                          _self.load(args.builder.getVOTable(),
-                                                                     !hasDisplayColumns, true);
+                                                          var voTable =
+                                                            args.builder.getVOTable();
+
+                                                          if (!hasDisplayColumns)
+                                                          {
+                                                            refreshColumns(
+                                                              voTable.getMetadata().getFields());
+                                                          }
+
+                                                          // Setup the Grid and DataView to be loaded.
                                                           _self.init();
+
+                                                          load(args.builder.getVOTable(),
+                                                               false, true);
                                                         }
 
                                                         resetColumnWidths();
@@ -141,8 +152,7 @@
                                                           _self.atDataLoadComplete(getTotalRows(), getCurrentRows(), getHeaderLabel());
                                                         }
 
-                                                        if (getRows().length ===
-                                                            0)
+                                                        if (getRows().length === 0)
                                                         {
                                                           $(getTargetNodeSelector()).addClass("cadcvotv-empty-results-overlay");
                                                           _self.$emptyResultsMessage.show();
@@ -203,7 +213,7 @@
                                _self.init();
 
                                voTableBuilder.subscribe(cadc.vot.onPageAddStart,
-                                                        function (event)
+                                                        function ()
                                                         {
                                                           getDataView().beginUpdate();
 
@@ -215,7 +225,7 @@
                                                         });
 
                                voTableBuilder.subscribe(cadc.vot.onPageAddEnd,
-                                                        function (event)
+                                                        function ()
                                                         {
                                                           getDataView().endUpdate();
 
@@ -316,6 +326,14 @@
     function getUpdatedColumnSelects()
     {
       return _self.updatedColumnSelects;
+    }
+
+    function isFilterable(column)
+    {
+      var globallyFilterable = getColumnManager().filterable || false;
+      var columnFilterable = column.filterable || globallyFilterable;
+
+      return (columnFilterable === true);
     }
 
     /**
@@ -473,14 +491,16 @@
      */
     function addRow(row, rowIndex)
     {
+      var cellArray = row.getCells();
       var dataRow = {};
 
       dataRow["id"] = row.getID();
-      $.each(row.getCells(), function (cellIndex, cell)
+      for (var ci = 0, cl = cellArray.length; ci < cl; ci++)
       {
+        var cell = cellArray[ci];
         var cellFieldID = cell.getField().getID();
         dataRow[cellFieldID] = cell.getValue();
-      });
+      }
 
       if (getRowManager().isRowDisabled)
       {
@@ -969,7 +989,7 @@
       var totalWidth = 0;
 
       // Handle the visible columns
-      for (var j = 0; j < gridColumns.length; j++)
+      for (var j = 0, jl = gridColumns.length; j < jl; j++)
       {
         var gridColumn = gridColumns[j];
         var existingColumn = getColumn(gridColumn.id);
@@ -1046,9 +1066,8 @@
           "title='Enter values into the boxes to further filter results.'>Filter:</div>").
           appendTo(args.node);
       }
-
       // Do not display for the checkbox column.
-      else if (args.column.filterable === true)
+      else if (isFilterable(args.column))
       {
         var datatype = args.column.datatype;
         var tooltipTitle;
@@ -1063,7 +1082,7 @@
           tooltipTitle = "String: Substring match , ! to negate matches";
         }
 
-        var $filterInput =
+                var $filterInput =
           $("<input type='text'>")
             .data("columnId", args.column.id)
             .val(getColumnFilters()[args.column.id])
@@ -1110,13 +1129,19 @@
       var enableSelection = !getOptions().enableSelection
                             || getOptions().enableSelection == true;
 
-      if ((typeof CADC !== 'undefined')
-          && (typeof CADC.CheckboxSelectColumn !== 'undefined'))
+      if ((typeof CADC !== 'undefined') && CADC.CheckboxSelectColumn)
       {
         checkboxSelector = new CADC.CheckboxSelectColumn({
           cssClass: "slick-cell-checkboxsel",
           width: 55,
-          headerCssClass: "slick-header-column-checkboxsel"
+          headerCssClass: "slick-header-column-checkboxsel",
+          headerCheckboxLabel: getOptions().headerCheckboxLabel,
+          enableOneClickDownload: getOptions().enableOneClickDownload,
+          oneClickDownloadURL: getOptions().oneClickDownloadURL,
+          oneClickDownloadTitle: getOptions().oneClickDownloadTitle,
+
+          // The ID of the column to pull the unique link from.
+          oneClickDownloadURLColumnID: getOptions().oneClickDownloadURLColumnID
         });
       }
       else if (Slick.CheckboxSelectColumn)
@@ -1236,6 +1261,12 @@
                                              });
       }
 
+      dataView.onRowCountChanged.subscribe(function(e, args)
+                                           {
+                                             trigger(cadc.vot.events.onRowsChanged,
+                                                     args);
+                                           });
+
       var columnPickerConfig = getColumnManager().picker;
 
       if (columnPickerConfig)
@@ -1257,7 +1288,7 @@
             cadc.vot.picker.events.onSortAlphabetically.subscribe(resetColumnWidths);
           }
 
-          cadc.vot.picker.events.onColumnAddOrRemove.subscribe(function (e, args)
+          cadc.vot.picker.events.onColumnAddOrRemove.subscribe(function ()
                                                                {
                                                                  if (rowSelectionModel)
                                                                  {
@@ -1308,7 +1339,7 @@
             columnPicker.onSortAlphabetically.subscribe(resetColumnWidths);
           }
 
-          columnPicker.onColumnAddOrRemove.subscribe(function (e, args)
+          columnPicker.onColumnAddOrRemove.subscribe(function ()
                                                      {
                                                        if (rowSelectionModel)
                                                        {
@@ -1519,6 +1550,7 @@
                                              i < ci; i++)
                                         {
                                           var column = columns[i];
+
                                           if (column.width !==
                                               column.previousWidth)
                                           {
@@ -1591,8 +1623,9 @@
       clearColumns();
       var columnManager = getColumnManager();
 
-      $.each(_fields, function (fieldIndex, field)
+      for (var fi = 0, fl = _fields.length; fi < fl; fi++)
       {
+        var field = _fields[fi];
         var fieldKey = field.getID();
         var colOpts = getOptionsForColumn(fieldKey);
         var cssClass = colOpts.cssClass;
@@ -1654,7 +1687,7 @@
         }
 
         addColumn(columnObject);
-      });
+      }
     }
 
     function formatCellValue(rowItem, grid, columnID)
@@ -1822,14 +1855,6 @@
       if (g)
       {
         g.destroy();
-      }
-    }
-
-    function unsubscribeAll()
-    {
-      for (var e in cadc.vot.events)
-      {
-        $(_self).unbind(cadc.vot.events[e].type);
       }
     }
 

@@ -784,40 +784,38 @@ if (typeof Slick === "undefined")
 
     function updateColumnHeader(columnId, title, toolTip)
     {
-      if (!initialized)
+      if (initialized)
       {
-        return;
-      }
-      var idx = getColumnIndex(columnId);
-      if (idx == null)
-      {
-        return;
-      }
-
-      var columnDef = columns[idx];
-      var $header = $headers.children().eq(idx);
-      if ($header)
-      {
-        if (title !== undefined)
+        var idx = getColumnIndex(columnId);
+        if (idx != null)
         {
-          columns[idx].name = title;
+          var columnDef = columns[idx];
+          var $header = $headers.children().eq(idx);
+
+          if ($header)
+          {
+            if (title !== undefined)
+            {
+              columns[idx].name = title;
+            }
+            if (toolTip !== undefined)
+            {
+              columns[idx].toolTip = toolTip;
+            }
+
+            trigger(self.onBeforeHeaderCellDestroy, {
+              "node": $header[0],
+              "column": columnDef
+            });
+
+            $header.attr("title", toolTip || "").children().eq(0).html(title);
+
+            trigger(self.onHeaderCellRendered, {
+              "node": $header[0],
+              "column": columnDef
+            });
+          }
         }
-        if (toolTip !== undefined)
-        {
-          columns[idx].toolTip = toolTip;
-        }
-
-        trigger(self.onBeforeHeaderCellDestroy, {
-          "node": $header[0],
-          "column": columnDef
-        });
-
-        $header.attr("title", toolTip || "").children().eq(0).html(title);
-
-        trigger(self.onHeaderCellRendered, {
-          "node": $header[0],
-          "column": columnDef
-        });
       }
     }
 
@@ -2425,6 +2423,7 @@ if (typeof Slick === "undefined")
       {
         makeActiveCellNormal();
       }
+
       for (var row in rowsCache)
       {
         removeRowFromCache(row);
@@ -2455,21 +2454,21 @@ if (typeof Slick === "undefined")
 
     function invalidateRows(rows)
     {
-      var i, rl;
-      if (!rows || !rows.length)
+      if (rows && rows.length)
       {
-        return;
-      }
-      vScrollDir = 0;
-      for (i = 0, rl = rows.length; i < rl; i++)
-      {
-        if (currentEditor && activeRow === rows[i])
+        vScrollDir = 0;
+
+        for (var i = 0, rl = rows.length; i < rl; i++)
         {
-          makeActiveCellNormal();
-        }
-        if (rowsCache[rows[i]])
-        {
-          removeRowFromCache(rows[i]);
+          if (currentEditor && (activeRow === rows[i]))
+          {
+            makeActiveCellNormal();
+          }
+
+          if (rowsCache[rows[i]])
+          {
+            removeRowFromCache(rows[i]);
+          }
         }
       }
     }
@@ -3700,27 +3699,20 @@ if (typeof Slick === "undefined")
         row: cell.row,
         cell: cell.cell
       }, e);
-      if (e.isImmediatePropagationStopped())
-      {
-        return;
-      }
 
-      if ((activeCell != cell.cell || activeRow != cell.row) && canCellBeActive(cell.row, cell.cell))
+      if (!e.isImmediatePropagationStopped()
+          && ((activeCell != cell.cell) || (activeRow != cell.row))
+          && canCellBeActive(cell.row, cell.cell)
+          && (!getEditorLock().isActive() || getEditorLock().commitCurrentEdit())
+          && hasFrozenRows)
       {
-        if (!getEditorLock().isActive() || getEditorLock().commitCurrentEdit())
-        {
-          if (hasFrozenRows)
+          if (( !( options.frozenBottom ) && ( cell.row >= actualFrozenRow ) )
+              || ( options.frozenBottom && ( cell.row < actualFrozenRow ) ))
           {
-            if (( !( options.frozenBottom ) && ( cell.row >= actualFrozenRow ) )
-                || ( options.frozenBottom && ( cell.row < actualFrozenRow ) )
-                )
-            {
-              scrollRowIntoView(cell.row, false);
-            }
-
-            setActiveCellInternal(getCellNode(cell.row, cell.cell));
+            scrollRowIntoView(cell.row, false);
           }
-        }
+
+          setActiveCellInternal(getCellNode(cell.row, cell.cell));
       }
     }
 
@@ -5011,7 +5003,7 @@ if (typeof Slick === "undefined")
     {
       var ranges = [];
       var lastCell = columns.length - 1;
-      for (var i = 0; i < rows.length; i++)
+      for (var i = 0, rl = rows.length; i < rl; i++)
       {
         ranges.push(new Slick.Range(rows[i], 0, rows[i], lastCell));
       }
