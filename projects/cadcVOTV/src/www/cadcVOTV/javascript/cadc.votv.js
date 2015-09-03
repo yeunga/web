@@ -64,7 +64,7 @@
     this.displayColumns = options.displayColumns ? options.displayColumns : [];
     this.resizedColumns = {};  // Columns the user has resized.
     this.columnFilters = options.columnFilters ? options.columnFilters : {};
-    this.columnFilterPluginName = options.columnFilterPluginName | "default";
+    this.columnFilterPluginName = options.columnFilterPluginName || "default";
     this.updatedColumnSelects = {};
     this.targetNodeSelector = targetNodeSelector;
     this.columnOptions = options.columnOptions ? options.columnOptions : {};
