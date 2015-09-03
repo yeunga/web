@@ -237,8 +237,7 @@
                                 || $target.is(":checkbox")
                                 || $target.hasClass("no-propagate-event"));
 
-      if ($target.is(":checkbox")
-          || (_options.selectClickedRow/* || cell.cell === 0*/))
+      if ($target.is(":checkbox") || _options.selectClickedRow)
       {
         _ranges = rowsToRanges(selection);
         setSelectedRanges(_ranges);

@@ -119,7 +119,7 @@ test("Results page start/end events, over-ridden and default results.", 7, funct
     equal("rgba(0, 0, 0, 0)", $result, "non-default background color checked");
 
     $result = $prevMyGrid.find("img").attr("src");
-    ok(endsWith($result, "/abc.gif"),
+    ok(endsWith($result, ".png"),
        "non-default file name checked - un-changed from initial");
 
     $result = $prevMyGrid.find(".grid-header-label").text();

@@ -152,6 +152,12 @@
                                                           _self.atDataLoadComplete(getTotalRows(), getCurrentRows(), getHeaderLabel());
                                                         }
 
+                                                        var $gridHeaderIcon =
+                                                          getHeader().find("img.grid-header-icon");
+
+                                                        // clear the wait icon
+                                                        $gridHeaderIcon.attr("src", "/cadcVOTV/images/transparent-20.png");
+
                                                         if (getRows().length === 0)
                                                         {
                                                           $(getTargetNodeSelector()).addClass("cadcvotv-empty-results-overlay");
@@ -1860,22 +1866,18 @@
 
     function defaultDataLoadComplete()
     {
-      var $resultsGridHeader = getHeader();
-      var $gridHeaderIcon =
-        getHeader().find("img.grid-header-icon");
-
-      if ($gridHeaderIcon)
+      var $gridHeaderLabel = getHeaderLabel();
+      if (options.maxRowLimit <= getTotalRows())
       {
-        // clear the wait icon
-        $gridHeaderIcon.attr("src", "/cadcVOTV/images/transparent-20.png");
-        if (options.maxRowLimit <= getTotalRows())
-        {
-          var $gridHeaderLabel = getHeaderLabel();
-          // and display warning message if maximum row limit is reached
-          $gridHeaderLabel.text($gridHeaderLabel.text() + " " +
-                                options.maxRowLimitWarning);
-          $resultsGridHeader.css("background-color", "rgb(235, 235, 49)");
-        }
+        // and display warning message if maximum row limit is reached
+        $gridHeaderLabel.text($gridHeaderLabel.text() + " " +
+                              options.maxRowLimitWarning);
+        getHeader().css("background-color", "rgb(235, 235, 49)");
+      }
+      else
+      {
+        $gridHeaderLabel.text(getRowCountMessage(getTotalRows(),
+                                                 getCurrentRows()));
       }
     }
 
