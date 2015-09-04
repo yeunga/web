@@ -72,6 +72,7 @@
     this.options.forceFitColumns = options.columnManager
       ? options.columnManager.forceFitColumns
       : false;
+    this.options.asyncPostRenderDelay = options.asyncPostRenderDelay || 0;
 
     // This is the TableData for a VOTable.  Will be set on load.
     this.longestValues = {};
@@ -164,6 +165,8 @@
                                                           _self.$emptyResultsMessage.show();
                                                         }
 
+                                                        sort();
+
                                                         trigger(cadc.vot.events.onDataLoaded,
                                                                 args);
                                                       });
@@ -242,7 +245,7 @@
                                                           // jenkinsd
                                                           // 2014.05.09 WebRT
                                                           // 53730
-                                                          sort();
+                                                          //sort();
                                                         });
 
                                voTableBuilder.subscribe(cadc.vot.onRowAdd,
@@ -1438,8 +1441,7 @@
             data.refresh();
           }
 
-          grid.invalidateAllRows();
-          grid.render();
+          refreshGrid();
         }
       };
 
