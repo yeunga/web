@@ -88,8 +88,9 @@ test("Add rows to Viewer.", 20, function ()
     maxRowLimit: 30000
   };
 
-  var $testContainer = $("<div id=\"TESTITEMVIEWER\"></div>");
+  $("<div id=\"TESTITEMVIEWER\"></div>").appendTo($(document.body));
   var testSubject = new cadc.vot.Viewer("#TESTITEMVIEWER", cadcVOTVOptions);
+  testSubject.init();
 
   // Make fields
   var fieldCount = 5;
