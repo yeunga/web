@@ -21,7 +21,7 @@
 
   /**
    *
-   * Sample VOTable XML Document.
+   * Sample VOTable XML Document - Version 1.2 .
    *
    * <VOTABLE version="1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
    * xmlns="http://www.ivoa.net/xml/VOTable/v1.2"
@@ -240,6 +240,10 @@
     _selfDatatype.datatypeValue = _datatypeValue || "";
 
     var stringTypes = ["varchar", "char", "adql:VARCHAR", "adql:CLOB"];
+    var integerTypes = ["int", "long", "short"];
+    var floatingPointTypes = ["float", "double", "adql:DOUBLE", "adql:FLOAT",
+                              "adql:REGION"];
+    var timestampTypes = ["timestamp", "adql:TIMESTAMP"];
 
     function getDatatypeValue()
     {
@@ -260,9 +264,7 @@
      */
     function isTimestamp()
     {
-      var dataTypeVal = getDatatypeValue();
-      return ((dataTypeVal == "timestamp")
-              || (dataTypeVal == "adql:TIMESTAMP"));
+      return datatypeMatches(timestampTypes);
     }
 
     function isBoolean()
@@ -272,25 +274,26 @@
 
     function isFloatingPointNumeric()
     {
-      var dataTypeVal = getDatatypeValue();
-      return (dataTypeVal == "float") || (dataTypeVal == "double")
-              || (dataTypeVal == "adql:DOUBLE") || (dataTypeVal == "adql:FLOAT")
-              || (dataTypeVal == "adql:REGION");
+      return datatypeMatches(floatingPointTypes);
     }
 
     function isIntegerNumeric()
     {
-      var dataTypeVal = getDatatypeValue();
-      return (dataTypeVal == "int") || (dataTypeVal == "long")
-              || (dataTypeVal == "short");
+      return datatypeMatches(integerTypes);
     }
 
     function isCharDatatype()
     {
+      return datatypeMatches(stringTypes);
+    }
+
+    function datatypeMatches(_datatypes)
+    {
       var dataTypeValue = getDatatypeValue();
-      for (var stIndex = 0; stIndex < stringTypes.length; stIndex++)
+      var stringUtil = new cadc.web.util.StringUtil(dataTypeValue);
+      for (var stIndex = 0; stIndex < _datatypes.length; stIndex++)
       {
-        if (dataTypeValue == stringTypes[stIndex])
+        if (stringUtil.contains(_datatypes[stIndex]))
         {
           return true;
         }
@@ -326,6 +329,7 @@
   function Field(_name, _id, _ucd, _utype, _unit, _xtype, __datatype,
                  _arraysize, _description, label)
   {
+    var INTERVAL_XTYPE_KEYWORD = "INTERVAL";
     var _selfField = this;
 
     _selfField.name = _name;
@@ -334,7 +338,7 @@
     _selfField.utype = _utype;
     _selfField.unit = _unit;
     _selfField.xtype = _xtype;
-    _selfField.datatype = __datatype || {};
+    _selfField.datatype = __datatype || new Datatype("VARCHAR");
     _selfField.arraysize = _arraysize;
     _selfField.description = _description;
     _selfField.label = label;
@@ -374,6 +378,12 @@
       return _selfField.xtype;
     }
 
+    function containsInterval()
+    {
+      return new cadc.web.util.StringUtil(getXType()).contains(
+        INTERVAL_XTYPE_KEYWORD);
+    }
+
     function getDatatype()
     {
       return _selfField.datatype;
@@ -398,6 +408,7 @@
                "getUnit": getUnit,
                "getUType": getUType,
                "getXType": getXType,
+               "containsInterval": containsInterval,
                "getDescription": getDescription,
                "getUCD": getUCD,
                "getArraySize": getArraySize

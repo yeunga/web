@@ -187,7 +187,7 @@ function testComparers(columnOfInterest, expectedArray, direction)
       // extract the result into something easy to compare
       //
       var testArray = [];
-      for (var jj = 0; jj < dataView.getLength(); jj++)
+      for (var jj = 0, dvl = dataView.getLength(); jj < dvl; jj++)
       {
         var kk = dataView.getItem(jj)[columnOfInterest];
         testArray.push(kk);

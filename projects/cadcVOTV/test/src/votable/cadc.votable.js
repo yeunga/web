@@ -1,62 +1,63 @@
 var xmlData =
-    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-        + "<VOTABLE xmlns=\"http://www.ivoa.net/xml/VOTable/v1.2\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" version=\"1.2\">\n"
-        + "  <RESOURCE>\n"
-        + "    <TABLE>\n"
-        + "      <DESCRIPTION>TEST VOTABLE</DESCRIPTION>\n"
-        + "      <FIELD name=\"Job ID\" datatype=\"char\" arraysize=\"*\" />\n"
-        + "      <FIELD name=\"Project\" datatype=\"char\" arraysize=\"*\" />\n"
-        + "      <FIELD name=\"User\" datatype=\"char\" arraysize=\"*\" />\n"
-        + "      <FIELD name=\"Started\" datatype=\"char\" arraysize=\"*\" />\n"
-        + "      <FIELD name=\"Status\" datatype=\"char\" arraysize=\"*\" />\n"
-        + "      <FIELD name=\"Command\" datatype=\"char\" arraysize=\"*\" />\n"
-        + "      <FIELD name=\"VM Type\" datatype=\"char\" arraysize=\"*\" />\n"
-        + "      <FIELD name=\"CPUs\" datatype=\"int\" />\n"
-        + "      <FIELD name=\"Memory\" datatype=\"long\" />\n"
-        + "      <FIELD name=\"Job Starts\" datatype=\"int\" />\n"
-        + "      <DATA>\n"
-        + "        <TABLEDATA>\n"
-        + "          <TR>\n"
-        + "            <TD>735.0</TD>\n"
-        + "            <TD>2011.03.66.8.S</TD>\n"
-        + "            <TD>m</TD>\n"
-        + "            <TD />\n"
-        + "            <TD>Idle</TD>\n"
-        + "            <TD>ls</TD>\n"
-        + "            <TD>Tomcattime</TD>\n"
-        + "            <TD>1</TD>\n"
-        + "            <TD>3072</TD>\n"
-        + "            <TD>0</TD>\n"
-        + "          </TR>\n"
-        + "          <TR>\n"
-        + "            <TD>734.0</TD>\n"
-        + "            <TD>2011.03.66.9.S</TD>\n"
-        + "            <TD>hello</TD>\n"
-        + "            <TD />\n"
-        + "            <TD>Idle</TD>\n"
-        + "            <TD>sle</TD>\n"
-        + "            <TD>Tomcat</TD>\n"
-        + "            <TD>1</TD>\n"
-        + "            <TD>3072</TD>\n"
-        + "            <TD>0</TD>\n"
-        + "          </TR>\n"
-        + "          <TR>\n"
-        + "            <TD>733.0</TD>\n"
-        + "            <TD>2011.03.66.10.N</TD>\n"
-        + "            <TD>there</TD>\n"
-        + "            <TD />\n"
-        + "            <TD>Idle</TD>\n"
-        + "            <TD>s</TD>\n"
-        + "            <TD>t</TD>\n"
-        + "            <TD>1</TD>\n"
-        + "            <TD>3072</TD>\n"
-        + "            <TD>0</TD>\n"
-        + "          </TR>\n"
-        + "        </TABLEDATA>\n"
-        + "      </DATA>\n"
-        + "    </TABLE>\n"
-        + "  </RESOURCE>\n"
-        + "</VOTABLE>";
+  "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+  +
+  "<VOTABLE xmlns=\"http://www.ivoa.net/xml/VOTable/v1.2\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" version=\"1.2\">\n"
+  + "  <RESOURCE>\n"
+  + "    <TABLE>\n"
+  + "      <DESCRIPTION>TEST VOTABLE</DESCRIPTION>\n"
+  + "      <FIELD name=\"Job ID\" datatype=\"char\" arraysize=\"*\" />\n"
+  + "      <FIELD name=\"Project\" datatype=\"char\" arraysize=\"*\" />\n"
+  + "      <FIELD name=\"User\" datatype=\"char\" arraysize=\"*\" />\n"
+  + "      <FIELD name=\"Started\" datatype=\"char\" arraysize=\"*\" />\n"
+  + "      <FIELD name=\"Status\" datatype=\"char\" arraysize=\"*\" />\n"
+  + "      <FIELD name=\"Command\" datatype=\"char\" arraysize=\"*\" />\n"
+  + "      <FIELD name=\"VM Type\" datatype=\"char\" arraysize=\"*\" />\n"
+  + "      <FIELD name=\"CPUs\" datatype=\"int\" />\n"
+  + "      <FIELD name=\"Memory\" datatype=\"long\" />\n"
+  + "      <FIELD name=\"Job Starts\" datatype=\"double\" xtype=\"adql:proto:INTErvAL:\" arraysize=\"*\"/>\n"
+  + "      <DATA>\n"
+  + "        <TABLEDATA>\n"
+  + "          <TR>\n"
+  + "            <TD>735.0</TD>\n"
+  + "            <TD>2011.03.66.8.S</TD>\n"
+  + "            <TD>m</TD>\n"
+  + "            <TD />\n"
+  + "            <TD>Idle</TD>\n"
+  + "            <TD>ls</TD>\n"
+  + "            <TD>Tomcattime</TD>\n"
+  + "            <TD>1</TD>\n"
+  + "            <TD>3072</TD>\n"
+  + "            <TD />\n"
+  + "          </TR>\n"
+  + "          <TR>\n"
+  + "            <TD>734.0</TD>\n"
+  + "            <TD>2011.03.66.9.S</TD>\n"
+  + "            <TD>hello</TD>\n"
+  + "            <TD />\n"
+  + "            <TD>Idle</TD>\n"
+  + "            <TD>sle</TD>\n"
+  + "            <TD>Tomcat</TD>\n"
+  + "            <TD>1</TD>\n"
+  + "            <TD>3072</TD>\n"
+  + "            <TD />\n"
+  + "          </TR>\n"
+  + "          <TR>\n"
+  + "            <TD>733.0</TD>\n"
+  + "            <TD>2011.03.66.10.N</TD>\n"
+  + "            <TD>there</TD>\n"
+  + "            <TD />\n"
+  + "            <TD>Idle</TD>\n"
+  + "            <TD>s</TD>\n"
+  + "            <TD>t</TD>\n"
+  + "            <TD>1</TD>\n"
+  + "            <TD>3072</TD>\n"
+  + "            <TD>8.424999999999999E-5 1.1575E-4</TD>\n"
+  + "          </TR>\n"
+  + "        </TABLEDATA>\n"
+  + "      </DATA>\n"
+  + "    </TABLE>\n"
+  + "  </RESOURCE>\n"
+  + "</VOTABLE>";
 
 // Create a DOM to pass in.
 var xmlDOM = new DOMParser().parseFromString(xmlData, "text/xml");
@@ -69,10 +70,45 @@ test("Test table functions.", 2, function ()
 {
   try
   {
-    new cadc.vot.Builder(30000, 
+    new cadc.vot.Builder(30000,
+      {
+        xmlDOM: xmlDOM
+      },
+                         function (voTableBuilder)
                          {
-                           xmlDOM: xmlDOM
+                           voTableBuilder.build(voTableBuilder.buildRowData);
+
+                           var voTable = voTableBuilder.getVOTable();
+                           var metadata = voTable.getMetadata();
+
+                           var memoryField = metadata.getField("Memory");
+                           var jobStartsField = metadata.getField("Job Starts");
+
+                           equal(memoryField.containsInterval(), false,
+                                 "Memory field should contain no INTERVAL");
+
+                           equal(jobStartsField.containsInterval(), true,
+                                 "Job Starts field should contain INTERVAL");
                          },
+                         function ()
+                         {
+
+                         });
+  }
+  catch (error)
+  {
+    console.log(error.stack);
+  }
+});
+
+test("XType for intervals", 2, function ()
+{
+  try
+  {
+    new cadc.vot.Builder(30000,
+      {
+        xmlDOM: xmlDOM
+      },
                          function (voTableBuilder)
                          {
                            voTableBuilder.build(voTableBuilder.buildRowData);
@@ -104,7 +140,7 @@ test("Test table functions.", 2, function ()
   }
 });
 
-test("Field insertions to Metadata.", 4, function()
+test("Field insertions to Metadata.", 4, function ()
 {
   var testSubject = new cadc.vot.Metadata(null, null, null, null, null, null);
 
@@ -132,7 +168,7 @@ test("Field insertions to Metadata.", 4, function()
   equal(fr3.getID(), "F3", "Field should be F1 at index 9.");
 });
 
-test("Get field from metadata.", 4, function()
+test("Get field from metadata.", 4, function ()
 {
   var testSubject = new cadc.vot.Metadata(null, null, null, null, null, null);
 
