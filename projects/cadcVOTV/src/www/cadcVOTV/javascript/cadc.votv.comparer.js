@@ -19,10 +19,12 @@
    *
    *  Nan < 0
    */
-  function Comparer(sortCol, isNumeric)
+  function Comparer(_sortColumn, _isNumeric)
   {
-    var sortColumn = sortCol;
-    var comparer = isNumeric ? nanCompare : contentCompare;
+    var _self = this;
+
+    this.sortColumn = _sortColumn || null;
+    this.comparer = _isNumeric ? nanCompare : contentCompare;
 
     /**
      * For values of the same type, with content.
@@ -88,12 +90,24 @@
      */
     function compare(x,y)
     {
-      return comparer(x[sortColumn], y[sortColumn]);
+      return _self.comparer(x[_self.sortColumn], y[_self.sortColumn]);
+    }
+
+    function setIsNumeric(isnumeric)
+    {
+      _self.comparer = isnumeric ? nanCompare : contentCompare;
+    }
+
+    function setSortColumn(sortcol)
+    {
+      _self.sortColumn = sortcol;
     }
 
     $.extend(this,
              {
-               "compare": compare
+               "compare": compare,
+               "setIsNumeric": setIsNumeric,
+               "setSortColumn": setSortColumn
              });
 
   }
