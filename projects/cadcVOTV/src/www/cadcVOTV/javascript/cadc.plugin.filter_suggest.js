@@ -35,6 +35,7 @@
       }
 
       _viewer.doFilter(val, columnID);
+      _viewer.refreshGrid();
     }
 
     /**

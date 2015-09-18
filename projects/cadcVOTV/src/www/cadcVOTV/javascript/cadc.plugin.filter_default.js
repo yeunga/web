@@ -30,6 +30,7 @@
 
                      _viewer.doFilter(trimmedVal || "",
                                       $inputField.data("columnId"));
+                     _viewer.refreshGrid();
                    });
 
     return this;
