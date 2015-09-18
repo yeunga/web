@@ -18,10 +18,13 @@
       columnId: "_checkbox_selector",
       cssClass: null,
       toolTip: "Select/Deselect All",
+      enableOneClickDownload: false,
+      oneClickDownloadTitle: null,
+      oneClickDownloadURL: null,
       width: 30
     };
 
-    var _options = $.extend(true, {}, _defaults, options);
+    this.options = $.extend(true, {}, _defaults, options);
 
     function init(grid)
     {
@@ -42,10 +45,10 @@
     {
       var selectedRows = _grid.getSelectedRows();
 
-      var lookup = {}, row, i;
-      for (i = 0; i < selectedRows.length; i++)
+      var lookup = {};
+      for (var r = 0, ri = selectedRows.length; r < ri; r++)
       {
-        row = selectedRows[i];
+        var row = selectedRows[r];
         lookup[row] = true;
         if (lookup[row] !== _selectedRowsLookup[row])
         {
@@ -53,9 +56,10 @@
           delete _selectedRowsLookup[row];
         }
       }
-      for (i in _selectedRowsLookup)
+
+      for (var rowKey in _selectedRowsLookup)
       {
-        _grid.invalidateRow(i);
+        _grid.invalidateRow(rowKey);
       }
 
       _selectedRowsLookup = lookup;
@@ -65,31 +69,39 @@
       var disabledRowCount=0;
       for (var i = 0; i < _grid.getDataLength(); i++)
       {
-        _grid.getDataItem(i)[cadc.vot.ROW_SELECT_DISABLED_KEY] ? disabledRowCount++ : null;
+        _grid.getDataItem(i)[cadc.vot.ROW_SELECT_DISABLED_KEY]
+          ? disabledRowCount++ : null;
       }
 
-      if (selectedRows.length && (selectedRows.length == (_grid.getDataLength()-disabledRowCount)))
-      {
-        _grid.updateColumnHeader(_options.columnId,
-                                 "<input type='checkbox' class='slick-header-column-checkboxsel' checked='checked'>",
-                                 _options.toolTip);
-      }
-      else
-      {
-        _grid.updateColumnHeader(_options.columnId,
-                                 "<input type='checkbox' class='slick-header-column-checkboxsel'>",
-                                 _options.toolTip);
-      }
+      var rowChecked = selectedRows.length
+                       && (selectedRows.length == (_grid.getDataLength()
+                                                   - disabledRowCount));
+
+      _grid.updateColumnHeader(_self.options.columnId,
+                               getHeaderCheckboxLabel() +
+                               "<input type='checkbox' class='slick-header-column-checkboxsel'" + (rowChecked ? " checked='checked'" : "") + " >",
+                               _self.options.toolTip);
+    }
+
+    function getCheckboxLabel()
+    {
+      return _self.options.checkboxLabel ? _self.options.checkboxLabel : "";
+    }
+
+    function getHeaderCheckboxLabel()
+    {
+      return _self.options.headerCheckboxLabel ? _self.options.headerCheckboxLabel : "";
     }
 
     function handleKeyDown(e, args)
     {
       if (e.which == 32)
       {
-        if (_grid.getColumns()[args.cell].id === _options.columnId)
+        if (_grid.getColumns()[args.cell].id === _self.options.columnId)
         {
           // if editing, try to commit
-          if (!_grid.getEditorLock().isActive() || _grid.getEditorLock().commitCurrentEdit())
+          if (!_grid.getEditorLock().isActive()
+              || _grid.getEditorLock().commitCurrentEdit())
           {
             toggleRowSelection(args.row);
           }
@@ -99,23 +111,17 @@
       }
     }
 
+    /**
+     * This is fired when the cell containing the checkbox is clicked.
+     *
+     * @param e
+     * @param args
+     * @returns {boolean}
+     */
     function handleClick(e, args)
     {
-      // clicking on a row select checkbox
-      if (_grid.getColumns()[args.cell].id === _options.columnId && $(e.target).is(":checkbox"))
-      {
-        // if editing, try to commit
-        if (_grid.getEditorLock().isActive() && !_grid.getEditorLock().commitCurrentEdit())
-        {
-          e.preventDefault();
-          e.stopImmediatePropagation();
-          return;
-        }
-
-        toggleRowSelection(args.row);
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-      }
+      e.stopPropagation();
+      e.stopImmediatePropagation();
     }
 
     function toggleRowSelection(row)
@@ -138,6 +144,11 @@
       }));
     }
 
+    function isOneClickDownloadEnabled()
+    {
+      return _self.options.enableOneClickDownload === true;
+    }
+
     function select(row)
     {
       _grid.setSelectedRows(_grid.getSelectedRows().concat(row));
@@ -147,7 +158,7 @@
     {
       var $eventTarget = $(e.target);
 
-      if ((args.column.id === _options.columnId)
+      if ((args.column.id === _self.options.columnId)
           && $eventTarget.is(":checkbox"))
       {
         // if editing, try to commit
@@ -188,15 +199,15 @@
     function getColumnDefinition()
     {
       return {
-        id: _options.columnId,
-        name: "<input type='checkbox'>",
-        toolTip: _options.toolTip,
+        id: _self.options.columnId,
+        name: getHeaderCheckboxLabel() + "<input type='checkbox' />",
+        toolTip: _self.options.toolTip,
         field: "sel",
-        width: _options.width,
+        width: _self.options.width,
         resizable: false,
         sortable: false,
-        headerCssClass: _options.headerCssClass,
-        cssClass: _options.cssClass,
+        headerCssClass: _self.options.headerCssClass,
+        cssClass: _self.options.cssClass,
         formatter: checkboxSelectionFormatter
       };
     }
@@ -206,9 +217,26 @@
     {
       if (dataContext)
       {
-        return _selectedRowsLookup[row]
-            ? "<input class='_select_" + dataContext["id"] + "' type='checkbox' checked='checked'>"
-            : "<input class='_select_" + dataContext["id"] + "' type='checkbox'>";
+        var thisID = dataContext["id"];
+        var cellOutput =
+          "<input class='_select_" + thisID + "' type='checkbox' "
+          + (_selectedRowsLookup[row] ? "checked='checked' " : "") + "/>";
+
+        if (isOneClickDownloadEnabled())
+        {
+          var linkURL = $.trim(_self.options.oneClickDownloadURL);
+
+          linkURL += "?ID=" + encodeURIComponent(
+              dataContext[_self.options.oneClickDownloadURLColumnID]);
+
+          cellOutput +=
+            "<a id='_one-click_" + thisID + "' href='" + linkURL + "'"
+            + (_self.options.oneClickDownloadTitle
+              ? " title='" + _self.options.oneClickDownloadTitle + "'": "")
+            + " class='no-propagate-event'><span class='wb-icon-drive-download margin-left-small no-propagate-event'></span></a>";
+        }
+
+        return cellOutput;
       }
       else
       {

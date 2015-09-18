@@ -232,18 +232,23 @@
         }
       }
 
-      if (_options.selectClickedRow || cell.cell === 0)
+      var $target = $(e.target);
+      var shouldNotPropagate = ((_options.propagateEvents === false)
+                                || $target.is(":checkbox")
+                                || $target.hasClass("no-propagate-event"));
+
+      if ($target.is(":checkbox") || _options.selectClickedRow)
       {
         _ranges = rowsToRanges(selection);
         setSelectedRanges(_ranges);
       }
 
-      if ((_options.propagateEvents === false) || $(e.target).is(":checkbox"))
+      if (shouldNotPropagate)
       {
         e.stopImmediatePropagation();
       }
 
-      return true;
+      return !shouldNotPropagate;
     }
 
     $.extend(this, {

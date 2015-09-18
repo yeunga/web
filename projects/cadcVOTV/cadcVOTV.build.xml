@@ -65,16 +65,24 @@ server, you can set the PROXY_URL filter token value to "".
   <condition property="osfamily" value="Windows">
     <os family="windows"/>
   </condition>
-  <condition property="osfamily" value="Mac OS X">
+  <condition property="osfamily" value="Mac">
     <os family="mac"/>
   </condition>
   <condition property="osfamily" value="Linux">
     <os family="unix"/>
   </condition>
+  <condition property="test-host" value="${testHost}" else="localhost">
+    <isset property="${testHost}"/>
+  </condition>
 
-  <property name="phantomjs.bin" value="test/phantomjs/${osfamily}/phantomjs" />
+  <property name="runner" value="test/qunit-runner-1.18.0.js" />
+  <property name="phantomjs" value="test/phantomjs/${osfamily}/phantomjs" />
 
-  <target name="test" depends="build"
+  <target name="setup-test">
+    <available file="abc.txt" property="abc.present"/>
+  </target>
+
+  <target name="test" depends="setup-test, build"
           description="Runs QUnit Tests using PhantomJS">
       
     <!-- QUnit Javascript Unit Tests -->
@@ -83,72 +91,69 @@ server, you can set the PROXY_URL filter token value to "".
     <echo message="Dynamic row adding tests"/>
     <antcall target="js-test">
       <param name="js-test-dir" value="test/src/row_add" />
-      <param name="js-test-name" value="cadc.votv-row-add.js" />
     </antcall>
 
     <echo message="VOTable Tests"/>
     <antcall target="js-test">
       <param name="js-test-dir" value="test/src/votable" />
-      <param name="js-test-name" value="cadc.votable.js" />
     </antcall>
 
     <echo message="CADC VOTV Plugin default filter tests"/>
     <antcall target="js-test">
       <param name="js-test-dir" value="test/src/plugin_filter_default" />
-      <param name="js-test-name" value="cadc.votv.plugin_filter_default.js" />
     </antcall>
 
     <echo message="CADC VOTV Value Filter tests"/>
     <antcall target="js-test">
       <param name="js-test-dir" value="test/src/value_filter" />
-      <param name="js-test-name" value="cadc.votv.value-filter.js" />
     </antcall>
 
     <echo message="VOTable XML reader tests"/>
     <antcall target="js-test">
       <param name="js-test-dir" value="test/src/xml_reader" />
-      <param name="js-test-name" value="cadc.votable.xml-reader.js" />
     </antcall>
 
     <echo message="VOTable CSV reader tests"/>
     <antcall target="js-test">
       <param name="js-test-dir" value="test/src/csv_reader" />
-      <param name="js-test-name" value="cadc.votable.csv-reader.js" />
     </antcall>
 
     <echo message="Sort comparer tests"/>
     <antcall target="js-test">
       <param name="js-test-dir" value="test/src/comparer" />
-      <param name="js-test-name" value="cadc.votv.sorter.js" />
     </antcall>
 
     <echo message="VOTable Streaming builder tests"/>
     <antcall target="js-test">
       <param name="js-test-dir" value="test/src/streaming_reader" />
-      <param name="js-test-name" value="cadc.votable.streaming-reader.js" />
     </antcall>
 
     <echo message="Result state tests"/>
     <antcall target="js-test">
       <param name="js-test-dir" value="test/src/result_state" />
-      <param name="js-test-name" value="cadc.result-state.js" />
+    </antcall>
+
+    <echo message="Result state tests"/>
+    <antcall target="js-test">
+      <param name="js-test-dir" value="test/src/checkbox_select" />
+    </antcall>
+    
+    <echo message="VOTV tests"/>
+    <antcall target="js-test">
+      <param name="js-test-dir" value="test/src/votv" />
     </antcall>
     
   </target>
 
   <target name="js-test">
-    <property name="js-test-dir" value="" />
-    <property name="js-test-name" value="" />
+    <echo message="Testing in ${js-test-dir}" />
+    <echo message="os name: |${os.name}| os arch: |${os.arch}| family: |${osfamily}|" />
 
-    <apply executable="${phantomjs.bin}" failonerror="true">
-      <arg value="test/qunit-runner.js" />
-      <arg line="--qunit test/qunit-1.10.0.js --package ${js-test-dir}/package.json --tests ${js-test-dir}/${js-test-name} --junit ${js-test-dir}/qunit-results.xml" />
-      <fileset dir="${js-test-dir}">
-        <include name="${js-test-name}" />
-        <exclude name="package.json" />
-      </fileset>
-      <srcfile/>
-    </apply>
+    <exec executable="${phantomjs}" failonerror="true">
+      <arg value="${runner}" />
+      <arg value="file:///${user.dir}/${js-test-dir}/index.html" />
+      <arg value="10000" />
+    </exec>
   </target>
 
 </project>
