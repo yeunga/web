@@ -702,6 +702,7 @@
       var cols = [];
       var opts = getOptions();
       var defaultColumnIDs = opts.defaultColumnIDs;
+
       if (!defaultColumnIDs || (defaultColumnIDs.length == 0))
       {
         cols = getColumns().slice(0);
@@ -711,6 +712,17 @@
         for (var i = 0, dcii = defaultColumnIDs.length; i < dcii; i++)
         {
           var nextDefaultColumn = defaultColumnIDs[i];
+          var colOpts = getOptions().columnOptions[nextDefaultColumn];
+          var visible = colOpts ?
+                        ((colOpts.visible !== undefined) ? colOpts.visible : true) :
+                        true;
+          if(!visible)
+          {
+            var msg = nextDefaultColumn + " should not be declared invisible and part of defaults.";
+            console.error(msg);
+            throw new Error(msg);
+          }
+
           if (nextDefaultColumn)
           {
             var thisCols = getColumns();
@@ -1898,6 +1910,11 @@
       return getGrid().getData().getItems().length;
     }
 
+    function getDefaultColumnIDs()
+    {
+      return getOptions().defaultColumnIDs;
+    }
+
     $.extend(this,
       {
         "init": init,
@@ -1926,12 +1943,14 @@
         "setColumnFilter": setColumnFilter,
         "setDisplayColumns": setDisplayColumns,
         "getDisplayedColumns": getDisplayedColumns,
+        "getDefaultColumns": getDefaultColumns,
         "valueFilters": valueFilters,
         "searchFilter": searchFilter,
         "formatCellValue": formatCellValue,
         "setSortColumn": setSortColumn,
         "getResizedColumns": getResizedColumns,
         "getUpdatedColumnSelects": getUpdatedColumnSelects,
+        "getDefaultColumnIDs": getDefaultColumnIDs,
         "setViewportHeight": setViewportHeight,
         "setViewportOffset": setViewportOffset,
 
