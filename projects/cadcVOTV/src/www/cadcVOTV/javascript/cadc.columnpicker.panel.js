@@ -158,7 +158,10 @@
                            $.each(gridCols, function(gcKey, gColDef)
                            {
                              colIDs.push(gColDef.id);
-                             allCols.push(gColDef);
+                             if(isVisible(gColDef.id))
+                             {
+                               allCols.push(gColDef);
+                             }
                            });
 
                            $.each(columns, function(colKey, colDef)
@@ -174,7 +177,7 @@
                                }
                              });
 
-                             if (!isInGrid)
+                             if ((!isInGrid) && (isVisible(colID)))
                              {
                                allCols.push(colDef);
                              }
@@ -261,6 +264,19 @@
       $menu.disableSelection();
     }
 
+    function getColumnOptions(_id)
+    {
+      return grid.getOptions().columnOptions[_id];
+    }
+
+    function isVisible(_id)
+    {
+      var colOpts = getColumnOptions(_id);
+      return colOpts ?
+             ((colOpts.visible !== undefined) ? colOpts.visible : true) :
+             true;
+    }
+
     function addColumns(cols)
     {
       $.each(cols, function(cindex, nextCol)
@@ -269,8 +285,8 @@
         $li.prop("id", "ITEM_" + nextCol.id);
         $li.data("column-id", nextCol.id);
 
-        // Omit the checkbox column.
-        if (nextCol.id == "_checkbox_selector")
+        // Omit the checkbox column and invisible fields
+        if ((nextCol.id == "_checkbox_selector") || (!isVisible(nextCol.id)))
         {
           $li.hide();
         }
@@ -384,14 +400,6 @@
     function updateColumns()
     {
       var previousItems = $menu.find(thresholdListItemSelector).prevAll("li");
-//      var previousItems = $menu.find("li").filter(
-//          function(index)
-//          {
-//            var threshIndex = $menu.find("li").index(thresholdListItemSelector);
-//
-//            return (index < threshIndex);
-//          });
-
       var previousItemCount = previousItems.length;
       var visibleColumns = [];
 
