@@ -197,3 +197,25 @@ test("Array sort.", 3, function ()
     }
   ], "Wrong sorted array.");
 });
+
+test("String util matches", 3, function()
+{
+  var testSubject = new cadc.web.util.StringUtil(
+    "ALL YOUr base Are BEELong to me!");
+
+  equal(testSubject.matches(/long/gi), true, "Should match");
+  equal(testSubject.matches(/belong/gi), false, "Should not match");
+  equal(testSubject.matches(/me!/gi), true, "Should match");
+});
+
+test("String util contains", 5, function()
+{
+  var testSubject = new cadc.web.util.StringUtil(
+    "ALL YOUr base Are BEELong to me!");
+
+  equal(testSubject.contains("BEEL", false), true, "Should contain");
+  equal(testSubject.contains("belong"), false, "Should not contain");
+  equal(testSubject.contains("!"), true, "Should contain");
+  equal(testSubject.contains("BAse"), true, "Should contain");
+  equal(testSubject.contains("are", true), false, "Should not contain");
+});
