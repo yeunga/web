@@ -348,13 +348,30 @@
       return new RegExp(_regex).test(getString());
     }
 
+    /**
+     * Obtain whether the String in this StringUtil contains the given _str.
+     *
+     * @param _str            The string to see if is contained.
+     * @param _matchCase      Optionally match case.
+     * @returns {boolean}
+     */
+    function contains(_str, _matchCase)
+    {
+      var expression = ".*" + _str + ".*";
+      var regExp = (_matchCase === true) ? new RegExp(expression)
+        : new RegExp(expression, "gi");
+
+      return regExp.test(getString());
+    }
+
     $.extend(this,
         {
           "sanitize": sanitize,
           "hasLength": hasLength,
           "hasText": hasText,
           "format": format,
-          "matches": matches
+          "matches": matches,
+          "contains": contains
         });
   }
 
