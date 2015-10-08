@@ -47,8 +47,10 @@
 	 function buildRowData(tableFields, rowID, rowData, longestValues, extract)
     {
       var rowCells = [];
-      for (var cellIndex = 0; (cellIndex < rowData.length)
-                              && (cellIndex < tableFields.length); cellIndex++)
+      for (var cellIndex = 0, rowDataLength = rowData.length,
+             tableFieldLength = tableFields.length;
+           (cellIndex < rowDataLength) && (cellIndex < tableFieldLength);
+           cellIndex++)
       {
         var cellField = tableFields[cellIndex];
         var cellDatatype = cellField.getDatatype();
@@ -57,7 +59,10 @@
         setLongest(longestValues, cellField.getID(), stringValue);
 
         var cellValue;
-        if ($.isEmptyObject(cellDatatype))
+
+        // Handle the possible array of values. (CADC Story 1750)
+        // This is data type agnostic for now.
+        if (cellField.containsInterval())
         {
           cellValue = stringValue;
         }
@@ -557,7 +562,8 @@
           var rowDataDOMs = getElements(nextTablePath + "/DATA/TABLEDATA/TR");
           var tableFieldsMetadata = tableMetadata.getFields();
 
-          for (var rowIndex = 0; rowIndex < rowDataDOMs.length; rowIndex++)
+          for (var rowIndex = 0, rowDataDOMLength = rowDataDOMs.length;
+               rowIndex < rowDataDOMLength; rowIndex++)
           {
             var nextRowPath = nextTablePath + "/DATA/TABLEDATA/TR["
                               + (rowIndex + 1) + "]";
