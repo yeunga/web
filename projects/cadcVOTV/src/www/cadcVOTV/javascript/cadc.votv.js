@@ -649,7 +649,16 @@
 
     function getLongestValue(_columnID)
     {
-      return getLongestValues()[_columnID];
+      var vals = getLongestValues();
+
+      if (vals && vals.hasOwnProperty(_columnID))
+      {
+        return vals[_columnID];
+      }
+      else
+      {
+        return -1;
+      }
     }
 
     function setLongestValues(_longestValues)
