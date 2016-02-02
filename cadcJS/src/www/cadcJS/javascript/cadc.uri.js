@@ -416,7 +416,7 @@
         targetURL += "#" + requestURL.getHash();
       }
 
-      var explicitTarget = getParameterByName("target");
+      var explicitTarget = requestURL.getQueryValue("target");
 
       if (explicitTarget)
       {
