@@ -333,7 +333,6 @@ if (typeof Slick === "undefined")
           .css("width", getCanvasWidth() + scrollbarDimensions.width + "px")
           .appendTo($headerRowScrollerR);
 
-
       $headerRowL = $("<div class='slick-headerrow-columns slick-headerrow-columns-left' />").appendTo($headerRowScrollerL);
       $headerRowR = $("<div class='slick-headerrow-columns slick-headerrow-columns-right' />").appendTo($headerRowScrollerR);
 
@@ -3153,7 +3152,7 @@ if (typeof Slick === "undefined")
         activeCellNode = getCellNode(activeRow, activeCell);
       }
 
-      trigger(self.onRowsRendered, {"renderedRowIndexes": rows});
+      trigger(self.onRenderComplete, {});
     }
 
     function startPostProcessing()
@@ -5063,6 +5062,7 @@ if (typeof Slick === "undefined")
       // Events
       "onScroll": new Slick.Event(),
       "onSort": new Slick.Event(),
+      "onRenderComplete": new Slick.Event(),
       "onHeaderMouseEnter": new Slick.Event(),
       "onHeaderMouseLeave": new Slick.Event(),
       "onHeaderContextMenu": new Slick.Event(),
@@ -5070,7 +5070,6 @@ if (typeof Slick === "undefined")
       "onHeaderCellRendered": new Slick.Event(),
       "onBeforeHeaderCellDestroy": new Slick.Event(),
       "onHeaderRowCellRendered": new Slick.Event(),
-      "onRowsRendered": new Slick.Event(),
       "onBeforeHeaderRowCellDestroy": new Slick.Event(),
       "onMouseEnter": new Slick.Event(),
       "onMouseLeave": new Slick.Event(),

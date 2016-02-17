@@ -24,7 +24,7 @@
    * @param {String} _baseUrl The base url.
    * @param {String} _sortColumn Column the table is sorted on.
    * @param {String} _sortDirection Sort direction, ascending or descending.
-   * @param {array} _columns Columns that are actually in the Grid.
+   * @param {Array} _columns Columns that are actually in the Grid.
    * @param {Object} _widths Column id's and widths.
    * @param {Object} _filters Column id's and filter values.
    * @param {Object} _units Column id's and select values.
@@ -82,7 +82,7 @@
 
         url.push(cadc.vot.ResultState.SORT_DIRECTION);
         url.push("=");
-        if (_self.sortDirection === cadc.vot.SORT_ASCENDING)
+        if (_self.sortDirection === cadc.vot.ResultState.SORT_ASCENDING)
         {
           url.push(cadc.vot.ResultState.SORT_ASCENDING);
         }
@@ -119,7 +119,6 @@
     function getColumnParameter(_index, _columnID)
     {
       var parameter = [];
-//      parameter.push("&");
       parameter.push(cadc.vot.ResultState.COLUMN_PARAMETER_NAME);
       parameter.push(_index);
       parameter.push("=");
@@ -161,37 +160,6 @@
     }
 
     /**
-     * Parses the query url into just the query url part, removing any
-     * result state parameters.
-     *
-     * @returns {String}
-     *
-    function getQueryUrl()
-    {
-      var query = [];
-      $.each(_self.url.getQueryStringObject(), function (key, value)
-      {
-        if (key && key !== cadc.vot.ResultState.SORT_COLUMN &&
-            key !== cadc.vot.ResultState.SORT_DIRECTION &&
-            key.slice(0, cadc.vot.ResultState.COLUMN_PARAMETER_NAME.length)
-                !== cadc.vot.ResultState.COLUMN_PARAMETER_NAME)
-        {
-          query.push(key + "=" + value);
-        }
-      });
-
-      var url = [];
-      url.push(_self.url.getPath());
-      if (query.length > 0)
-      {
-        url.push("?");
-        url.push(query.join("&"));
-      }
-      return url.join("");
-    }
-     */
-
-    /**
      * Sort the array by the number attribute.
      *
      * @param {Object} a
@@ -204,10 +172,12 @@
       {
         return -1;
       }
+
       if (Number(a.number) > Number(b.number))
       {
         return 1;
       }
+
       return 0;
     }
 
@@ -308,7 +278,6 @@
              {
                // Methods
                "getViewerOptions": getViewerOptions
-//               "getQueryUrl": getQueryUrl
              });
   }
 })(jQuery);

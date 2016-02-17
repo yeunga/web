@@ -30,7 +30,10 @@
 
                      _viewer.doFilter(trimmedVal || "",
                                       $inputField.data("columnId"));
-                     _viewer.refreshGrid();
+
+                     var grid = _viewer.getGrid();
+                     grid.invalidateAllRows();
+                     grid.render();
                    });
 
     return this;
