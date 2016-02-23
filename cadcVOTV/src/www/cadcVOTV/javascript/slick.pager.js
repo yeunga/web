@@ -88,7 +88,6 @@
           .click(function () {
             $(".slick-pager-settings-expanded").toggle()
           })
-          .attr("title", "Enable/Disable pagination")
           .appendTo($settings);
 
       $(icon_prefix + "ui-icon-seek-first" + icon_suffix)
