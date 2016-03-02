@@ -121,7 +121,7 @@
           voTableBuilder.subscribe(cadc.vot.onDataLoadComplete,
                                    function (event, args)
                                    {
-                                     if (args)
+                                     if (args && args.longestValues)
                                      {
                                        setLongestValues(args.longestValues);
                                      }
