@@ -455,6 +455,77 @@
       return targetURL;
     }
 
+    /**
+     * Specific function to obtain the currently requested target of a
+     * login/logout within the CADC.  Nobody else will probably use this, but
+     * it's here for convenience.
+     *
+     * @returns {string}
+     */
+    function getTargetURL()
+    {
+      // Get information about the current page
+      var requestURL = new currentURI();
+      var queryStringObject =
+        requestURL.getQueryStringObject();
+      var refererURL;
+
+      if (queryStringObject.referer)
+      {
+        refererURL = new URI(queryStringObject.referer);
+      }
+      else
+      {
+        refererURL = new URI(document.referrer);
+      }
+
+      var targetURL =
+        window.location.protocol + "//" + window.location.hostname
+        +
+        (window.location.port ? ":" + window.location.port : "");
+
+      // Some sanitizing.
+      if (refererURL.getPath().indexOf("/vosui") >= 0)
+      {
+        targetURL += "/vosui/";
+      }
+      else if (refererURL.getPath().indexOf("/canfar")
+               >= 0)
+      {
+        targetURL += "/canfar/";
+      }
+      else if (refererURL.getPath().indexOf("/en/login")
+               >= 0)
+      {
+        targetURL += "/en/";
+      }
+      else if (refererURL.getPath().indexOf("/fr/connexion")
+               >= 0)
+      {
+        targetURL += "/fr/";
+      }
+      else
+      {
+        targetURL += refererURL.getPath();
+      }
+
+      if (requestURL.getHash()
+          && (requestURL.getHash() != null)
+          && (requestURL.getHash() != ""))
+      {
+        targetURL += "#" + requestURL.getHash();
+      }
+
+      var explicitTarget = requestURL.getQueryValue("target");
+
+      if (explicitTarget)
+      {
+        targetURL = explicitTarget;
+      }
+
+      return targetURL;
+    }
+
     function clearQuery()
     {
       $.each(getQuery(), function(param, values)
