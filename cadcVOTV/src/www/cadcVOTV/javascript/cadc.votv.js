@@ -322,6 +322,11 @@
       return _self.columnOptions;
     }
 
+    function setOptionsForColumn(columnID, _colOpts)
+    {
+      _self.columnOptions[columnID] = _colOpts;
+    }
+
     function getOptionsForColumn(columnLabel)
     {
       return getColumnOptions()[columnLabel]
@@ -1532,7 +1537,7 @@
 
       if (Slick.Plugins && Slick.Plugins.UnitSelection)
       {
-        var unitSelectionPlugin = new Slick.Plugins.UnitSelection();
+        var unitSelectionPlugin = new Slick.Plugins.UnitSelection({});
 
         // Extend the filter row to include the pulldown menu.
         unitSelectionPlugin.onUnitChange.subscribe(function (e, args)
@@ -1950,6 +1955,8 @@
                "getDefaultColumnIDs": getDefaultColumnIDs,
                "setViewportHeight": setViewportHeight,
                "setViewportOffset": setViewportOffset,
+               "getOptionsForColumn": getOptionsForColumn,
+               "setOptionsForColumn": setOptionsForColumn,
 
                // Used for testing
                "setupHeader": setupHeader,
