@@ -19,6 +19,13 @@
           "onRowsChanged": new jQuery.Event("cadcVOTV:onRowsChanged"),
           "onDataLoaded": new jQuery.Event("cadcVOTV:onDataLoaded"),
           "onUnitChanged": new jQuery.Event("cadcVOTV:onUnitChanged")
+        },
+        "filters": {
+          ">": "gt",
+          "<": "lt",
+          "<=": "le",
+          ">=": "ge",
+          "..": "range"
         }
       }
     }
@@ -759,67 +766,14 @@
      */
     function valueFilters(filter, value)
     {
-      var operator = '';
-      var exactMatch = false;
       filter = $.trim(filter);
+      var dotIndex = filter.indexOf('..');
 
-      // determine the operator and filter value
-      if (filter.indexOf('= ') == 0)
-      {
-        exactMatch = true;
-        filter = filter.substring(2);
-      }
-      else if (filter.indexOf('=') == 0)
-      {
-        exactMatch = true;
-        filter = filter.substring(1);
-      }
-      else if (filter.indexOf('>= ') == 0)
-      {
-        filter = filter.substring(3);
-        operator = 'ge';
-      }
-      else if (filter.indexOf('>=') == 0)
-      {
-        filter = filter.substring(2);
-        operator = 'ge';
-      }
-      else if (filter.indexOf('<= ') == 0)
-      {
-        filter = filter.substring(3);
-        operator = 'le';
-      }
-      else if (filter.indexOf('<=') == 0)
-      {
-        filter = filter.substring(2);
-        operator = 'le';
-      }
-      else if (filter.indexOf('> ') == 0)
-      {
-        filter = filter.substring(2);
-        operator = 'gt';
-      }
-      else if (filter.indexOf('>') == 0)
-      {
-        filter = filter.substring(1);
-        operator = 'gt';
-      }
-      else if (filter.indexOf('< ') == 0)
-      {
-        filter = filter.substring(2);
-        operator = 'lt';
-      }
-      else if (filter.indexOf('<') == 0)
-      {
-        filter = filter.substring(1);
-        operator = 'lt';
-      }
-      else if (filter.indexOf('..') > 0)
+      if (dotIndex > 0)
       {
         // filter on the range and return
-        var dotIndex = filter.indexOf('..');
         var left = filter.substring(0, dotIndex);
-        if ((dotIndex) + 2 < filter.length)
+        if ((dotIndex + 2) < filter.length)
         {
           var right = filter.substring(dotIndex + 2);
 
@@ -834,96 +788,116 @@
           }
         }
       }
-
-      // act on the operator and value
-      value = $.trim(value);
-
-      var isFilterNumber = isNumber(filter);
-
-      // Special case for those number filter expectations where the data is
-      // absent.
-      if (isFilterNumber
-          && ((value == "") || (value == "NaN") || (value == Number.NaN)))
-      {
-        return true;
-      }
-      else if (operator === 'gt')
-      {
-        // greater than operator
-        if (areNumbers(value, filter))
-        {
-          return parseFloat(value) <= parseFloat(filter);
-        }
-        else if (areStrings(value, filter))
-        {
-          return value.toUpperCase() <= filter.toUpperCase();
-        }
-        else
-        {
-          return value <= filter;
-        }
-      }
-      else if (operator == 'lt')
-      {
-        // less-than operator
-        if (areNumbers(value, filter))
-        {
-          return parseFloat(value) >= parseFloat(filter);
-        }
-        else if (areStrings(value, filter))
-        {
-          return value.toUpperCase() >= filter.toUpperCase();
-        }
-        else
-        {
-          return value >= filter;
-        }
-      }
-      else if (operator == 'ge')
-      {
-        // greater-than or equals operator
-        if (areNumbers(value, filter))
-        {
-          return parseFloat(value) < parseFloat(filter);
-        }
-        else if (areStrings(value, filter))
-        {
-          return value.toUpperCase() < filter.toUpperCase();
-        }
-        else
-        {
-          return value < filter;
-        }
-      }
-      else if (operator == 'le')
-      {
-        // less-than or equals operator
-        if (areNumbers(value, filter))
-        {
-          return parseFloat(value) > parseFloat(filter);
-        }
-        else if (areStrings(value, filter))
-        {
-          return value.toUpperCase() > filter.toUpperCase();
-        }
-        else
-        {
-          return value > filter;
-        }
-      }
-      else if (exactMatch === true)
-      {
-        return (value.toString().toUpperCase()
-                !== filter.toString().toUpperCase());
-      }
       else
       {
-        filter = $.ui.autocomplete.escapeRegex(filter);
+        var filterRegexStartsWith = /^\s?(>=|<=|=|>|<)?\s?(.*)/;
+        var matches = filterRegexStartsWith.exec(filter);
+        var match = ((matches != null) && (matches.length > 1))
+          ? $.trim(matches[1]) : null;
 
-        var regex = new RegExp(filter, "gi");
-        var result = value.match(regex);
+        var operator = (match == null) ? '' : cadc.vot.filters[match];
 
-        return (!result || result.length == 0);
+        if (operator)
+        {
+          filter = filter.substring(match.length);
+        }
+
+        var exactMatch = (match === "=");
+
+        // act on the operator and value
+        value = $.trim(value);
+
+        var isFilterNumber = isNumber(filter);
+
+        // Special case for those number filter expectations where the data is
+        // absent.
+        if (isFilterNumber
+            && ((value == "") || (value == "NaN") || (value == Number.NaN)))
+        {
+          return true;
+        }
+        else if (operator && !filter)
+        {
+          return false;
+        }
+        else if (operator === 'gt')
+        {
+          // greater than operator
+          if (areNumbers(value, filter))
+          {
+            return parseFloat(value) <= parseFloat(filter);
+          }
+          else if (areStrings(value, filter))
+          {
+            return value.toUpperCase() <= filter.toUpperCase();
+          }
+          else
+          {
+            return value <= filter;
+          }
+        }
+        else if (operator == 'lt')
+        {
+          // less-than operator
+          if (areNumbers(value, filter))
+          {
+            return parseFloat(value) >= parseFloat(filter);
+          }
+          else if (areStrings(value, filter))
+          {
+            return value.toUpperCase() >= filter.toUpperCase();
+          }
+          else
+          {
+            return value >= filter;
+          }
+        }
+        else if (operator == 'ge')
+        {
+          // greater-than or equals operator
+          if (areNumbers(value, filter))
+          {
+            return parseFloat(value) < parseFloat(filter);
+          }
+          else if (areStrings(value, filter))
+          {
+            return value.toUpperCase() < filter.toUpperCase();
+          }
+          else
+          {
+            return value < filter;
+          }
+        }
+        else if (operator == 'le')
+        {
+          // less-than or equals operator
+          if (areNumbers(value, filter))
+          {
+            return parseFloat(value) > parseFloat(filter);
+          }
+          else if (areStrings(value, filter))
+          {
+            return value.toUpperCase() > filter.toUpperCase();
+          }
+          else
+          {
+            return value > filter;
+          }
+        }
+        else if (exactMatch === true)
+        {
+          return (value.toString().toUpperCase()
+                  !== filter.toString().toUpperCase());
+        }
+        else
+        {
+          filter = $.ui.autocomplete.escapeRegex(filter);
+
+          var regex = new RegExp(filter, "gi");
+          var result = value.match(regex);
+
+          return (!result || result.length == 0);
+        }
       }
     }
 

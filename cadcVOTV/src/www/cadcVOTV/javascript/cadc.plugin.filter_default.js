@@ -26,9 +26,8 @@
     $inputField.on("change keyup",
                    function (e)
                    {
-                     var trimmedVal = $.trim($inputField.val());
 
-                     _viewer.doFilter(trimmedVal || "",
+                     _viewer.doFilter($inputField.val() || "",
                                       $inputField.data("columnId"));
 
                      var grid = _viewer.getGrid();
