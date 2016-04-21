@@ -156,8 +156,8 @@
           var queryKey = pair[0];
           var keyValues = nvpair[queryKey] || [];
 
-          // TODO - Is it a good idea to always decode this?
-          keyValues.push(decodeURIComponent(pair[1]));
+          // TODO - Is it a good idea to always decode this?  Should it be?
+          keyValues.push(pair[1]);
 
           nvpair[queryKey] = keyValues;
         });
@@ -281,7 +281,7 @@
         getQuery()[_key] = [_val];
       }
 
-      reparse(toString());
+      //reparse(toString());
     }
 
     /**
@@ -322,21 +322,6 @@
      */
     function toString()
     {
-      var queryString = $.isEmptyObject(getQuery()) ? "" : "?";
-
-      $.each(getQuery(), function(param, values)
-      {
-        for (var valIndex = 0; valIndex < values.length; valIndex++)
-        {
-          queryString += param + "=" + values[valIndex] + "&";
-        }
-      });
-
-      if (queryString.charAt(queryString.length - 1) === ("&"))
-      {
-        queryString = queryString.substr(0, (queryString.length - 1));
-      }
-
       var hashString;
 
       if (getHash() != '')
@@ -351,8 +336,123 @@
       var scheme = getScheme();
 
       return (($.trim(scheme) == '') ? "" : (scheme + "://"))
-             + getHost() + getPath() + queryString
+             + getHost() + getPath() + buildQueryString(false)
           + hashString;
+    }
+
+    /**
+     * Build the string value, and encode the query parameters.
+     */
+    function toEncodedString()
+    {
+      var hashString;
+
+      if (getHash() != '')
+      {
+        hashString = "#" + getHash();
+      }
+      else
+      {
+        hashString = "";
+      }
+
+      var scheme = getScheme();
+
+      return (($.trim(scheme) == '') ? "" : (scheme + "://"))
+             + getHost() + getPath() + buildQueryString(true)
+             + hashString;
+    }
+
+    function buildQueryString(_encodeValuesFlag)
+    {
+      var queryString = $.isEmptyObject(getQuery()) ? "" : "?";
+
+      $.each(getQuery(), function(param, values)
+      {
+        for (var valIndex = 0; valIndex < values.length; valIndex++)
+        {
+          queryString += param + "=" + ((_encodeValuesFlag === true)
+              ? encodeURIComponent(values[valIndex]) : values[valIndex]) + "&";
+        }
+      });
+
+      if (queryString.charAt(queryString.length - 1) === ("&"))
+      {
+        queryString = queryString.substr(0, (queryString.length - 1));
+      }
+
+      return queryString;
+    }
+
+    /**
+     * Specific function to obtain the currently requested target of a
+     * login/logout within the CADC.  Nobody else will probably use this, but
+     * it's here for convenience.
+     *
+     * @returns {string}
+     */
+    function getTargetURL()
+    {
+      // Get information about the current page
+      var requestURL = new currentURI();
+      var queryStringObject =
+        requestURL.getQueryStringObject();
+      var refererURL;
+
+      if (queryStringObject.referer)
+      {
+        refererURL = new URI(queryStringObject.referer);
+      }
+      else
+      {
+        refererURL = new URI(document.referrer);
+      }
+
+      var targetURL =
+        window.location.protocol + "//" + window.location.hostname
+        +
+        (window.location.port ? ":" + window.location.port : "");
+
+      // Some sanitizing.
+      if (refererURL.getPath().indexOf("/vosui") >= 0)
+      {
+        targetURL += "/vosui/";
+      }
+      else if (refererURL.getPath().indexOf("/canfar")
+               >= 0)
+      {
+        targetURL += "/canfar/";
+      }
+      else if (refererURL.getPath().indexOf("/en/login")
+               >= 0)
+      {
+        targetURL += "/en/";
+      }
+      else if (refererURL.getPath().indexOf("/fr/connexion")
+               >= 0)
+      {
+        targetURL += "/fr/";
+      }
+      else
+      {
+        targetURL += refererURL.getPath();
+      }
+
+      if (requestURL.getHash()
+          && (requestURL.getHash() != null)
+          && (requestURL.getHash() != ""))
+      {
+        targetURL += "#" + requestURL.getHash();
+      }
+
+      var explicitTarget = requestURL.getQueryValue("target");
+
+      if (explicitTarget)
+      {
+        targetURL = explicitTarget;
+      }
+
+      return targetURL;
     }
 
     /**
@@ -457,7 +557,8 @@
                "encodeRelativeURI": encodeRelativeURI,
                "getHash": getHash,
                "getScheme": getScheme,
-               "toString": toString
+               "toString": toString,
+               "toEncodedString": toEncodedString
              });
   }
 })(jQuery);

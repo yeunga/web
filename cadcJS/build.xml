@@ -18,7 +18,7 @@
 
   <target name="install" depends="install_www" />
 
-  <target name="install_www" depends="build">
+  <target name="install_www" depends="build, test">
 
     <!-- Replace the last modified date with appropriate values. -->
     <exec executable="setModificationDate.sh">

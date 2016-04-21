@@ -81,22 +81,6 @@ test("Test parse out path only relative URI.", 2, function()
         "Relative URI should be: /my/path?A=B%20C.D%20AS%20%22E%22");
 });
 
-test("Test decode query parameter components.", 2, function()
-{
-  var testSubject =
-      new cadc.web.util.URI("http://www.mysite.com/path/item.txt?A=");
-
-  deepEqual(testSubject.getQueryValues("A"), [""],
-            "Query values for 'A' should be empty array.");
-
-  // Test for encoded query parameters.
-  testSubject = new cadc.web.util.URI(
-      "http://www.mysite.com/my/path?A=B%20C.D%20AS%20%22E%22");
-
-  deepEqual(testSubject.getQueryValues("A"), ["B C.D AS \"E\""],
-            "Query values for 'A' should have item with spaces.");
-});
-
 test("Handle multiple values for single key.", 1, function()
 {
   var testSubject =
@@ -156,7 +140,7 @@ test("Remove query parameters.", 3, function()
         "Should still have param3.");
 });
 
-test("Convert back to string.", 5, function()
+test("Convert back to string.", 6, function()
 {
   var testSubject =
       new cadc.web.util.URI("http://www.mysite.com/path/item.txt?param1=val1&param2=val2&param2=val3&param3=val4#hash=42");
@@ -182,4 +166,21 @@ test("Convert back to string.", 5, function()
 
   equal(testSubject.toString(), "?param1=val1&param2=val2&param2=val3&param3=val4",
         "Wrong URI query string.");
+
+  testSubject =
+    new cadc.web.util.URI("http://www.mysite.com/path/item.txt?param1=val1&param2=val%26%202&param2=val3&param3=val%26#hash=42");
+  equal(testSubject.toString(),
+        "http://www.mysite.com/path/item.txt?param1=val1&param2=val%26%202&param2=val3&param3=val%26#hash=42");
+});
+
+test("Test toString with encoded query string", 1, function()
+{
+  var testSubject =
+    new cadc.web.util.URI("http://www.mysite.com/path/item.txt?param1=val1&param2=val3#hash=42");
+
+  testSubject.setQueryValue("param2", "val& 2");
+  testSubject.setQueryValue("param3", "val&");
+
+  equal(testSubject.toEncodedString(),
+        "http://www.mysite.com/path/item.txt?param1=val1&param2=val%26%202&param3=val%26#hash=42");
 });

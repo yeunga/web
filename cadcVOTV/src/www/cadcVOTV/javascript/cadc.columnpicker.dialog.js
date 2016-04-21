@@ -70,6 +70,7 @@
       $("<ul class='slick-columnpicker slick-columnpicker-tooltip' />").
         attr("id", "cadc_columnpicker_available_items");
     this.grid = _grid;
+    this.originalDisplayedColumns = _grid.getColumns();
     this.allColumns = _columns;
     this.$target = $(getOption(cadc.vot.picker.TARGET_SELECTOR_OPTION_KEY));
 
@@ -429,11 +430,12 @@
 
     /**
      * Build the columns menus.
+     *
      **/
     function addMenuItems()
     {
       // Displayed columns.
-      var gridColumns = selfColumnPicker.grid.getColumns();
+      var gridColumns = selfColumnPicker.originalDisplayedColumns;
 
       for (var gi = 0, gl = gridColumns.length; gi < gl; gi++)
       {

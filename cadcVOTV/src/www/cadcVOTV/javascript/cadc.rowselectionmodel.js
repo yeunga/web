@@ -173,82 +173,94 @@
       }
     }
 
+    function isTargetAllowRowSelection($target)
+    {
+      return !$target.hasClass("no-row-select");
+    }
+
     function handleClick(e)
     {
       // Enable highlighting of the selected row.
       _grid.getOptions().enableCellNavigation = true;
+
+      var continueOn;
       
       var cell = _grid.getCellFromEvent(e);
-      if (!cell || 
-          !_grid.canCellBeActive(cell.row, cell.cell) ||
-          !isCellSelectable(cell))
-      {
-        // Disable highlighting of the selected row.
-        _grid.getOptions().enableCellNavigation = false;
-        return false;
-      }
+      var $target = $(e.target);
 
-      var selection = rangesToRows(_ranges);
-      var idx = $.inArray(cell.row, selection);
-      var activeCell = _grid.getActiveCell();
-
-      if (_grid.getOptions().multiSelect)
+      if (cell && _grid.canCellBeActive(cell.row, cell.cell)
+          && isCellSelectable(cell))
       {
-        if (idx === -1) // not selected
+        var selection = rangesToRows(_ranges);
+        var idx = $.inArray(cell.row, selection);
+        var activeCell = _grid.getActiveCell();
+
+        if (_grid.getOptions().multiSelect)
         {
-          if ((activeCell) && (activeCell.row === cell.row) && (cell.cell !== 0))
+          if (idx === -1) // not selected
           {
-            _grid.resetActiveCell();
+            if ((activeCell) && (activeCell.row === cell.row) && (cell.cell !== 0))
+            {
+              _grid.resetActiveCell();
+            }
+            else
+            {
+              selection.push(cell.row);
+              _grid.setActiveCell(cell.row, cell.cell);
+            }
           }
-          else
+          else if (idx !== -1) // un-check the checkbox
           {
-            selection.push(cell.row);
+            selection = $.grep(selection, function (o, i)
+            {
+              return (o !== cell.row);
+            });
+            _grid.setActiveCell(cell.row, cell.cell);
+          }
+          else if (selection.length)
+          {
+            var last = selection.pop();
+            var from = Math.min(cell.row, last);
+            var to = Math.max(cell.row, last);
+            selection = [];
+            for (var i = from; i <= to; i++)
+            {
+              if (i !== last)
+              {
+                selection.push(i);
+              }
+            }
+            selection.push(last);
             _grid.setActiveCell(cell.row, cell.cell);
           }
         }
-        else if (idx !== -1) // un-check the checkbox
+
+        var shouldNotPropagate = ((_options.propagateEvents === false)
+                                  || $target.is(":checkbox")
+                                  || $target.hasClass("no-propagate-event"));
+
+        if ($target.is(":checkbox") || (_options.selectClickedRow
+                                        && isTargetAllowRowSelection($target)))
         {
-          selection = $.grep(selection, function (o, i)
-          {
-            return (o !== cell.row);
-          });
-          _grid.setActiveCell(cell.row, cell.cell);
+          _ranges = rowsToRanges(selection);
+          setSelectedRanges(_ranges);
         }
-        else if (selection.length)
+
+        if (shouldNotPropagate)
         {
-          var last = selection.pop();
-          var from = Math.min(cell.row, last);
-          var to = Math.max(cell.row, last);
-          selection = [];
-          for (var i = from; i <= to; i++)
-          {
-            if (i !== last)
-            {
-              selection.push(i);
-            }
-          }
-          selection.push(last);
-          _grid.setActiveCell(cell.row, cell.cell);
+          e.stopImmediatePropagation();
         }
+
+        continueOn = !shouldNotPropagate;
       }
-
-      var $target = $(e.target);
-      var shouldNotPropagate = ((_options.propagateEvents === false)
-                                || $target.is(":checkbox")
-                                || $target.hasClass("no-propagate-event"));
-
-      if ($target.is(":checkbox") || _options.selectClickedRow)
+      else
       {
-        _ranges = rowsToRanges(selection);
-        setSelectedRanges(_ranges);
+        // Disable highlighting of the selected row.
+        _grid.getOptions().enableCellNavigation = false;
+        continueOn = false;
       }
 
-      if (shouldNotPropagate)
-      {
-        e.stopImmediatePropagation();
-      }
-
-      return !shouldNotPropagate;
+      return continueOn;
     }
 
     $.extend(this, {

@@ -26,11 +26,13 @@
     $inputField.on("change keyup",
                    function (e)
                    {
-                     var trimmedVal = $.trim($inputField.val());
 
-                     _viewer.doFilter(trimmedVal || "",
+                     _viewer.doFilter($inputField.val() || "",
                                       $inputField.data("columnId"));
-                     _viewer.refreshGrid();
+
+                     var grid = _viewer.getGrid();
+                     grid.invalidateAllRows();
+                     grid.render();
                    });
 
     return this;

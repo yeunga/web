@@ -35,7 +35,10 @@
       }
 
       _viewer.doFilter(val, columnID);
-      _viewer.refreshGrid();
+
+      var grid = _viewer.getGrid();
+      grid.invalidateAllRows();
+      grid.render();
     }
 
     /**
