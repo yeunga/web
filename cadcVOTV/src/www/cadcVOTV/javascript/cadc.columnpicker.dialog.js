@@ -435,7 +435,8 @@
     function addMenuItems()
     {
       // Displayed columns.
-      var gridColumns = selfColumnPicker.originalDisplayedColumns;
+      //var gridColumns = selfColumnPicker.originalDisplayedColumns;
+      var gridColumns = _grid.getColumns();
 
       for (var gi = 0, gl = gridColumns.length; gi < gl; gi++)
       {
