@@ -247,7 +247,7 @@
 
       selfColumnPicker.$dialog.on("popupbeforeposition", function ()
       {
-        buildMenus();
+        initMenus();
       });
 
       /**
@@ -368,7 +368,7 @@
        */
       $resetSpan.click(function ()
                        {
-                         buildMenus();
+                         resetMenus();
 
                          trigger(cadc.vot.picker.events.onResetColumnOrder,
                                  null, null);
@@ -432,15 +432,15 @@
      * Build the columns menus.
      *
      **/
-    function addMenuItems()
+    function addMenuItems(_gridColumns)
     {
       // Displayed columns.
       //var gridColumns = selfColumnPicker.originalDisplayedColumns;
-      var gridColumns = _grid.getColumns();
+      //var gridColumns = _grid.getColumns();
 
-      for (var gi = 0, gl = gridColumns.length; gi < gl; gi++)
+      for (var gi = 0, gl = _gridColumns.length; gi < gl; gi++)
       {
-        var nextSelectedColumn = gridColumns[gi];
+        var nextSelectedColumn = _gridColumns[gi];
 
         if (nextSelectedColumn.id != cadc.vot.picker.CHECKBOX_ID)
         {
@@ -453,10 +453,10 @@
       var availableCols = new cadc.web.util.Array(selfColumnPicker.allColumns).
         subtract(function (element/*, index, array*/)
                  {
-                   for (var ii = 0, gcl = gridColumns.length; ii < gcl;
+                   for (var ii = 0, gcl = _gridColumns.length; ii < gcl;
                         ii++)
                    {
-                     if (gridColumns[ii].id == element.id)
+                     if (_gridColumns[ii].id == element.id)
                      {
                        return false;
                      }
@@ -524,12 +524,23 @@
     /**
      * Construct the unordered list of items.
      */
-    function buildMenus()
+    function initMenus()
     {
       selfColumnPicker.$selectedItems.empty();
       selfColumnPicker.$availableItems.empty();
 
-      addMenuItems();
+      addMenuItems(_grid.getColumns());
+    }
+
+    /**
+     * Construct the unordered list of items.
+     */
+    function resetMenus()
+    {
+      selfColumnPicker.$selectedItems.empty();
+      selfColumnPicker.$availableItems.empty();
+
+      addMenuItems(selfColumnPicker.originalDisplayedColumns);
     }
 
     /**
