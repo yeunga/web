@@ -32,7 +32,7 @@
 
                      var grid = _viewer.getGrid();
                      grid.invalidateAllRows();
-                     grid.render();
+                     grid.resizeCanvas();
                    });
 
     return this;
