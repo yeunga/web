@@ -1,4 +1,4 @@
-var xmlData =
+var xmlData_1_2 =
     "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
         + "<VOTABLE xmlns=\"http://www.ivoa.net/xml/VOTable/v1.2\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" version=\"1.2\">\n"
         + "  <RESOURCE>\n"
@@ -43,7 +43,52 @@ var xmlData =
         + "  </RESOURCE>\n"
         + "</VOTABLE>";
 
-var xmlDOM = (new DOMParser()).parseFromString(xmlData, "text/xml");
+var xmlData_1_3 =
+  "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+  + "<VOTABLE xmlns=\"http://www.ivoa.net/xml/VOTable/v1.3\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" version=\"1.3\">\n"
+  + "  <RESOURCE>\n"
+  + "    <TABLE>\n"
+  + "      <FIELD name=\"Job ID\" datatype=\"char\" arraysize=\"*\" />\n"
+  + "      <FIELD name=\"User\" datatype=\"char\" arraysize=\"*\" />\n"
+  + "      <FIELD name=\"Started\" datatype=\"char\" arraysize=\"*\" />\n"
+  + "      <FIELD name=\"Status\" datatype=\"char\" arraysize=\"*\" />\n"
+  + "      <FIELD name=\"Command\" datatype=\"char\" arraysize=\"*\" />\n"
+  + "      <FIELD name=\"VM Type\" datatype=\"char\" arraysize=\"*\" />\n"
+  + "      <FIELD name=\"CPUs\" datatype=\"int\" />\n"
+  + "      <FIELD name=\"Memory\" datatype=\"long\" />\n"
+  + "      <FIELD name=\"Job Starts\" datatype=\"int\" />\n"
+  + "      <DATA>\n"
+  + "        <TABLEDATA>\n"
+  + "          <TR>\n"
+  + "            <TD>735.0</TD>\n"
+  + "            <TD>jenkinsd</TD>\n"
+  + "            <TD />\n"
+  + "            <TD>Idle</TD>\n"
+  + "            <TD>sleep</TD>\n"
+  + "            <TD>Tomcat</TD>\n"
+  + "            <TD>1</TD>\n"
+  + "            <TD>3072</TD>\n"
+  + "            <TD>0</TD>\n"
+  + "          </TR>\n"
+  + "          <TR>\n"
+  + "            <TD>734.0</TD>\n"
+  + "            <TD>jenkinsd</TD>\n"
+  + "            <TD />\n"
+  + "            <TD>Idle</TD>\n"
+  + "            <TD>sleep</TD>\n"
+  + "            <TD>Tomcat</TD>\n"
+  + "            <TD>1</TD>\n"
+  + "            <TD>3072</TD>\n"
+  + "            <TD>0</TD>\n"
+  + "          </TR>\n"
+  + "        </TABLEDATA>\n"
+  + "      </DATA>\n"
+  + "    </TABLE>\n"
+  + "    <INFO name=\"STUFF\" value=\"INFO_TEXT\" />\n"
+  + "  </RESOURCE>\n"
+  + "</VOTABLE>";
+
+var xmlDOM = (new DOMParser()).parseFromString(xmlData_1_3, "text/xml");
 
 test("Read in simple VOTable.", 6, function ()
 {
@@ -79,8 +124,9 @@ test("Read in simple VOTable.", 6, function ()
   }
 });
 
-test ("XPath resolution.", 3, function()
+test ("XPath resolution.", 6, function()
 {
+  // VOTABLE 1.3
   var testSubject = new cadc.vot.xml.VOTableXPathEvaluator(xmlDOM, "votable");
 
   var result1 = testSubject.evaluate("/VOTABLE/RESOURCE[1]/INFO");
@@ -90,4 +136,16 @@ test ("XPath resolution.", 3, function()
         "Wrong name in /VOTABLE/RESOURCE[1]/INFO");
   equal(result1[0].getAttribute("value"), "INFO_TEXT",
         "Wrong value in /VOTABLE/RESOURCE[1]/INFO");
+
+  // VOTABLE 1.2
+  var xmlDOM_1_2 = (new DOMParser()).parseFromString(xmlData_1_2, "text/xml");
+  testSubject = new cadc.vot.xml.VOTableXPathEvaluator(xmlDOM_1_2, "votable");
+
+  var result2 = testSubject.evaluate("/VOTABLE/RESOURCE[1]/INFO");
+
+  equal(1, result2.length, "Should be one item.");
+  equal(result2[0].getAttribute("name"), "STUFF",
+    "Wrong name in /VOTABLE/RESOURCE[1]/INFO");
+  equal(result2[0].getAttribute("value"), "INFO_TEXT",
+    "Wrong value in /VOTABLE/RESOURCE[1]/INFO");
 });

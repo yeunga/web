@@ -12,8 +12,8 @@
         "StreamBuilder": StreamBuilder,
 
         "xml": {
-          "VOTableXPathEvaluator": VOTableXPathEvaluator,
-          "votable": "http://www.ivoa.net/xml/VOTable/v1.2"
+          "VOTableXPathEvaluator": VOTableXPathEvaluator
+          // "votable": "http://www.ivoa.net/xml/VOTable/v1.3"
         },
 
         // Events
@@ -325,7 +325,8 @@
 
       var localNSResolver = function (prefix)
       {
-        var localName = cadc.vot.xml[prefix];
+        // var localName = cadc.vot.xml[prefix];
+        var localName = xpe.documentElement.namespaceURI;
         var resolvedName;
 
         if (localName)
