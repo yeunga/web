@@ -239,10 +239,10 @@
 
     _selfDatatype.datatypeValue = _datatypeValue || "";
 
-    var stringTypes = ["varchar", "char", "adql:VARCHAR", "adql:CLOB"];
+    var stringTypes = ["varchar", "char", "adql:VARCHAR", "adql:CLOB",
+                       "adql:REGION"];
     var integerTypes = ["int", "long", "short"];
-    var floatingPointTypes = ["float", "double", "adql:DOUBLE", "adql:FLOAT",
-                              "adql:REGION"];
+    var floatingPointTypes = ["float", "double", "adql:DOUBLE", "adql:FLOAT"];
     var timestampTypes = ["timestamp", "adql:TIMESTAMP"];
 
     function getDatatypeValue()
@@ -253,7 +253,7 @@
     function isNumeric()
     {
       // will accept float, double, long, int, short, real, adql:DOUBLE,
-      // adql:INTEGER, adql:REGION, adql:POINT, adql:REAL
+      // adql:INTEGER, adql:POINT, adql:REAL
       //
       return !isCharDatatype() && !isTimestamp() && !isBoolean();
     }

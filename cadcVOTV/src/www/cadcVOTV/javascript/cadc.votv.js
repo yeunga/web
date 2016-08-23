@@ -1539,6 +1539,13 @@
         grid.registerPlugin(unitSelectionPlugin);
       }
 
+      var enabledPlugins = getEnabledPlugins();
+
+      for (var enabledPluginName in enabledPlugins)
+      {
+        grid.registerPlugin(new cadc.vot.plugin[enabledPluginName](enabledPlugins[enabledPluginName]));
+      }
+
       // Track the width of resized columns.
       grid.onColumnsResized.subscribe(function (e, args)
                                       {
@@ -1846,12 +1853,10 @@
     function destroy()
     {
       var g = getGrid();
-      var handler = new Slick.EventHandler();
-
-      handler.unsubscribeAll();
 
       if (g)
       {
+        clearRows();
         g.destroy();
       }
     }
@@ -1879,6 +1884,36 @@
     function getTotalRows()
     {
       return getGrid().getDataLength();
+    }
+
+    /**
+     * Return an object containing all of the enabled plugins requested.
+     *
+     * @returns {{}}
+     */
+    function getEnabledPlugins()
+    {
+      var enabledPlugins = {};
+      var opts = getOptions();
+
+      if (opts.hasOwnProperty("plugins"))
+      {
+        var plugins = opts.plugins;
+        for (var pluginName in plugins)
+        {
+          if (plugins.hasOwnProperty(pluginName))
+          {
+            var plugin = plugins[pluginName];
+
+            if (plugin.hasOwnProperty("enabled") && (plugin.enabled === true))
+            {
+              enabledPlugins[pluginName] = plugin;
+            }
+          }
+        }
+      }
+
+      return enabledPlugins;
     }
 
     function getCurrentRows()

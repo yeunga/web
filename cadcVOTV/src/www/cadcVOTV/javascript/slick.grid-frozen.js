@@ -3792,12 +3792,14 @@ if (typeof Slick === "undefined")
 
     function handleMouseEnter(e)
     {
-      trigger(self.onMouseEnter, {}, e);
+      var cell = getCellFromEvent(e);
+      trigger(self.onMouseEnter, {cell: cell}, e);
     }
 
     function handleMouseLeave(e)
     {
-      trigger(self.onMouseLeave, {}, e);
+      var cell = getCellFromEvent(e);
+      trigger(self.onMouseLeave, {cell: cell}, e);
     }
 
     function cellExists(row, cell)
