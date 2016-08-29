@@ -10,12 +10,12 @@ server, you can set the PROXY_URL filter token value to "".
 
 <!DOCTYPE project>
 
-<project default="build" name="cadcVOTV" basedir=".">
+<project default="build" name="cadc-votv" basedir=".">
   <description>Canadian Astronomy Data Center Virtual Observatory Table Viewer 1.0</description>
 
   <property environment="env" />
   <property file="local.build.properties" />
-  <property name="project" value="cadcVOTV" />
+  <property name="project" value="cadc-votv" />
 
   <!-- site-specific build properties or overrides of values in opencadc.properties -->
   <property file="${env.CADC_PREFIX}/etc/local.properties" />
@@ -147,7 +147,7 @@ server, you can set the PROXY_URL filter token value to "".
 
   <target name="js-test">
     <property name="test-execution-dir"
-              value="build/test/www/cadcVOTV/javascript/${js-test-dir}"/>
+              value="build/test/www/cadc-votv/javascript/${js-test-dir}"/>
     <property name="test-source-dir"
               value="test/src/${js-test-dir}"/>
 

@@ -30,6 +30,7 @@
     var _self = this;
     var _defaults = {
       targetSelector: "#aladin-lite",
+      toggleSwitchSelector: null,
       footprintFieldID: "footprint",
       raFieldID: "ra",
       decFieldID: "dec",
@@ -44,6 +45,20 @@
     this.footprintFieldID = inputs.footprintFieldID;
     this.raFieldID = inputs.raFieldID;
     this.decFieldID = inputs.decFieldID;
+    this.$target = $(inputs.targetSelector);
+
+    if (inputs.toggleSwitchSelector != null)
+    {
+      _self.$target.hide();
+      $(inputs.toggleSwitchSelector).on("click", function (e)
+      {
+        e.preventDefault();
+
+        _self.$target.toggle();
+
+        return false;
+      });
+    }
 
     //
     // Declare AladinLite
@@ -83,15 +98,20 @@
       _self.handler.unsubscribeAll();
       _self.aladin = null;
       _self.aladinOverlay = null;
-      $(inputs.targetSelector).empty();
+      _self.$target.empty();
     }
 
     function handleMouseEnter(e, args)
     {
       var dataRow = args.grid.getDataItem(args.cell.row);
 
-      _self.aladin.gotoRaDec(dataRow[_self.raFieldID],
-                             dataRow[_self.decFieldID]);
+      var raValue = dataRow[_self.raFieldID];
+      var decValue = dataRow[_self.decFieldID];
+
+      if (raValue && decValue)
+      {
+        _self.aladin.gotoRaDec(raValue, decValue);
+      }
     }
 
     function handleRenderComplete(e, args)
