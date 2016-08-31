@@ -1,12 +1,10 @@
 (function ($)
 {
-  // Load the AladinLite viewer ONLY if not already done so (useful for
-  // QUnit tests.).
-  //if (typeof A === "undefined")
-  //{
-  //  // Enable the AladinLite viewer.
-  //  $.getScript("/cadcVOTV/javascript/aladin.js");
-  //}
+  if (typeof A === "undefined")
+  {
+    // Require AladinLite.
+    throw new Error("AladinLite must be present.  (http://aladin.u-strasbg.fr/AladinLite/)");
+  }
 
   // register namespace
   $.extend(true, window, {
@@ -27,13 +25,18 @@
    */
   function AladinLiteFootprintViewer(_inputs)
   {
+    var PI_OVER_180 = Math.PI / 180.0;
+    var DEG_PER_ARC_SEC = 1.0 / 3600.0;
+
     var _self = this;
     var _defaults = {
       targetSelector: "#aladin-lite",
-      toggleSwitchSelector: null,
+      toggleSwitchSelector: null,     // Always show by default.
       footprintFieldID: "footprint",
       raFieldID: "ra",
       decFieldID: "dec",
+      fovFieldID: "fov",
+      fov: 120,
       coords: [1000, -1000, 0, 0]
     };
 
@@ -45,6 +48,7 @@
     this.footprintFieldID = inputs.footprintFieldID;
     this.raFieldID = inputs.raFieldID;
     this.decFieldID = inputs.decFieldID;
+    this.fovFieldID = inputs.fovFieldID;
     this.$target = $(inputs.targetSelector);
 
     if (inputs.toggleSwitchSelector != null)
@@ -81,7 +85,7 @@
       destroy();
 
       _self.grid = grid;
-      _self.aladin = A.aladin(inputs.targetSelector, {fov: 120});
+      _self.aladin = A.aladin(inputs.targetSelector);
       _self.aladinOverlay = A.graphicOverlay({color: "orange", lineWidth: 3});
       _self.aladin.addOverlay(_self.aladinOverlay);
       _self.handler.subscribe(_self.grid.onMouseEnter, handleMouseEnter)
@@ -104,7 +108,6 @@
     function handleMouseEnter(e, args)
     {
       var dataRow = args.grid.getDataItem(args.cell.row);
-
       var raValue = dataRow[_self.raFieldID];
       var decValue = dataRow[_self.decFieldID];
 
@@ -120,10 +123,19 @@
 
       var polygonSplit = "Polygon ICRS";
       var renderedRange = args.grid.getRenderedRange();
+
+      // For FOV computation.
+      var DEC = _defaults.coords;
+      var RA0 = _defaults.coords;
+      var RA180 = _defaults.coords;
+
       for (var i = renderedRange.top, ii = renderedRange.bottom; i < ii; i++)
       {
         var $nextRow = args.grid.getDataItem(i);
         var polygonValue = $nextRow[_self.footprintFieldID];
+        var raValue = $nextRow[_self.raFieldID];
+        var decValue = $nextRow[_self.decFieldID];
+        var halfFOV = 0.5 * DEG_PER_ARC_SEC * $nextRow[_self.fovFieldID];
 
         if (polygonValue != null)
         {
@@ -155,11 +167,76 @@
 
                 _self.aladinOverlay.addFootprints(
                   _self.aladin.createFootprintsFromSTCS(nextFootprint));
+
+                var mi = decValue - halfFOV;
+                var ma = decValue + halfFOV;
+
+                if (DEC[0] > mi)
+                {
+                  DEC[0] = mi;
+                }
+
+                if (DEC[1] < ma)
+                {
+                  DEC[1] = ma;
+                }
+
+                mi = (((raValue - halfFOV) + 360.0 ) % 360.0);
+                ma = (((raValue + halfFOV) + 360.0 ) % 360.0);
+
+                if (RA0[0] > mi)
+                {
+                  RA0[0] = mi;
+                }
+
+                if (RA0[1] < ma)
+                {
+                  RA0[1] = ma;
+                }
+
+                mi = (mi + 180.0) % 360.0;
+                ma = (ma + 180.0) % 360.0;
+
+                if (RA180[0] > mi)
+                {
+                  RA180[0] = mi;
+                }
+
+                if (RA180[1] < ma)
+                {
+                  RA180[1] = ma;
+                }
               }
             }
           }
         }
       }
+
+      RA0[2] = (0.5 * (RA0[0] + RA0[1] ));
+      RA0[3] = (RA0[1] - RA0[0]);
+
+      RA180[2] = (0.5 * (RA180[0] + RA180[1] ));
+      RA180[3] = (RA180[1] - RA180[0]);
+
+      DEC[2] = (0.5 * (DEC[0] + DEC[1] ));
+      DEC[3] = (DEC[1] - DEC[0]);
+
+      var aRA = RA0.slice(0);
+
+      if (RA0[3] > RA180[3])
+      {
+        RA180[0] = ((RA180[0] + 180.0) % 360.0);
+        RA180[1] = ((RA180[1] + 180.0) % 360.0);
+        RA180[2] = ((RA180[2] + 180.0) % 360.0);
+
+        aRA = RA180.slice(0);
+      }
+
+      var fieldOfView =
+        Math.max(DEC[3], (aRA[3] * Math.cos(DEC[2] * PI_OVER_180)));
+
+      // Add 20% to add some space around the footprints
+      _self.aladin.setFoV(fieldOfView * 1.2);
     }
 
     $.extend(this, {

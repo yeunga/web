@@ -350,6 +350,11 @@
       return _self.updatedColumnSelects;
     }
 
+    function setUpdatedColumnSelects(_updatedSelects)
+    {
+      _self.updatedColumnSelects = _updatedSelects;
+    }
+
     function isFilterable(column)
     {
       var globallyFilterable = getColumnManager().filterable || false;
@@ -1961,6 +1966,7 @@
                "setSortColumn": setSortColumn,
                "getResizedColumns": getResizedColumns,
                "getUpdatedColumnSelects": getUpdatedColumnSelects,
+               "setUpdatedColumnSelects": setUpdatedColumnSelects,
                "getDefaultColumnIDs": getDefaultColumnIDs,
                "setViewportHeight": setViewportHeight,
                "setViewportOffset": setViewportOffset,
