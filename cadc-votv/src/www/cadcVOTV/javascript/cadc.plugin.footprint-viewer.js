@@ -36,7 +36,7 @@
       raFieldID: "ra",
       decFieldID: "dec",
       fovFieldID: "fov",
-      fov: 120,
+      fov: null,
       coords: [1000, -1000, 0, 0]
     };
 
@@ -168,43 +168,46 @@
                 _self.aladinOverlay.addFootprints(
                   _self.aladin.createFootprintsFromSTCS(nextFootprint));
 
-                var mi = decValue - halfFOV;
-                var ma = decValue + halfFOV;
-
-                if (DEC[0] > mi)
+                if (inputs.fov == null)
                 {
-                  DEC[0] = mi;
-                }
+                  var mi = decValue - halfFOV;
+                  var ma = decValue + halfFOV;
 
-                if (DEC[1] < ma)
-                {
-                  DEC[1] = ma;
-                }
+                  if (DEC[0] > mi)
+                  {
+                    DEC[0] = mi;
+                  }
 
-                mi = (((raValue - halfFOV) + 360.0 ) % 360.0);
-                ma = (((raValue + halfFOV) + 360.0 ) % 360.0);
+                  if (DEC[1] < ma)
+                  {
+                    DEC[1] = ma;
+                  }
 
-                if (RA0[0] > mi)
-                {
-                  RA0[0] = mi;
-                }
+                  mi = (((raValue - halfFOV) + 360.0 ) % 360.0);
+                  ma = (((raValue + halfFOV) + 360.0 ) % 360.0);
 
-                if (RA0[1] < ma)
-                {
-                  RA0[1] = ma;
-                }
+                  if (RA0[0] > mi)
+                  {
+                    RA0[0] = mi;
+                  }
 
-                mi = (mi + 180.0) % 360.0;
-                ma = (ma + 180.0) % 360.0;
+                  if (RA0[1] < ma)
+                  {
+                    RA0[1] = ma;
+                  }
 
-                if (RA180[0] > mi)
-                {
-                  RA180[0] = mi;
-                }
+                  mi = (mi + 180.0) % 360.0;
+                  ma = (ma + 180.0) % 360.0;
 
-                if (RA180[1] < ma)
-                {
-                  RA180[1] = ma;
+                  if (RA180[0] > mi)
+                  {
+                    RA180[0] = mi;
+                  }
+
+                  if (RA180[1] < ma)
+                  {
+                    RA180[1] = ma;
+                  }
                 }
               }
             }
@@ -212,31 +215,40 @@
         }
       }
 
-      RA0[2] = (0.5 * (RA0[0] + RA0[1] ));
-      RA0[3] = (RA0[1] - RA0[0]);
+      var fieldOfView;
 
-      RA180[2] = (0.5 * (RA180[0] + RA180[1] ));
-      RA180[3] = (RA180[1] - RA180[0]);
-
-      DEC[2] = (0.5 * (DEC[0] + DEC[1] ));
-      DEC[3] = (DEC[1] - DEC[0]);
-
-      var aRA = RA0.slice(0);
-
-      if (RA0[3] > RA180[3])
+      if (inputs.fov == null)
       {
-        RA180[0] = ((RA180[0] + 180.0) % 360.0);
-        RA180[1] = ((RA180[1] + 180.0) % 360.0);
-        RA180[2] = ((RA180[2] + 180.0) % 360.0);
+        RA0[2] = (0.5 * (RA0[0] + RA0[1] ));
+        RA0[3] = (RA0[1] - RA0[0]);
 
-        aRA = RA180.slice(0);
+        RA180[2] = (0.5 * (RA180[0] + RA180[1] ));
+        RA180[3] = (RA180[1] - RA180[0]);
+
+        DEC[2] = (0.5 * (DEC[0] + DEC[1] ));
+        DEC[3] = (DEC[1] - DEC[0]);
+
+        var aRA = RA0.slice(0);
+
+        if (RA0[3] > RA180[3])
+        {
+          RA180[0] = ((RA180[0] + 180.0) % 360.0);
+          RA180[1] = ((RA180[1] + 180.0) % 360.0);
+          RA180[2] = ((RA180[2] + 180.0) % 360.0);
+
+          aRA = RA180.slice(0);
+        }
+
+        fieldOfView = Math.max(DEC[3], (aRA[3] * Math.cos(DEC[2]
+                                        * PI_OVER_180))) * 1.2;
+      }
+      else
+      {
+        fieldOfView = inputs.fov;
       }
 
-      var fieldOfView =
-        Math.max(DEC[3], (aRA[3] * Math.cos(DEC[2] * PI_OVER_180)));
-
       // Add 20% to add some space around the footprints
-      _self.aladin.setFoV(fieldOfView * 1.2);
+      _self.aladin.setFoV(fieldOfView);
     }
 
     $.extend(this, {
