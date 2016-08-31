@@ -51,19 +51,6 @@
     this.fovFieldID = inputs.fovFieldID;
     this.$target = $(inputs.targetSelector);
 
-    if (inputs.toggleSwitchSelector != null)
-    {
-      _self.$target.hide();
-      $(inputs.toggleSwitchSelector).on("click", function (e)
-      {
-        e.preventDefault();
-
-        _self.$target.toggle();
-
-        return false;
-      });
-    }
-
     //
     // Declare AladinLite
     //
@@ -71,7 +58,6 @@
 
     // footprint overlay, public data
     this.aladinOverlay = null;
-
     //
     // End declaration of AladinLite
     //
@@ -83,6 +69,19 @@
     function init(grid)
     {
       destroy();
+
+      if (inputs.toggleSwitchSelector != null)
+      {
+        _self.$target.hide();
+        $(inputs.toggleSwitchSelector).on("click", function (e)
+        {
+          e.preventDefault();
+
+          _self.$target.toggle();
+
+          return false;
+        });
+      }
 
       _self.grid = grid;
       _self.aladin = A.aladin(inputs.targetSelector);
@@ -103,6 +102,11 @@
       _self.aladin = null;
       _self.aladinOverlay = null;
       _self.$target.empty();
+
+      if (inputs.toggleSwitchSelector != null)
+      {
+        $(inputs.toggleSwitchSelector).off("click");
+      }
     }
 
     function handleMouseEnter(e, args)
