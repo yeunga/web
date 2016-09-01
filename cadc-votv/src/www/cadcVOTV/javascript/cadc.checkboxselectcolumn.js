@@ -31,7 +31,6 @@
       _grid = grid;
       _handler
           .subscribe(_grid.onSelectedRowsChanged, handleSelectedRowsChanged)
-          .subscribe(_grid.onClick, handleClick)
           .subscribe(_grid.onHeaderClick, handleHeaderClick)
           .subscribe(_grid.onKeyDown, handleKeyDown);
     }
@@ -79,7 +78,8 @@
 
       _grid.updateColumnHeader(_self.options.columnId,
                                getHeaderCheckboxLabel() +
-                               "<input type='checkbox' class='slick-header-column-checkboxsel'" + (rowChecked ? " checked='checked'" : "") + " >",
+                               "<input type='checkbox' class='slick-header-column-checkboxsel'"
+                               + (rowChecked ? " checked='checked'" : "") + " >",
                                _self.options.toolTip);
     }
 
@@ -109,19 +109,6 @@
           e.stopImmediatePropagation();
         }
       }
-    }
-
-    /**
-     * This is fired when the cell containing the checkbox is clicked.
-     *
-     * @param e
-     * @param args
-     * @returns {boolean}
-     */
-    function handleClick(e, args)
-    {
-      e.stopPropagation();
-      e.stopImmediatePropagation();
     }
 
     function toggleRowSelection(row)

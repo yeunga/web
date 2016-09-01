@@ -11,7 +11,10 @@
     "cadc": {
       "vot": {
         "plugin": {
-          "footprint": AladinLiteFootprintViewer
+          "footprint": AladinLiteFootprintViewer,
+          "events": {
+            "onToggleOpen": new jQuery.Event
+          }
         }
       }
     }
@@ -32,11 +35,15 @@
     var _defaults = {
       targetSelector: "#aladin-lite",
       toggleSwitchSelector: null,     // Always show by default.
+      toggleOpen: function() {},
+      toggleClose: function() {},
       footprintFieldID: "footprint",
       raFieldID: "ra",
       decFieldID: "dec",
       fovFieldID: "fov",
       fov: null,
+      onHover: true,
+      onClick: true,
       coords: [1000, -1000, 0, 0]
     };
 
@@ -79,6 +86,15 @@
 
           _self.$target.toggle();
 
+          if (_self.$target.is(":visible"))
+          {
+            inputs.toggleOpen($(this), _self.$target);
+          }
+          else
+          {
+            inputs.toggleClose($(this), _self.$target);
+          }
+
           return false;
         });
       }
@@ -87,8 +103,43 @@
       _self.aladin = A.aladin(inputs.targetSelector);
       _self.aladinOverlay = A.graphicOverlay({color: "orange", lineWidth: 3});
       _self.aladin.addOverlay(_self.aladinOverlay);
-      _self.handler.subscribe(_self.grid.onMouseEnter, handleMouseEnter)
-        .subscribe(_self.grid.onRenderComplete, handleRenderComplete);
+
+      if (inputs.fov != null)
+      {
+        _self.aladin.setFoV(inputs.fov);
+      }
+
+      _self.handler.subscribe(_self.grid.onRenderComplete, handleRenderComplete);
+
+      if (inputs.onHover === true)
+      {
+        _self.handler.subscribe(_self.grid.onMouseEnter, handleMouseEnter)
+      }
+
+      if (inputs.onClick === true)
+      {
+        _self.handler.subscribe(_self.grid.onClick, handleClick);
+      }
+
+      // define function triggered when an object is clicked
+      var objClicked;
+      _self.aladin.on('objectClicked', function(object)
+      {
+        var msg;
+        if (object)
+        {
+          objClicked = object;
+          object.select();
+          msg = 'You clicked object ' + object.data.name + ' located at '
+                + object.ra + ', ' + object.dec;
+        }
+        else
+        {
+          objClicked.deselect();
+          msg = 'You clicked in void';
+        }
+        $('#wb-cont').html(msg);
+      });
     }
 
     function resetOverlay()
@@ -109,16 +160,25 @@
       }
     }
 
-    function handleMouseEnter(e, args)
+    function _handleAction(_dataRow)
     {
-      var dataRow = args.grid.getDataItem(args.cell.row);
-      var raValue = dataRow[_self.raFieldID];
-      var decValue = dataRow[_self.decFieldID];
+      var raValue = _dataRow[_self.raFieldID];
+      var decValue = _dataRow[_self.decFieldID];
 
       if (raValue && decValue)
       {
         _self.aladin.gotoRaDec(raValue, decValue);
       }
+    }
+
+    function handleClick(e, args)
+    {
+      _handleAction(args.grid.getDataItem(args.row));
+    }
+
+    function handleMouseEnter(e, args)
+    {
+      _handleAction(args.grid.getDataItem(args.cell.row));
     }
 
     function handleRenderComplete(e, args)
@@ -133,12 +193,28 @@
       var RA0 = _defaults.coords;
       var RA180 = _defaults.coords;
 
+      // Start at this location.
+      var defaultRA = null;
+      var defaultDec = null;
+
       for (var i = renderedRange.top, ii = renderedRange.bottom; i < ii; i++)
       {
         var $nextRow = args.grid.getDataItem(i);
         var polygonValue = $nextRow[_self.footprintFieldID];
         var raValue = $nextRow[_self.raFieldID];
         var decValue = $nextRow[_self.decFieldID];
+
+        // Set the default location to the first item we see.
+        if ((defaultRA == null) && (raValue != null) && ($.trim(raValue) != ""))
+        {
+          defaultRA = raValue;
+        }
+
+        if ((defaultDec == null) && (decValue != null) && ($.trim(decValue) != ""))
+        {
+          defaultDec = decValue;
+        }
+
         var halfFOV = 0.5 * DEG_PER_ARC_SEC * $nextRow[_self.fovFieldID];
 
         if (polygonValue != null)
@@ -219,8 +295,6 @@
         }
       }
 
-      var fieldOfView;
-
       if (inputs.fov == null)
       {
         RA0[2] = (0.5 * (RA0[0] + RA0[1] ));
@@ -243,16 +317,15 @@
           aRA = RA180.slice(0);
         }
 
-        fieldOfView = Math.max(DEC[3], (aRA[3] * Math.cos(DEC[2]
-                                        * PI_OVER_180))) * 1.2;
-      }
-      else
-      {
-        fieldOfView = inputs.fov;
+        // Add 20% to add some space around the footprints
+        _self.aladin.setFoV(Math.max(DEC[3], (aRA[3] * Math.cos(DEC[2]
+                            * PI_OVER_180))) * 1.2);
       }
 
-      // Add 20% to add some space around the footprints
-      _self.aladin.setFoV(fieldOfView);
+      if ((defaultRA != null) && (defaultDec != null))
+      {
+        _self.aladin.gotoRaDec(defaultRA, defaultDec);
+      }
     }
 
     $.extend(this, {

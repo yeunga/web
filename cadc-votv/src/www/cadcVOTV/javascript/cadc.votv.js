@@ -158,7 +158,9 @@
                                      // if paging is off
                                      if (!usePager())
                                      {
-                                       _self.atDataLoadComplete(getTotalRows(), getCurrentRows(), getHeaderLabel());
+                                       _self.atDataLoadComplete(getTotalRows(),
+                                                                getCurrentRows(),
+                                                                getHeaderLabel());
                                      }
 
                                      var $gridHeaderIcon =
@@ -1483,6 +1485,7 @@
                                         });
       }
 
+      /*
       dataView.onPagingInfoChanged.subscribe(function (e, pagingInfo)
                                              {
                                                var isLastPage =
@@ -1499,6 +1502,7 @@
                                                  grid.setOptions({enableAddRow: enableAddRow});
                                                }
                                              });
+                                             */
 
       $(window).resize(function ()
                        {
