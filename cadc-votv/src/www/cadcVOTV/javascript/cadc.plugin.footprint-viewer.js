@@ -69,6 +69,8 @@
     // End declaration of AladinLite
     //
 
+    this.currentFootprint = null;
+
     /**
      * Initialize with the Slick Grid instance.
      * @param grid{Slick.Grid}      The Slick Grid instance.
@@ -103,6 +105,12 @@
       _self.aladin = A.aladin(inputs.targetSelector);
       _self.aladinOverlay = A.graphicOverlay({color: "orange", lineWidth: 3});
       _self.aladin.addOverlay(_self.aladinOverlay);
+      _self.currentFootprint = A.graphicOverlay({
+                                                  name: "current",
+                                                  color: "yellow",
+                                                  lineWidth: 5
+                                                });
+      _self.aladin.addOverlay(_self.currentFootprint);
 
       if (inputs.fov != null)
       {
@@ -145,10 +153,13 @@
     function resetOverlay()
     {
       _self.aladinOverlay.removeAll();
+      _resetCurrent();
     }
 
     function destroy()
     {
+      _resetCurrent();
+
       _self.handler.unsubscribeAll();
       _self.aladin = null;
       _self.aladinOverlay = null;
@@ -160,15 +171,99 @@
       }
     }
 
+    function _calcFOV(_RA0, _RA180, _DEC)
+    {
+      _RA0[2] = (0.5 * (_RA0[0] + _RA0[1] ));
+      _RA0[3] = (_RA0[1] - _RA0[0]);
+
+      _RA180[2] = (0.5 * (_RA180[0] + _RA180[1] ));
+      _RA180[3] = (_RA180[1] - _RA180[0]);
+
+      _DEC[2] = (0.5 * (_DEC[0] + _DEC[1] ));
+      _DEC[3] = (_DEC[1] - _DEC[0]);
+
+      var aRA = _RA0.slice(0);
+
+      if (_RA0[3] > _RA180[3])
+      {
+        _RA180[0] = ((_RA180[0] + 180.0) % 360.0);
+        _RA180[1] = ((_RA180[1] + 180.0) % 360.0);
+        _RA180[2] = ((_RA180[2] + 180.0) % 360.0);
+
+        aRA = _RA180.slice(0);
+      }
+
+      return aRA;
+
+    }
+
+    function _calcRowFOV(_decValue, _raValue, _halfFOV, _DEC, _RA0, _RA180)
+    {
+      var mi = _decValue - _halfFOV;
+      var ma = _decValue + _halfFOV;
+
+      if (_DEC[0] > mi)
+      {
+        _DEC[0] = mi;
+      }
+
+      if (_DEC[1] < ma)
+      {
+        _DEC[1] = ma;
+      }
+
+      mi = (((_raValue - _halfFOV) + 360.0 ) % 360.0);
+      ma = (((_raValue + _halfFOV) + 360.0 ) % 360.0);
+
+      if (_RA0[0] > mi)
+      {
+        _RA0[0] = mi;
+      }
+
+      if (_RA0[1] < ma)
+      {
+        _RA0[1] = ma;
+      }
+
+      mi = (mi + 180.0) % 360.0;
+      ma = (ma + 180.0) % 360.0;
+
+      if (_RA180[0] > mi)
+      {
+        _RA180[0] = mi;
+      }
+
+      if (_RA180[1] < ma)
+      {
+        _RA180[1] = ma;
+      }
+
+    }
+
     function _handleAction(_dataRow)
     {
+      _resetCurrent();
+
       var raValue = _dataRow[_self.raFieldID];
       var decValue = _dataRow[_self.decFieldID];
 
       if (raValue && decValue)
       {
         _self.aladin.gotoRaDec(raValue, decValue);
+        _self.currentFootprint.addFootprints(
+            _self.aladin.createFootprintsFromSTCS(_dataRow[_self.footprintFieldID]));
       }
+    }
+
+    function _resetCurrent()
+    {
+      if(_self.currentFootprint)
+      {
+        _self.currentFootprint.removeAll();
+      }
+      // _self.currentFootprint = null;
+      // _self.aladin.removeLayers();
+      // _self.aladin.addOverlay(_self.aladinOverlay);
     }
 
     function handleClick(e, args)
@@ -189,9 +284,9 @@
       var renderedRange = args.grid.getRenderedRange();
 
       // For FOV computation.
-      var DEC = _defaults.coords;
-      var RA0 = _defaults.coords;
-      var RA180 = _defaults.coords;
+      var DEC = _defaults.coords.slice(0);
+      var RA0 = _defaults.coords.slice(0);
+      var RA180 = _defaults.coords.slice(0);
 
       // Start at this location.
       var defaultRA = null;
@@ -201,16 +296,16 @@
       {
         var $nextRow = args.grid.getDataItem(i);
         var polygonValue = $nextRow[_self.footprintFieldID];
-        var raValue = $nextRow[_self.raFieldID];
-        var decValue = $nextRow[_self.decFieldID];
+        var raValue = $.trim($nextRow[_self.raFieldID]);
+        var decValue = $.trim($nextRow[_self.decFieldID]);
 
         // Set the default location to the first item we see.
-        if ((defaultRA == null) && (raValue != null) && ($.trim(raValue) != ""))
+        if ((defaultRA == null) && (raValue != null) && (raValue != ""))
         {
           defaultRA = raValue;
         }
 
-        if ((defaultDec == null) && (decValue != null) && ($.trim(decValue) != ""))
+        if ((defaultDec == null) && (decValue != null) && (decValue != ""))
         {
           defaultDec = decValue;
         }
@@ -250,44 +345,7 @@
 
                 if (inputs.fov == null)
                 {
-                  var mi = decValue - halfFOV;
-                  var ma = decValue + halfFOV;
-
-                  if (DEC[0] > mi)
-                  {
-                    DEC[0] = mi;
-                  }
-
-                  if (DEC[1] < ma)
-                  {
-                    DEC[1] = ma;
-                  }
-
-                  mi = (((raValue - halfFOV) + 360.0 ) % 360.0);
-                  ma = (((raValue + halfFOV) + 360.0 ) % 360.0);
-
-                  if (RA0[0] > mi)
-                  {
-                    RA0[0] = mi;
-                  }
-
-                  if (RA0[1] < ma)
-                  {
-                    RA0[1] = ma;
-                  }
-
-                  mi = (mi + 180.0) % 360.0;
-                  ma = (ma + 180.0) % 360.0;
-
-                  if (RA180[0] > mi)
-                  {
-                    RA180[0] = mi;
-                  }
-
-                  if (RA180[1] < ma)
-                  {
-                    RA180[1] = ma;
-                  }
+                  _calcRowFOV(Number(decValue), Number(raValue), halfFOV, DEC, RA0, RA180);
                 }
               }
             }
@@ -297,29 +355,12 @@
 
       if (inputs.fov == null)
       {
-        RA0[2] = (0.5 * (RA0[0] + RA0[1] ));
-        RA0[3] = (RA0[1] - RA0[0]);
-
-        RA180[2] = (0.5 * (RA180[0] + RA180[1] ));
-        RA180[3] = (RA180[1] - RA180[0]);
-
-        DEC[2] = (0.5 * (DEC[0] + DEC[1] ));
-        DEC[3] = (DEC[1] - DEC[0]);
-
-        var aRA = RA0.slice(0);
-
-        if (RA0[3] > RA180[3])
-        {
-          RA180[0] = ((RA180[0] + 180.0) % 360.0);
-          RA180[1] = ((RA180[1] + 180.0) % 360.0);
-          RA180[2] = ((RA180[2] + 180.0) % 360.0);
-
-          aRA = RA180.slice(0);
-        }
-
+        var aRA = _calcFOV(RA0, RA180, DEC);
         // Add 20% to add some space around the footprints
-        _self.aladin.setFoV(Math.max(DEC[3], (aRA[3] * Math.cos(DEC[2]
-                            * PI_OVER_180))) * 1.2);
+        var aFOV = Math.max(DEC[3], (aRA[3] * Math.cos(DEC[2]
+                   * PI_OVER_180))) * 1.2;
+        console.log(aFOV);
+        _self.aladin.setFoV(aFOV);
       }
 
       if ((defaultRA != null) && (defaultDec != null))
