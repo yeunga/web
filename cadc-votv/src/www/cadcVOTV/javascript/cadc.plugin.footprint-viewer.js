@@ -69,6 +69,8 @@
     // End declaration of AladinLite
     //
 
+    // currently 'active' (hover/click) row
+    //
     this.currentFootprint = null;
 
     /**
@@ -122,6 +124,7 @@
       if (inputs.onHover === true)
       {
         _self.handler.subscribe(_self.grid.onMouseEnter, handleMouseEnter)
+        _self.handler.subscribe(_self.grid.onMouseLeave, handleMouseLeave)
       }
 
       if (inputs.onClick === true)
@@ -242,8 +245,6 @@
 
     function _handleAction(_dataRow)
     {
-      _resetCurrent();
-
       var raValue = _dataRow[_self.raFieldID];
       var decValue = _dataRow[_self.decFieldID];
 
@@ -252,28 +253,40 @@
         _self.aladin.gotoRaDec(raValue, decValue);
         _self.currentFootprint.addFootprints(
             _self.aladin.createFootprintsFromSTCS(_dataRow[_self.footprintFieldID]));
+        var fovValue = _dataRow[_self.fovFieldID];
+        if(fovValue)
+        {
+          _self.aladin.setFoV(fovValue);
+        }
       }
     }
 
     function _resetCurrent()
     {
-      if(_self.currentFootprint)
+      if (_self.currentFootprint)
       {
         _self.currentFootprint.removeAll();
       }
-      // _self.currentFootprint = null;
-      // _self.aladin.removeLayers();
-      // _self.aladin.addOverlay(_self.aladinOverlay);
+      if (_self.aladin && _self.aladin.view)
+      {
+        _self.aladin.view.forceRedraw();
+      }
     }
 
     function handleClick(e, args)
     {
+      _resetCurrent();
       _handleAction(args.grid.getDataItem(args.row));
     }
 
     function handleMouseEnter(e, args)
     {
       _handleAction(args.grid.getDataItem(args.cell.row));
+    }
+
+    function handleMouseLeave(e, args)
+    {
+      _resetCurrent();
     }
 
     function handleRenderComplete(e, args)
@@ -292,7 +305,7 @@
       var defaultRA = null;
       var defaultDec = null;
 
-      for (var i = renderedRange.top, ii = renderedRange.bottom; i < ii; i++)
+      for (var i = renderedRange.top, ii = renderedRange.bottom; i <= ii; i++)
       {
         var $nextRow = args.grid.getDataItem(i);
         var polygonValue = $nextRow[_self.footprintFieldID];
@@ -359,8 +372,7 @@
         // Add 20% to add some space around the footprints
         var aFOV = Math.max(DEC[3], (aRA[3] * Math.cos(DEC[2]
                    * PI_OVER_180))) * 1.2;
-        console.log(aFOV);
-        _self.aladin.setFoV(aFOV);
+        _self.aladin.setFoV(Math.min(180, aFOV));
       }
 
       if ((defaultRA != null) && (defaultDec != null))
