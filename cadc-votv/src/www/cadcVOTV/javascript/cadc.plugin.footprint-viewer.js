@@ -69,6 +69,8 @@
     // End declaration of AladinLite
     //
 
+    // currently 'active' (hover/click) row
+    //
     this.currentFootprint = null;
 
     /**
@@ -251,6 +253,11 @@
         _self.aladin.gotoRaDec(raValue, decValue);
         _self.currentFootprint.addFootprints(
             _self.aladin.createFootprintsFromSTCS(_dataRow[_self.footprintFieldID]));
+        var fovValue = _dataRow[_self.fovFieldID];
+        if(fovValue)
+        {
+          _self.aladin.setFoV(fovValue);
+        }
       }
     }
 
@@ -365,7 +372,6 @@
         // Add 20% to add some space around the footprints
         var aFOV = Math.max(DEC[3], (aRA[3] * Math.cos(DEC[2]
                    * PI_OVER_180))) * 1.2;
-        console.log(aFOV);
         _self.aladin.setFoV(Math.min(180, aFOV));
       }
 
