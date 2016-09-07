@@ -34,11 +34,13 @@
     var _defaults = {
       targetSelector: "#aladin-lite",
       toggleSwitchSelector: null,     // Always show by default.
-      toggleOpen: function ()
-      {
+      toggleClose: function($toggleSelector) {
+        $toggleSelector.data("close", $toggleSelector.html());
+        $toggleSelector.html($toggleSelector.data("open"));
       },
-      toggleClose: function ()
-      {
+      toggleOpen: function($toggleSelector) {
+        $toggleSelector.data("open", $toggleSelector.html());
+        $toggleSelector.html($toggleSelector.data("close"));
       },
       renderedRowsOnly: true,
       footprintFieldID: "footprint",
@@ -46,10 +48,11 @@
       decFieldID: "dec",
       fovFieldID: "fov",
       colour: "orange",
+      highlightColour: "yellow",
       fov: null,
       onHover: true,
-      onClick: true,
-      coords: [1000, -1000, 0, 0]
+      onClick: false,
+      coords: [1000, -1000, 0, 0]   // Remember to slice this!
     };
 
     this.grid = null;
@@ -100,7 +103,14 @@
       if (inputs.toggleSwitchSelector != null)
       {
         _self.$target.hide();
-        $(inputs.toggleSwitchSelector).on("click", function (e)
+        var $toggleSwitchSelector = $(inputs.toggleSwitchSelector);
+
+        if ($toggleSwitchSelector.data("open") != null)
+        {
+          $toggleSwitchSelector.html($toggleSwitchSelector.data("open"));
+        }
+
+        $toggleSwitchSelector.on("click", function (e)
         {
           e.preventDefault();
 
@@ -129,7 +139,7 @@
       _self.aladin.addOverlay(_self.aladinOverlay);
       _self.currentFootprint = A.graphicOverlay({
                                                   name: "current",
-                                                  color: "green",
+                                                  color: inputs.highlightColour,
                                                   lineWidth: 5
                                                 });
       _self.aladin.addOverlay(_self.currentFootprint);
