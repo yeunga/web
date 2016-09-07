@@ -135,8 +135,7 @@
 
                                      if (input.xmlDOM)
                                      {
-                                       var voTable =
-                                         args.builder.getVOTable();
+                                       var voTable = args.builder.getVOTable();
 
                                        if (!hasDisplayColumns)
                                        {
@@ -181,9 +180,8 @@
                                              args);
                                    });
 
-          var hasDisplayColumns =
-            (_self.displayColumns
-             && (_self.displayColumns.length > 0));
+          var hasDisplayColumns = (_self.displayColumns
+                                   && (_self.displayColumns.length > 0));
 
           // Set up to stream.
           if (input.url || input.csv)
@@ -191,14 +189,12 @@
             var inputFields =
               input.tableMetadata.getFields();
             var $resultsGridHeader = getHeader();
-            var $gridHeaderIcon =
-              getHeader().find("img.grid-header-icon");
+            var $gridHeaderIcon = getHeader().find("img.grid-header-icon");
 
             // Display spinner only if paging is off
             if (!usePager())
             {
-              var $gridHeaderStyle =
-                $resultsGridHeader.prop("style");
+              var $gridHeaderStyle = $resultsGridHeader.prop("style");
 
               // remove any background color resulting from
               // previous warning message
@@ -211,7 +207,8 @@
               // streaming has begun
               if ($gridHeaderIcon)
               {
-                $gridHeaderIcon.attr("src", "/cadcVOTV/images/PleaseWait-small.gif");
+                $gridHeaderIcon.attr("src",
+                                     "/cadcVOTV/images/PleaseWait-small.gif");
               }
             }
 
@@ -1484,6 +1481,23 @@
                                           }
                                         });
       }
+
+      dataView.onPagingInfoChanged.subscribe(function (e, pagingInfo)
+                                             {
+                                               var isLastPage =
+                                                 (pagingInfo.pageNum ==
+                                                  pagingInfo.totalPages - 1);
+                                               var enableAddRow =
+                                                 (isLastPage ||
+                                                  pagingInfo.pageSize == 0);
+                                               var options = grid.getOptions();
+
+                                               if (options.enableAddRow !=
+                                                   enableAddRow)
+                                               {
+                                                 grid.setOptions({enableAddRow: enableAddRow});
+                                               }
+                                             });
 
       $(window).resize(function ()
                        {
