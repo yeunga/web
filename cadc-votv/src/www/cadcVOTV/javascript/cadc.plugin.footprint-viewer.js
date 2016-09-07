@@ -154,7 +154,7 @@
 
       if (_self.grid.getData().getLength && (inputs.renderedRowsOnly === false))
       {
-        _self.handler.subscribe(_self.grid.getData().onRowsChanged,
+        _self.handler.subscribe(_self.grid.getData().onPagingInfoChanged,
                                 handleRowsChanged);
       }
 
@@ -444,7 +444,7 @@
 
     function handleRowsChanged(e, args)
     {
-      var newRowIDs = args.rows;
+      var newRowIDs = args.totalRows;
       var dataSource = args.dataView;
 
       for (var nri = 0, nril = newRowIDs.length; nri < nril; nri++)
