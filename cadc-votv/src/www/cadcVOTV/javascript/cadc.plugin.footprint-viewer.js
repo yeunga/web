@@ -50,12 +50,18 @@
       colour: "orange",
       highlightColour: "yellow",
       fov: null,
+      fovOffsetPercent: null,
       onHover: true,
       onClick: false,
       coords: [1000, -1000, 0, 0]   // Remember to slice this!
     };
 
     this.grid = null;
+
+    /**
+     * {cadc.vot.Viewer}
+     */
+    this.viewer = null;
     this.handler = new Slick.EventHandler();
 
     var inputs = $.extend(true, {}, _defaults, _inputs);
@@ -94,9 +100,9 @@
 
     /**
      * Initialize with the Slick Grid instance.
-     * @param grid{Slick.Grid}      The Slick Grid instance.
+     * @param _viewer{cadc.vot.Viewer}      The CADC VOTable Viewer instance.
      */
-    function init(grid)
+    function init(_viewer)
     {
       destroy();
 
@@ -129,7 +135,8 @@
         });
       }
 
-      _self.grid = grid;
+      _self.viewer = _viewer;
+      _self.grid = _viewer.getGrid();
       _self.aladin = A.aladin(inputs.targetSelector);
       _self.aladinOverlay =
         A.graphicOverlay({color: inputs.colour, lineWidth: 3});
@@ -154,8 +161,7 @@
 
       if (_self.grid.getData().getLength && (inputs.renderedRowsOnly === false))
       {
-        _self.handler.subscribe(_self.grid.getData().onPagingInfoChanged,
-                                handleRowsChanged);
+        _self.viewer.subscribe(cadc.vot.events.onRowAdded, handleAddFootprint);
       }
 
       if (inputs.onHover === true)
@@ -207,6 +213,11 @@
       if (inputs.toggleSwitchSelector != null)
       {
         $(inputs.toggleSwitchSelector).off("click");
+      }
+
+      if (_self.viewer != null)
+      {
+        _self.viewer.unsubscribe(cadc.vot.events.onRowAdded);
       }
     }
 
@@ -333,6 +344,19 @@
           var fovValue = _dataRow[_self.fovFieldID];
           if (fovValue != null)
           {
+            if (inputs.fovOffsetPercent != null)
+            {
+              if (isNaN(inputs.fovOffsetPercent))
+              {
+                console.error("Offset of " + inputs.fovOffsetPercent
+                              + " is invalid.");
+              }
+              else
+              {
+                fovValue = fovValue * (Number(inputs.fovOffsetPercent) / 100.0);
+              }
+            }
+
             _self.aladin.setFoV(fovValue);
           }
         }
@@ -369,8 +393,9 @@
       _resetCurrent();
     }
 
-    function _handleAddFootprint(_row)
+    function handleAddFootprint(e, args)
     {
+      var _row = args.rowData;
       var polygonValue = _row[_self.footprintFieldID];
       var raValue = $.trim(_row[_self.raFieldID]);
       var decValue = $.trim(_row[_self.decFieldID]);
@@ -413,7 +438,7 @@
 
     function _setFieldOfView()
     {
-      var fieldOfView;
+      var fieldOfView = -1;
 
       if (inputs.fov == null)
       {
@@ -425,7 +450,7 @@
       }
       else
       {
-        fieldOfView = inputs.fov;
+        fieldOfView = Number(inputs.fov);
       }
 
       if (fieldOfView < 0)
@@ -442,28 +467,6 @@
       }
     }
 
-    function handleRowsChanged(e, args)
-    {
-      var newRowIDs = args.totalRows;
-      var dataSource = args.dataView;
-
-      for (var nri = 0, nril = newRowIDs.length; nri < nril; nri++)
-      {
-        var nextRow;
-
-        if (dataSource.getItem)
-        {
-          nextRow = dataSource.getItem(newRowIDs[nri]);
-        }
-        else
-        {
-          nextRow = dataSource[nri];
-        }
-
-        _handleAddFootprint(nextRow);
-      }
-    }
-
     function handleRenderComplete(e, args)
     {
       if (inputs.renderedRowsOnly === true)
@@ -474,7 +477,7 @@
 
         for (var i = renderedRange.top, ii = renderedRange.bottom; i < ii; i++)
         {
-          _handleAddFootprint(args.grid.getDataItem(i));
+          handleAddFootprint(e, {rowData: args.grid.getDataItem(i)});
         }
       }
 
