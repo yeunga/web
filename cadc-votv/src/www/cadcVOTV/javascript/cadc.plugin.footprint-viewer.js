@@ -49,8 +49,13 @@
       fovFieldID: "fov",
       colour: "orange",
       highlightColour: "yellow",
-      fov: null,
-      fovOffsetPercent: null,
+      /**
+       * Perform further calculations on the FOV before setting it.  Useful
+       * for further reducing it (e.g. from square degrees to degrees).
+       * @param {Number} fovValue
+       * @return  {Number}
+       */
+      afterFOVCalculation: function(fovValue){return fovValue;},
       onHover: true,
       onClick: false,
       coords: [1000, -1000, 0, 0]   // Remember to slice this!
@@ -344,17 +349,9 @@
           var fovValue = _dataRow[_self.fovFieldID];
           if (fovValue != null)
           {
-            if (inputs.fovOffsetPercent != null)
+            if (inputs.afterFOVCalculation != null)
             {
-              if (isNaN(inputs.fovOffsetPercent))
-              {
-                console.error("Offset of " + inputs.fovOffsetPercent
-                              + " is invalid.");
-              }
-              else
-              {
-                fovValue = fovValue * (Number(inputs.fovOffsetPercent) / 100.0);
-              }
+              fovValue = inputs.afterFOVCalculation(fovValue);
             }
 
             _self.aladin.setFoV(fovValue);
