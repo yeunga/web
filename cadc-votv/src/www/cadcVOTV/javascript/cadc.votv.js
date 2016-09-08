@@ -1685,6 +1685,8 @@
           name: field.getName(),
           field: fieldKey,
           formatter: colOpts.formatter,
+          valueFormatter: colOpts.valueFormatter
+                          || function(value){return value;},
           asyncPostRender: colOpts.asyncFormatter,
           cssClass: cssClass,
           description: field.getDescription(),
@@ -1724,33 +1726,22 @@
       }
     }
 
+    /**
+     * Format the value in the cell according to the current unit.
+     *
+     * @param rowItem       The current row.
+     * @param grid          The Grid instance.
+     * @param columnID      The ID of the column.
+     * @returns {*}         Formatted value.
+     */
     function formatCellValue(rowItem, grid, columnID)
     {
       var columnIndex = grid.getColumnIndex(columnID);
       var column = grid.getColumns()[columnIndex];
       var cellValue = rowItem[column.field];
-      var rowID = rowItem["id"];
-      var columnFormatter = column.formatter;
-      var formattedCellValue;
+      var valueFormatter = column.valueFormatter;
 
-      // Reformatting the cell value could potentially be quite expensive!
-      // This may require some re-thinking.
-      // jenkinsd 2013.04.30
-      if (columnFormatter)
-      {
-        var row = grid.getData().getIdxById(rowID);
-        var columnFormattedValue =
-          columnFormatter(row, columnIndex, cellValue, column, rowItem);
-        formattedCellValue =
-          columnFormattedValue && $(columnFormattedValue).text
-            ? $(columnFormattedValue).text() : columnFormattedValue;
-      }
-      else
-      {
-        formattedCellValue = cellValue;
-      }
-
-      return formattedCellValue;
+      return valueFormatter(cellValue, column);
     }
 
     /**
