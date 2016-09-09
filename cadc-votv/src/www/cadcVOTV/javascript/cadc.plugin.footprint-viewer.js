@@ -34,11 +34,13 @@
     var _defaults = {
       targetSelector: "#aladin-lite",
       toggleSwitchSelector: null,     // Always show by default.
-      toggleClose: function($toggleSelector) {
+      toggleClose: function ($toggleSelector)
+      {
         $toggleSelector.data("close", $toggleSelector.html());
         $toggleSelector.html($toggleSelector.data("open"));
       },
-      toggleOpen: function($toggleSelector) {
+      toggleOpen: function ($toggleSelector)
+      {
         $toggleSelector.data("open", $toggleSelector.html());
         $toggleSelector.html($toggleSelector.data("close"));
       },
@@ -55,7 +57,10 @@
        * @param {Number} fovValue
        * @return  {Number}
        */
-      afterFOVCalculation: function(fovValue){return fovValue;},
+      afterFOVCalculation: function (fovValue)
+      {
+        return fovValue;
+      },
       onHover: true,
       onClick: false,
       coords: [1000, -1000, 0, 0]   // Remember to slice this!
@@ -161,12 +166,44 @@
         _self.aladin.setFoV(inputs.fov);
       }
 
-      _self.handler.subscribe(_self.grid.onRenderComplete,
-                              handleRenderComplete);
-
-      if (_self.grid.getData().getLength && (inputs.renderedRowsOnly === false))
+      if (_self.grid.getData().getLength)
       {
-        _self.viewer.subscribe(cadc.vot.events.onRowAdded, handleAddFootprint);
+        if (inputs.renderedRowsOnly === true)
+        {
+          _self.handler.subscribe(_self.grid.onRenderComplete,
+                                  handleRenderComplete);
+        }
+        else
+        {
+          _self.viewer.subscribe(cadc.vot.events.onRowAdded,
+                                 handleAddFootprint);
+
+          _self.viewer.subscribe(cadc.vot.events.onDataLoaded,
+                                 function ()
+                                 {
+                                   _setFieldOfView();
+                                 });
+
+          _self.viewer.subscribe(cadc.vot.events.onFilterData,
+                                 function (event, args)
+                                 {
+                                   reset();
+
+                                   var v = args.application;
+                                   var data = v.getGrid().getData();
+                                   var currentRows = data.getRows();
+
+                                   for (var cdi = 0, cdl = currentRows.length;
+                                        cdi < cdl; cdi++)
+                                   {
+                                     handleAddFootprint(event, {
+                                       rowData: data.getItemByIdx(cdi)
+                                     });
+                                   }
+
+                                   _setFieldOfView();
+                                 });
+        }
       }
 
       if (inputs.onHover === true)
@@ -192,6 +229,8 @@
     function reset()
     {
       _self.aladinOverlay.removeAll();
+      _self.currentFootprint.removeAll();
+
       _self.fieldOfViewSetFlag = false;
       _self.DEC = _defaults.coords.slice(0);
       _self.RA0 = _defaults.coords.slice(0);
@@ -207,6 +246,7 @@
       _self.handler.unsubscribeAll();
       _self.aladin = null;
       _self.aladinOverlay = null;
+      _self.currentFootprint = null;
       _self.$target.empty();
       _self.defaultDec = null;
       _self.defaultRA = null;
@@ -223,6 +263,7 @@
       if (_self.viewer != null)
       {
         _self.viewer.unsubscribe(cadc.vot.events.onRowAdded);
+        _self.viewer.unsubscribe(cadc.vot.events.onDataLoaded);
       }
     }
 

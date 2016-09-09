@@ -43,7 +43,8 @@ server, you can set the PROXY_URL filter token value to "".
     </copy>
   </target>
 
-  <target name="install_www" depends="resourceCopy, test">
+  <!-- <target name="install_www" depends="resourceCopy, test"> -->
+  <target name="install_www" depends="resourceCopy">
     <chmod perm="644">
       <fileset dir="${build}/www"/> <!-- files -->
     </chmod>

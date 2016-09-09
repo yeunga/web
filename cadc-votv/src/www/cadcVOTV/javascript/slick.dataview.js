@@ -367,6 +367,10 @@
       return rows.length;
     }
 
+    function getRows() {
+      return rows;
+    }
+
     function getItem(i) {
       var item = rows[i];
 
@@ -1030,6 +1034,7 @@
 
       // data provider methods
       "getLength": getLength,
+      "getRows": getRows,
       "getItem": getItem,
       "getItemMetadata": getItemMetadata,
 

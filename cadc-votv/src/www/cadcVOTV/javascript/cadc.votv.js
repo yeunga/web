@@ -19,6 +19,7 @@
           "onRowsChanged": new jQuery.Event("cadcVOTV:onRowsChanged"),
           "onRowAdded": new jQuery.Event("cadcVOTV:onRowAdded"),
           "onDataLoaded": new jQuery.Event("cadcVOTV:onDataLoaded"),
+          "onFilterData": new jQuery.Event("cadcVOTV:onFilterData"),
           "onUnitChanged": new jQuery.Event("cadcVOTV:onUnitChanged")
         },
         "filters": {
@@ -1057,6 +1058,8 @@
         $(getGridColumn(_columnID)).data("pureFilterValue", filter);
 
         getDataView().refresh();
+
+        trigger(cadc.vot.events.onFilterData, null);
       }
     }
 
