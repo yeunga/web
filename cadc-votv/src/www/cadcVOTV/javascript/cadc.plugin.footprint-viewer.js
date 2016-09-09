@@ -232,6 +232,8 @@
       _self.currentFootprint.removeAll();
 
       _self.fieldOfViewSetFlag = false;
+      _self.defaultRA = null;
+      _self.defaultDec = null;
       _self.DEC = _defaults.coords.slice(0);
       _self.RA0 = _defaults.coords.slice(0);
       _self.RA180 = _defaults.coords.slice(0);
@@ -241,8 +243,6 @@
 
     function destroy()
     {
-      _resetCurrent();
-
       _self.handler.unsubscribeAll();
       _self.aladin = null;
       _self.aladinOverlay = null;
@@ -494,6 +494,11 @@
       if (fieldOfView < 0)
       {
         fieldOfView = DEFAULT_FOV_DEGREES;
+      }
+
+      if (inputs.afterFOVCalculation != null)
+      {
+        fieldOfView = inputs.afterFOVCalculation(fieldOfView);
       }
 
       _self.aladin.setFoV(Math.min(DEFAULT_FOV_DEGREES, fieldOfView));
