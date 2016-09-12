@@ -44,6 +44,7 @@
         $toggleSelector.data("open", $toggleSelector.html());
         $toggleSelector.html($toggleSelector.data("close"));
       },
+      aladin_options: {},  // Specific options for AladinLite.
       renderedRowsOnly: true,
       footprintFieldID: "footprint",
       raFieldID: "ra",
@@ -148,7 +149,7 @@
 
       _self.viewer = _viewer;
       _self.grid = _viewer.getGrid();
-      _self.aladin = A.aladin(inputs.targetSelector);
+      _self.aladin = A.aladin(inputs.targetSelector, inputs.aladin_options);
       _self.aladinOverlay =
         A.graphicOverlay({color: inputs.colour, lineWidth: 3});
       _self.DEC = _defaults.coords.slice(0);
