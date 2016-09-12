@@ -367,6 +367,10 @@
       return rows.length;
     }
 
+    function getRows() {
+      return rows;
+    }
+
     function getItem(i) {
       var item = rows[i];
 
@@ -762,14 +766,17 @@
       // get the current page
       var paged;
       if (pagesize) {
-        if (filteredItems.length < pagenum * pagesize) {
-          pagenum = Math.floor(filteredItems.length / pagesize);
+        if (filteredItems.length <= pagenum * pagesize) {
+		  if (filteredItems.length === 0) {
+			pagenum = 0;
+		  } else {
+			pagenum = Math.floor((filteredItems.length - 1) / pagesize);
+		  }
         }
         paged = filteredItems.slice(pagesize * pagenum, pagesize * pagenum + pagesize);
       } else {
         paged = filteredItems;
       }
-
       return {totalRows: filteredItems.length, rows: paged};
     }
 
@@ -1027,6 +1034,7 @@
 
       // data provider methods
       "getLength": getLength,
+      "getRows": getRows,
       "getItem": getItem,
       "getItemMetadata": getItemMetadata,
 

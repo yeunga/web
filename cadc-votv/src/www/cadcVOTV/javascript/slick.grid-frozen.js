@@ -2580,9 +2580,8 @@ if (typeof Slick === "undefined")
         return;
       }
 
-      paneTopH = 0
-      paneBottomH = 0
-      viewportTopH = 0
+      paneTopH = 0;
+      paneBottomH = 0;
       viewportBottomH = 0;
 
       getViewportWidth();
@@ -2617,7 +2616,7 @@ if (typeof Slick === "undefined")
       }
 
       // The top viewport does not contain the top panel or header row
-      viewportTopH = paneTopH - topPanelH - headerRowH
+      viewportTopH = paneTopH - topPanelH - headerRowH;
 
       if (options.autoHeight)
       {
@@ -2709,6 +2708,7 @@ if (typeof Slick === "undefined")
 
       updateRowCount();
       handleScroll();
+
       // Since the width has changed, force the render() to reevaluate virtually rendered cells.
       lastRenderedScrollLeft = -1;
       render();
@@ -3792,12 +3792,14 @@ if (typeof Slick === "undefined")
 
     function handleMouseEnter(e)
     {
-      trigger(self.onMouseEnter, {}, e);
+      var cell = getCellFromEvent(e);
+      trigger(self.onMouseEnter, {cell: cell}, e);
     }
 
     function handleMouseLeave(e)
     {
-      trigger(self.onMouseLeave, {}, e);
+      var cell = getCellFromEvent(e);
+      trigger(self.onMouseLeave, {cell: cell}, e);
     }
 
     function cellExists(row, cell)
