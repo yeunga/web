@@ -50,6 +50,7 @@
       decFieldID: "dec",
       fovFieldID: "fov",
       colour: "orange",
+      navigateToSelected: true,
       highlightColour: "yellow",
       /**
        * Perform further calculations on the FOV before setting it.  Useful
@@ -378,7 +379,6 @@
       if ((raValue != null) && ($.trim(raValue) != "") && (decValue != null)
           && ($.trim(decValue) != ""))
       {
-        _self.aladin.gotoRaDec(raValue, decValue);
         var selectedFootprint =
           sanitizeFootprint(_dataRow[_self.footprintFieldID]);
 
@@ -387,15 +387,20 @@
           _self.currentFootprint.addFootprints(
             _self.aladin.createFootprintsFromSTCS(selectedFootprint));
 
-          var fovValue = _dataRow[_self.fovFieldID];
-          if (fovValue != null)
+          if (inputs.navigateToSelected === true)
           {
-            if (inputs.afterFOVCalculation != null)
-            {
-              fovValue = inputs.afterFOVCalculation(fovValue);
-            }
+            _self.aladin.gotoRaDec(raValue, decValue);
 
-            _self.aladin.setFoV(fovValue);
+            var fovValue = _dataRow[_self.fovFieldID];
+            if (fovValue != null)
+            {
+              if (inputs.afterFOVCalculation != null)
+              {
+                fovValue = inputs.afterFOVCalculation(fovValue);
+              }
+
+              _self.aladin.setFoV(fovValue);
+            }
           }
         }
         else
