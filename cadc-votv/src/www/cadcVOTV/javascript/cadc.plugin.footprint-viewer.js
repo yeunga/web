@@ -44,12 +44,14 @@
         $toggleSelector.data("open", $toggleSelector.html());
         $toggleSelector.html($toggleSelector.data("close"));
       },
+      aladin_options: {},  // Specific options for AladinLite.
       renderedRowsOnly: true,
       footprintFieldID: "footprint",
       raFieldID: "ra",
       decFieldID: "dec",
       fovFieldID: "fov",
       colour: "orange",
+      navigateToSelected: true,
       highlightColour: "yellow",
       /**
        * Perform further calculations on the FOV before setting it.  Useful
@@ -147,7 +149,7 @@
 
       _self.viewer = _viewer;
       _self.grid = _viewer.getGrid();
-      _self.aladin = A.aladin(inputs.targetSelector);
+      _self.aladin = A.aladin(inputs.targetSelector, inputs.aladin_options);
       _self.aladinOverlay =
         A.graphicOverlay({color: inputs.colour, lineWidth: 3});
       _self.DEC = _defaults.coords.slice(0);
@@ -378,7 +380,6 @@
       if ((raValue != null) && ($.trim(raValue) != "") && (decValue != null)
           && ($.trim(decValue) != ""))
       {
-        _self.aladin.gotoRaDec(raValue, decValue);
         var selectedFootprint =
           sanitizeFootprint(_dataRow[_self.footprintFieldID]);
 
@@ -387,15 +388,20 @@
           _self.currentFootprint.addFootprints(
             _self.aladin.createFootprintsFromSTCS(selectedFootprint));
 
-          var fovValue = _dataRow[_self.fovFieldID];
-          if (fovValue != null)
+          if (inputs.navigateToSelected === true)
           {
-            if (inputs.afterFOVCalculation != null)
-            {
-              fovValue = inputs.afterFOVCalculation(fovValue);
-            }
+            _self.aladin.gotoRaDec(raValue, decValue);
 
-            _self.aladin.setFoV(fovValue);
+            var fovValue = _dataRow[_self.fovFieldID];
+            if (fovValue != null)
+            {
+              if (inputs.afterFOVCalculation != null)
+              {
+                fovValue = inputs.afterFOVCalculation(fovValue);
+              }
+
+              _self.aladin.setFoV(fovValue);
+            }
           }
         }
         else
