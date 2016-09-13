@@ -30,10 +30,10 @@ from the top level directory.
 
 Google Project
 
-The OpenCADC Google Code project maintains the codebase.  It can be found at
-https://code.google.com/p/opencadc/.
+The OpenCADC project maintains the codebase on GitHub.  It can be found at
+https://www.github.com/opencadc.
 
-Api Documentation
+API Documentation
 
 TODO
 
