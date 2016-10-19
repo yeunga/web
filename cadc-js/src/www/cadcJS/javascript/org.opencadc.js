@@ -119,18 +119,19 @@
      *
      * My name is George and I am 39 years old
      *
-     * @param _str          The string to check.
+     * Indexes begin at 1, NOT 0.
+     *
+     * @param _str                The string to check.
+     * @param _values {Array}     The values to replace.
      * @returns {string}
      */
-    function format(_str)
+    function format(_str, _values)
     {
       // Create new string to not modify the original.
-      var s = _str;
-      var args = arguments;
-
-      return s.replace(/{(\d+)}/g, function (match, number)
+      return _str.replace(/{(\d+)}/g, function (match, number)
       {
-        return args[number] ? args[number] : match;
+        var index = (number - 1);
+        return _values[index] ? _values[index] : match;
       });
     }
 
