@@ -29,7 +29,6 @@
     var DEG_PER_ARC_SEC = 1.0 / 3600.0;
     var POLYGON_SPLIT = "Polygon ICRS";
     var DEFAULT_FOV_DEGREES = 180;
-    var ALADIN_ROW_LIMIT = 10000;
 
     var _self = this;
     var _defaults = {
@@ -53,6 +52,7 @@
       fovFieldID: "fov",
       colour: "orange",
       navigateToSelected: true,
+      maxRowCount: false,
       highlightColour: "yellow",
       /**
        * Perform further calculations on the FOV before setting it.  Useful
@@ -182,23 +182,29 @@
         else
         {
           _self.viewer.subscribe(cadc.vot.events.onRowAdded,
-                                 function()
+                                 function(e, args)
                                  {
-                                   handleAddFootprint;
+                                   handleAddFootprint(e, args);
 
-                                   if (_self.rowCount == 0)
+                                   if (inputs.maxRowCount)
                                    {
-                                     // _self.viewAladinButton.removeClass("button-disabled");
-                                     _self.viewAladinButton.removeClass("ui-disabled");
-                                     _self.viewAladinStatus.addClass("wb-invisible");
-                                   }
-                                   _self.rowCount++;
-                                   if (_self.rowCount > ALADIN_ROW_LIMIT &&
-                                     !(_self.viewAladinButton.hasClass("ui-disabled")))
-                                   {
-                                     // _self.viewAladinButton.addClass("button-disabled");
-                                     _self.viewAladinButton.addClass("ui-disabled");
-                                     _self.viewAladinStatus.removeClass("wb-invisible");
+                                     if (_self.rowCount === 0)
+                                     {
+                                       // _self.viewAladinButton.removeClass("button-disabled");
+                                       _self.viewAladinButton.removeClass("ui-disabled");
+                                       _self.viewAladinStatus.addClass("wb-invisible");
+                                     }
+
+                                     _self.rowCount++;
+
+                                     if ((_self.rowCount > inputs.maxRowCount)
+                                         && (_self.viewAladinButton.hasClass(
+                                         "ui-disabled") === false))
+                                     {
+                                       // _self.viewAladinButton.addClass("button-disabled");
+                                       _self.viewAladinButton.addClass("ui-disabled");
+                                       _self.viewAladinStatus.removeClass("wb-invisible");
+                                     }
                                    }
                                  });
 
