@@ -169,7 +169,7 @@
                                        getHeader().find("img.grid-header-icon");
 
                                      // clear the wait icon
-                                     $gridHeaderIcon.attr("src", "/cadcVOTV/images/transparent-20.png");
+                                     $gridHeaderIcon.attr("src", "cadcVOTV/images/transparent-20.png");
 
                                      if (getRows().length === 0)
                                      {
@@ -211,7 +211,7 @@
               if ($gridHeaderIcon)
               {
                 $gridHeaderIcon.attr("src",
-                                     "/cadcVOTV/images/PleaseWait-small.gif");
+                                     "cadcVOTV/images/PleaseWait-small.gif");
               }
             }
 

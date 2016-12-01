@@ -70,6 +70,10 @@
     <antcall target="js-test">
       <param name="js-test-dir" value="uri" />
     </antcall>
+
+    <antcall target="js-test">
+      <param name="js-test-dir" value="org_opencadc" />
+    </antcall>
   </target>
 
   <!--  Test directory to test client-side javascript. -->

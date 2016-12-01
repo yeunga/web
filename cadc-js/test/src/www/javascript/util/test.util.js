@@ -1,28 +1,3 @@
-test("Test String util.", 6, function ()
-{
-  var stringUtil = new cadc.web.util.StringUtil("MY&&<>VAL");
-
-  var output = stringUtil.sanitize();
-
-  equal(output, "MY&amp;&amp;&lt;&gt;VAL",
-        "Output should be MY&amp;&amp;&lt;&gt;VAL");
-
-  equal(stringUtil.hasText(), true, "Should return true.");
-
-  stringUtil = new cadc.web.util.StringUtil("");
-  equal(stringUtil.hasText(), false, "Should return false.");
-
-  stringUtil = new cadc.web.util.StringUtil(-14.567);
-  equal(stringUtil.hasText(), true, "Should return true.");
-
-  stringUtil = new cadc.web.util.StringUtil(0);
-  equal(stringUtil.hasText(), true, "Should return true.");
-
-  stringUtil = new cadc.web.util.StringUtil("Val {0} is {1} but not {2}");
-  equal(stringUtil.format("ZERO", "ONE"), "Val ZERO is ONE but not {2}",
-        "String does not match.");
-});
-
 test("Test Number Format", 5, function ()
 {
   var testSubject = new cadc.web.util.NumberFormat(88.0, 4);
@@ -196,26 +171,4 @@ test("Array sort.", 3, function ()
       name: "four"
     }
   ], "Wrong sorted array.");
-});
-
-test("String util matches", 3, function()
-{
-  var testSubject = new cadc.web.util.StringUtil(
-    "ALL YOUr base Are BEELong to me!");
-
-  equal(testSubject.matches(/long/gi), true, "Should match");
-  equal(testSubject.matches(/belong/gi), false, "Should not match");
-  equal(testSubject.matches(/me!/gi), true, "Should match");
-});
-
-test("String util contains", 5, function()
-{
-  var testSubject = new cadc.web.util.StringUtil(
-    "ALL YOUr base Are BEELong to me!");
-
-  equal(testSubject.contains("BEEL", false), true, "Should contain");
-  equal(testSubject.contains("belong"), false, "Should not contain");
-  equal(testSubject.contains("!"), true, "Should contain");
-  equal(testSubject.contains("BAse"), true, "Should contain");
-  equal(testSubject.contains("are", true), false, "Should not contain");
 });
