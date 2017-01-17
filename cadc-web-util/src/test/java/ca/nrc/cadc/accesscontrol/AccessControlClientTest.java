@@ -66,96 +66,51 @@
  ************************************************************************
  */
 
-package ca.nrc.cadc.web;
+package ca.nrc.cadc.accesscontrol;
 
 
-import ca.nrc.cadc.auth.AuthMethod;
-import ca.nrc.cadc.net.HttpPost;
-import ca.nrc.cadc.reg.Standards;
-import ca.nrc.cadc.reg.client.LocalAuthority;
-import ca.nrc.cadc.reg.client.RegistryClient;
-
-import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
-import java.net.URI;
-import java.net.URL;
-import java.util.HashMap;
 import java.util.Map;
 
+import org.junit.Test;
+import static org.junit.Assert.*;
 
-public class AccessControlClient
+
+public class AccessControlClientTest
 {
-    private final RegistryClient registryClient;
-    private final URI loginURI;
-
-
-    public AccessControlClient() throws IllegalArgumentException
+    @Test
+    public void login() throws Exception
     {
-        this(new LocalAuthority().getServiceURI(
-                Standards.UMS_LOGIN_01.toString()), new RegistryClient());
-    }
-
-    /**
-     * Complete constructor.
-     *
-     * @param serviceURI            The Service URI.
-     * @param registryClient        The Registry client for lookups.*/
-    AccessControlClient(final URI serviceURI,
-                        final RegistryClient registryClient)
-    {
-        this.registryClient = registryClient;
-        this.loginURI = serviceURI;
-    }
-
-
-    private URL lookupLoginURL()
-    {
-        return registryClient.getServiceURL(loginURI, Standards.UMS_LOGIN_01,
-                                            AuthMethod.ANON);
-    }
-
-    /**
-     * Perform a username/password verification and return the cookie value.
-     *
-     * @param username      The username.
-     * @param password      The password char array.
-     * @return              String cookie value.
-     */
-    public String login(final String username, final char[] password)
-    {
-        final OutputStream out = new ByteArrayOutputStream();
-        final Map<String, Object> payload = new HashMap<>();
-
-        payload.put("username", username);
-        payload.put("password", new String(password));
-
-        final int responseCode = post(payload, out);
-
-        if (responseCode == 200)
+        final AccessControlClient testSubject =
+                new AccessControlClient(null, null)
         {
-            return out.toString();
-        }
-        else
-        {
-            throw new IllegalArgumentException(
-                    String.format("Unable to login '%s' due to Error %d.",
-                                  username, responseCode));
-        }
-    }
+            /**
+             * Post the output.
+             *
+             * @param payload The payload to send.
+             * @param out     The stream for any output.
+             * @return Int response code.
+             */
+            @Override
+            int post(Map<String, Object> payload, OutputStream out)
+            {
+                try
+                {
+                    out.write("MYCOOKIE".getBytes());
+                    return 200;
+                }
+                catch (IOException e)
+                {
+                    // Shouldn't ever happen.
+                    throw new RuntimeException(e);
+                }
+            }
+        };
 
-    /**
-     * Post the output.
-     *
-     * @param payload       The payload to send.
-     * @param out           The stream for any output.
-     * @return              Int response code.
-     */
-    int post(final Map<String, Object> payload, final OutputStream out)
-    {
-        final HttpPost post = new HttpPost(lookupLoginURL(), payload, out);
-
-        post.run();
-
-        return post.getResponseCode();
+        final String cookieValue =
+                testSubject.login("test", "testpass".toCharArray());
+        assertEquals("Wrong cookie value", "MYCOOKIE",
+                     cookieValue);
     }
 }
