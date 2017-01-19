@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <link href="https://fonts.googleapis.com/css?family=Chivo:900"
+        rel="stylesheet" type="text/css">
+  <link rel="stylesheet" type="text/css" href="../../src/www/cadcVOTV/css/bootstrap.min.css"
+        media="screen">
+  <link rel="stylesheet" type="text/css"
+        href="../../src/www/cadcVOTV/css/bootstrap-theme.min.css" media="screen">
+  <link rel="stylesheet" type="text/css"
+        href="../../src/www/cadcVOTV/css/jquery-ui-1.11.4.min.css"/>
+  <link rel="stylesheet" type="text/css"
+        href="../../src/www/cadcVOTV/css/slick.grid.css"/>
+  <link rel="stylesheet" type="text/css" href="../../src/www/cadcVOTV/css/slick.pager.css" />
+  <link rel="stylesheet" type="text/css" href="../../src/www/cadcVOTV/css/slick.columnpicker.css" />
+  <link rel="stylesheet" type="text/css" href="../../src/www/cadcVOTV/css/cadc.votv.css"/>
+  <link rel="stylesheet" type="text/css"
+        href="../../src/www/cadcVOTV/css/slick-default-theme.css"/>
+
+  <style type="text/css">
+    .slick-header-columns {
+      background: url('../../src/www/cadcVOTV/css/images/header-columns-bg.gif') repeat-x center bottom;
+    }
+
+    .slick-header-column {
+      background: url('../../src/www/cadcVOTV/css/images/header-columns-bg.gif') repeat-x center bottom;
+    }
+
+    .slick-header-column:hover, .slick-header-column-active {
+      background: white url('../../src/www/cadcVOTV/css/images/header-columns-over-bg.gif') repeat-x center bottom;
+    }
+
+    .slick-sort-indicator-desc {
+      background: url('../../src/www/cadcVOTV/css/images/sort-desc.gif');
+    }
+
+    .slick-sort-indicator-asc {
+      background: url('../../src/www/cadcVOTV/css/images/sort-asc.gif');
+    }
+
+    div#results-grid-header.grid-header {
+      width: 100% !important;
+    }
+
+    .container {
+      width: auto;
+      padding-left: 60px;
+      padding-right: 60px;
+    }
+
+    #myGrid
+    {
+      width: 100% !important;
+      font-size: 1.0em;
+      height: 500px;
+      outline: 0;
+      background: #fff;
+      border: 1px solid gray;
+      z-index: 100 !important;
+    }
+
+    /**
+      Used to determine column widths.
+    */
+    #lengthFinder
+    {
+      position: absolute;
+      visibility: hidden;
+      height: auto;
+      /*width: auto;*/
+      white-space: nowrap;
+
+      /* Be generous with spacing. */
+      font-size: 1.1em;
+      font-family: Verdana,Arial,sans-serif;
+    }
+
+    #lengthFinder
+    {
+      font-size: 1.4em;
+    }
+
+    .slick-header-column .slick-column-name
+    {
+      font-weight: normal;
+    }
+
+  </style>
+
+  <!--[if lt IE 9]>
+  <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+  <title>Bootstrap VOTV Grid</title>
+</head>
+<body>
+<div class="container">
+  <div class="row">
+    <h1>Bootstrap VOTable Viewer</h1>
+
+    <!-- Grid starts here -->
+
+      <div class="grid-container margin-top-medium" style="width: 100%;">
+        <div id="cadcvotv-empty-results-message"
+             class="cadcvotv-empty-results-message">
+          <strong>Nothing to show</strong>
+        </div>
+        <div id="results-grid-header" class="grid-header" style="width: 100%;">
+          <span class="grid-header-label"></span>
+        </div>
+        <div id="myGrid" style="width: 100%;"></div>
+      </div>
+    <div id="lengthFinder"></div>
+
+    <!-- End Grid -->
+
+  </div>
+</div>
+<script type="application/javascript"
+        src="../../src/www/cadcVOTV/javascript/jquery-2.2.4.min.js"></script>
+<script type="application/javascript"
+        src="../../src/www/cadcVOTV/javascript/jquery.csv-0.71.min.js"></script>
+<script type="application/javascript" src="../../../cadc-js/src/www/cadcJS/javascript/org.opencadc.js"></script>
+<script type="application/javascript" src="../../src/www/cadcVOTV/javascript/bootstrap.js"></script>
+<script type="application/javascript"
+        src="../../src/www/cadcVOTV/javascript/jquery.event.drag-2.2.min.js"></script>
+<script type="application/javascript"
+        src="../../src/www/cadcVOTV/javascript/jquery-ui-1.11.4.min.js"></script>
+<script type="application/javascript" src="../../src/www/cadcVOTV/javascript/cadc.votable.js"></script>
+<script type="application/javascript"
+        src="../../src/www/cadcVOTV/javascript/cadc.votable-reader.js"></script>
+<script type="application/javascript"
+        src="../../src/www/cadcVOTV/javascript/cadc.votv.comparer.js"></script>
+<script type="application/javascript"
+        src="../../src/www/cadcVOTV/javascript/slick.dataview.js"></script>
+<script type="application/javascript"
+        src="../../src/www/cadcVOTV/javascript/slick.core.js"></script>
+<script type="application/javascript"
+        src="../../src/www/cadcVOTV/javascript/slick.grid.js"></script>
+<script type="application/javascript"
+        src="../../src/www/cadcVOTV/javascript/cadc.votv.js"></script>
+<script type="application/javascript"
+        src="../../src/www/cadcVOTV/javascript/cadc.plugin.filter_suggest.js"></script>
+<script type="application/javascript"
+        src="../../src/www/cadcVOTV/javascript/cadc.checkboxselectcolumn.js"></script>
+<script type="application/javascript"
+        src="../../src/www/cadcVOTV/javascript/cadc.rowselectionmodel.js"></script>
+
+<script type="application/javascript">
+  $(document).ready(function ()
+                    {
+                      var tableMetadata = new cadc.vot.Metadata(null, null, null, null, null, null);
+
+                      var _selector = new cadc.vot.Field('_checkbox_selector',
+                        '_checkbox_selector', 'UCD_SELECT', 'UTYPE_SELECT',
+                        null, null, null, null, null, '_checkbox_select');
+                      var name = new cadc.vot.Field('Name', 'Name', 'UCD1', 'UTYPE1', 'UNIT1',
+                        null, null, null, null, 'Name');
+                      var location = new cadc.vot.Field('Location', 'Location', 'UCD2', 'UTYPE2', 'UNIT2',
+                        null, null, null, null, 'Location');
+                      var astronomy = new cadc.vot.Field('Astronomy', 'Astronomy', 'UCD3', 'UTYPE3', 'UNIT3',
+                        null, null, null, null, 'Astronomy');
+                      var telescope = new cadc.vot.Field('Telescope', 'Telescope', 'UCD3', 'UTYPE3', 'UNIT3',
+                        null, null, null, null, 'Telescope');
+
+                      tableMetadata.addField(_selector);
+                      tableMetadata.addField(name);
+                      tableMetadata.addField(location);
+                      tableMetadata.addField(astronomy);
+                      tableMetadata.addField(telescope);
+
+                      // List the running VMs and load them into the running VMs tab.
+                      var options = {
+                        editable: false,
+                        enableAddRow: false,
+                        showHeaderRow: true,
+                        enableCellNavigation: true,
+                        asyncEditorLoading: true,
+                        explicitInitialization: true,
+                        columnFilterPluginName: 'suggest',
+                        headerRowHeight: 40,
+                        showTopPanel: false,
+                        sortColumn: "Name",
+                        defaultColumnWidth: 80,
+                        sortDir: "desc",
+                        rerenderOnResize: false,
+//                        emptyResultsMessageSelector: "#cadcvotv-empty-results-message",
+                        pager: false,
+                        gridResizable: true,
+//                        fitMax: true,
+                        columnManager: {
+                          filterable: true,
+                          forceFitColumnMode: 'max',
+                          forceFitColumns: true,
+                          resizable: true
+                        },
+                        columnOptions: {
+                          "Astronomy": {
+                            cssClass: "text-warning"
+                          },
+                          "_checkbox_select": {
+                            fitMax: false
+                          }
+                        }
+                      };
+
+                      var showTable = function (csvData)
+                      {
+                        var viewer = new cadc.vot.Viewer("#myGrid", options);
+
+                        viewer.build({
+                                       csv: csvData,
+                                       tableMetadata: tableMetadata
+                                     },
+                                     function ()
+                                     {
+                                       viewer.render();
+//                                       viewer.refreshGrid();
+                                     },
+                                     function (jqXHR, status, message)
+                                     {
+                                       console.log("Error in creating VOTable Viewer.\nMessage from server: "
+                                                   + message);
+                                     });
+                      };
+
+                      var csvData = 'ID, Name, Location, Astronomy, Telescope\n'
+                                    + '100, Phil Orbit, Mauna Kea, Optical, CHFT\n'
+                                    + '101, Chad Sky, Atacama, Radio, ALMA\n'
+                                    +
+                                    '102, Carrie Redshift, Mauna Kea, Optical, JCMT\n'
+                                    +
+                                    '103, Mary Declination, Montreal, Optical, OOM\n'
+                                    + '104, Peter Wavelength, Australia, Radio, SKA';
+                      showTable(csvData);
+                    });
+</script>
+</body>
+</html>

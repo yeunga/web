@@ -290,10 +290,10 @@
     function datatypeMatches(_datatypes)
     {
       var dataTypeValue = getDatatypeValue();
-      var stringUtil = new cadc.web.util.StringUtil(dataTypeValue);
+      var stringUtil = new org.opencadc.StringUtil();
       for (var stIndex = 0; stIndex < _datatypes.length; stIndex++)
       {
-        if (stringUtil.contains(_datatypes[stIndex]))
+        if (stringUtil.contains(dataTypeValue, _datatypes[stIndex]))
         {
           return true;
         }
@@ -380,8 +380,8 @@
 
     function containsInterval()
     {
-      return new cadc.web.util.StringUtil(getXType()).contains(
-        INTERVAL_XTYPE_KEYWORD);
+      var stringUtil = new org.opencadc.StringUtil();
+      return stringUtil.contains(_selfField.xtype, INTERVAL_XTYPE_KEYWORD);
     }
 
     function getDatatype()
