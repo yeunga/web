@@ -77,7 +77,7 @@ server, you can set the PROXY_URL filter token value to "".
   </condition>
 
   <property name="runner" value="test/qunitjs-runner.js" />
-  <property name="phantomjs" value="test/phantomjs/${osfamily}/phantomjs" />
+  <property name="phantomjs" value="phantomjs" />
 
   <target name="setup-test">
     <available file="abc.txt" property="abc.present"/>

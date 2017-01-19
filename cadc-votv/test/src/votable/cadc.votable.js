@@ -14,7 +14,8 @@ var xmlData =
   + "      <FIELD name=\"VM Type\" datatype=\"char\" arraysize=\"*\" />\n"
   + "      <FIELD name=\"CPUs\" datatype=\"int\" />\n"
   + "      <FIELD name=\"Memory\" datatype=\"long\" />\n"
-  + "      <FIELD name=\"Job Starts\" datatype=\"double\" xtype=\"adql:proto:INTErvAL:\" arraysize=\"*\"/>\n"
+  +
+  "      <FIELD name=\"Job Starts\" datatype=\"double\" xtype=\"adql:proto:INTErvAL:\" arraysize=\"*\"/>\n"
   + "      <DATA>\n"
   + "        <TABLEDATA>\n"
   + "          <TR>\n"
@@ -68,37 +69,37 @@ document.body.appendChild(targetNode);
 
 test("Test table functions.", 2, function ()
 {
-  try
-  {
+  // try
+  // {
     new cadc.vot.Builder(30000,
       {
         xmlDOM: xmlDOM
       },
-                         function (voTableBuilder)
-                         {
-                           voTableBuilder.build(voTableBuilder.buildRowData);
+      function (voTableBuilder)
+      {
+        voTableBuilder.build(voTableBuilder.buildRowData);
 
-                           var voTable = voTableBuilder.getVOTable();
-                           var metadata = voTable.getMetadata();
+        var voTable = voTableBuilder.getVOTable();
+        var metadata = voTable.getMetadata();
 
-                           var memoryField = metadata.getField("Memory");
-                           var jobStartsField = metadata.getField("Job Starts");
+        var memoryField = metadata.getField("Memory");
+        var jobStartsField = metadata.getField("Job Starts");
 
-                           equal(memoryField.containsInterval(), false,
-                                 "Memory field should contain no INTERVAL");
+        equal(memoryField.containsInterval(), false,
+              "Memory field should contain no INTERVAL");
 
-                           equal(jobStartsField.containsInterval(), true,
-                                 "Job Starts field should contain INTERVAL");
-                         },
-                         function ()
-                         {
+        equal(jobStartsField.containsInterval(), true,
+              "Job Starts field should contain INTERVAL");
+      },
+      function ()
+      {
 
-                         });
-  }
-  catch (error)
-  {
-    console.log(error.stack);
-  }
+      });
+  // }
+  // catch (error)
+  // {
+  //   console.log(error.stack);
+  // }
 });
 
 test("XType for intervals", 2, function ()
@@ -109,30 +110,30 @@ test("XType for intervals", 2, function ()
       {
         xmlDOM: xmlDOM
       },
-                         function (voTableBuilder)
-                         {
-                           voTableBuilder.build(voTableBuilder.buildRowData);
+      function (voTableBuilder)
+      {
+        voTableBuilder.build(voTableBuilder.buildRowData);
 
-                           var voTable = voTableBuilder.getVOTable();
-                           var resources = voTable.getResources();
+        var voTable = voTableBuilder.getVOTable();
+        var resources = voTable.getResources();
 
-                           for (var r in resources)
-                           {
-                             var tables = resources[r].getTables();
-                             for (var t in tables)
-                             {
-                               var tableData = tables[t].getTableData();
-                               equal(tableData.getLongestValues()["Command"],
-                                     3, "Longest value for Command should be 3");
-                               equal(tableData.getLongestValues()["VM Type"],
-                                     10, "Longest value for VM Type should be 10");
-                             }
-                           }
-                         },
-                         function ()
-                         {
+        for (var r in resources)
+        {
+          var tables = resources[r].getTables();
+          for (var t in tables)
+          {
+            var tableData = tables[t].getTableData();
+            equal(tableData.getLongestValues()["Command"],
+                  3, "Longest value for Command should be 3");
+            equal(tableData.getLongestValues()["VM Type"],
+                  10, "Longest value for VM Type should be 10");
+          }
+        }
+      },
+      function ()
+      {
 
-                         });
+      });
   }
   catch (error)
   {
@@ -145,11 +146,11 @@ test("Field insertions to Metadata.", 4, function ()
   var testSubject = new cadc.vot.Metadata(null, null, null, null, null, null);
 
   var f1 = new cadc.vot.Field("F1", "F1", "UCD1", "UTYPE1", "UNIT1",
-                              null, null, null, null, "F1");
+    null, null, null, null, "F1");
   var f2 = new cadc.vot.Field("F2", "F2", "UCD2", "UTYPE2", "UNIT2",
-                              null, null, null, null, "F2");
+    null, null, null, null, "F2");
   var f3 = new cadc.vot.Field("F3", "F3", "UCD3", "UTYPE3", "UNIT3",
-                              null, null, null, null, "F3");
+    null, null, null, null, "F3");
 
   testSubject.insertField(3, f1);
   testSubject.insertField(13, f2);
@@ -173,11 +174,11 @@ test("Get field from metadata.", 4, function ()
   var testSubject = new cadc.vot.Metadata(null, null, null, null, null, null);
 
   var f1 = new cadc.vot.Field("F1", "F1", "UCD1", "UTYPE1", "UNIT1",
-                              null, null, null, null, "F1");
+    null, null, null, null, "F1");
   var f2 = new cadc.vot.Field("F2", "F2", "UCD2", "UTYPE2", "UNIT2",
-                              null, null, null, null, "F2");
+    null, null, null, null, "F2");
   var f3 = new cadc.vot.Field("F3", "F3", "UCD3", "UTYPE3", "UNIT3",
-                              null, null, null, null, "F3");
+    null, null, null, null, "F3");
 
   testSubject.addField(f1);
   testSubject.addField(f2);
