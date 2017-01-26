@@ -360,7 +360,8 @@
     function isFilterable(column)
     {
       var globallyFilterable = getColumnManager().filterable || false;
-      var columnFilterable = column.filterable || globallyFilterable;
+      var columnFilterable = ((column.filterable == null) && globallyFilterable)
+                             || (column.filterable === true);
 
       return (columnFilterable === true);
     }
