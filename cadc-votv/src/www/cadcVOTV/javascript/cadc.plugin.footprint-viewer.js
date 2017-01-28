@@ -227,7 +227,7 @@
                                         cdi < cdl; cdi++)
                                    {
                                      handleAddFootprint(event, {
-                                       rowData: data.getItemByIdx(cdi)
+                                       rowData: currentRows[cdi]
                                      });
                                    }
 
