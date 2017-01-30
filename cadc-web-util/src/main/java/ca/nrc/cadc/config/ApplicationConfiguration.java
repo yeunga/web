@@ -20,16 +20,17 @@ public class ApplicationConfiguration
 {
     private static final Logger LOGGER = Logger
             .getLogger(ApplicationConfiguration.class);
-    private final CombinedConfiguration configuration;
+    final CombinedConfiguration configuration;
 
     public ApplicationConfiguration(String filePath)
     {
         this();
         final Parameters parameters = new Parameters();
         final FileBasedConfigurationBuilder builder =
-                new FileBasedConfigurationBuilder(
+                new FileBasedConfigurationBuilder<>(
                         PropertiesConfiguration.class)
-                .configure(parameters.properties().setFileName(filePath));
+                        .configure(parameters.properties()
+                                           .setFileName(filePath));
 
         try
         {
