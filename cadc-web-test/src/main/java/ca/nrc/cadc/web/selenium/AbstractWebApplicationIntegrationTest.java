@@ -334,8 +334,8 @@ public abstract class AbstractWebApplicationIntegrationTest
      *
      * @param path  The navigation path.
      * @param query The query.
-     * @throws Exception
-     * @link https://code.google.com/p/selenium/wiki/PageObjects
+     * @throws Exception    For any test problems.
+     * @see <a href="https://code.google.com/p/selenium/wiki/PageObjects">Page Objects</a>
      * @deprecated Please use {@link #goTo(String, String, Class)} instead and
      * adapt to the PageObject model.
      */
@@ -345,6 +345,7 @@ public abstract class AbstractWebApplicationIntegrationTest
                                          ? ("?" + query) : ""));
     }
 
+
     /**
      * Visit the given path with a query attached to it.  Return the page with
      * the given class.
@@ -352,7 +353,10 @@ public abstract class AbstractWebApplicationIntegrationTest
      * @param path      The navigation path.
      * @param query     The query.
      * @param pageClass The class of the returned instance.
-     * @throws Exception
+     * @param <T>       The type of Page to return.
+     *
+     * @return  A page element.
+     * @throws Exception  For any test execution errors
      */
     public <T extends AbstractTestWebPage> T goTo(final String path,
                                                   final String query,
@@ -404,17 +408,6 @@ public abstract class AbstractWebApplicationIntegrationTest
         {
             click(by);
         }
-    }
-
-    /**
-     * @throws Exception
-     * @deprecated Replaced by {@link AbstractTestWebPage#select(By, String)}
-     */
-    @Deprecated
-    protected void select(final By by, final String value) throws Exception
-    {
-        final Select select = new Select(find(by));
-        select.selectByValue(value);
     }
 
     protected WebElement find(final By by)
@@ -504,7 +497,7 @@ public abstract class AbstractWebApplicationIntegrationTest
      *
      * @param elementID           The ID of the element to find.
      * @param containerToScrollID The container to scroll.
-     * @throws Exception
+     * @throws Exception  For any test execution errors
      */
     protected void scrollVerticallyIntoView(final String elementID,
                                             final String containerToScrollID)
@@ -525,7 +518,7 @@ public abstract class AbstractWebApplicationIntegrationTest
      * Scroll the Grid.  This is for cadcVOTV grids.
      *
      * @param elementIDToScroll The ID of the container.
-     * @throws Exception
+     * @throws Exception  For any test execution errors
      */
     protected void scrollGrid(final String elementIDToScroll) throws Exception
     {
@@ -547,7 +540,7 @@ public abstract class AbstractWebApplicationIntegrationTest
      * Scroll the Grid.  This is for cadcVOTV grids.
      *
      * @param elementIDToScroll The ID of the container.
-     * @throws Exception
+     * @throws Exception  For any test execution errors
      */
     protected void scrollGridHorizontally(final String elementIDToScroll)
             throws Exception
@@ -630,9 +623,9 @@ public abstract class AbstractWebApplicationIntegrationTest
     /**
      * Wait for text to be present in the given locator.
      *
-     * @param by
-     * @param text
-     * @throws Exception
+     * @param by        Finder element.
+     * @param text      Text to wait for.
+     * @throws Exception  For any test execution errors
      * @deprecated Use {@link AbstractTestWebPage#waitForTextPresent(By, String)}
      */
     protected void waitForTextPresent(final By by, final String text) throws
@@ -904,7 +897,7 @@ public abstract class AbstractWebApplicationIntegrationTest
      * Allow waiting for less than a second.
      *
      * @param milliseconds Time in milliseconds to wait.
-     * @throws Exception
+     * @throws Exception  For any test execution errors
      */
     protected void waitFor(final long milliseconds) throws Exception
     {

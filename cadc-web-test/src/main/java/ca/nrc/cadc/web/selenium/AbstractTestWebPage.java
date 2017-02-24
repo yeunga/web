@@ -119,6 +119,7 @@ public abstract class AbstractTestWebPage
      * Only used for CADC pages as they have this link on all pages.
      *
      * @return String text.
+     * @throws Exception  For any test execution exceptions
      */
     public String getHeaderLinkText() throws Exception
     {
@@ -167,6 +168,12 @@ public abstract class AbstractTestWebPage
         }
     }
 
+    /**
+     * Select in a pulldown.
+     * @param by            The finder element.
+     * @param value         The value to set.
+     * @throws Exception  For any test execution exceptions
+     */
     protected void select(final By by, final String value) throws Exception
     {
         final Select select = new Select(find(by));
@@ -285,7 +292,7 @@ public abstract class AbstractTestWebPage
      *
      * @param elementID           The ID of the element to find.
      * @param containerToScrollID The container to scroll.
-     * @throws Exception
+     * @throws Exception  For any test execution errors
      */
     protected void scrollVerticallyIntoView(final String elementID,
                                             final String containerToScrollID)
@@ -309,7 +316,7 @@ public abstract class AbstractTestWebPage
      * TODO - found target!!!
      *
      * @param elementIDToScroll The ID of the container.
-     * @throws Exception
+     * @throws Exception  For any test execution errors
      */
     protected void scrollGrid(final String elementIDToScroll) throws Exception
     {
@@ -331,7 +338,7 @@ public abstract class AbstractTestWebPage
      * Scroll the Grid.  This is for cadcVOTV grids.
      *
      * @param elementIDToScroll The ID of the container.
-     * @throws Exception
+     * @throws Exception  For any test execution errors
      */
     protected void scrollGridHorizontally(final String elementIDToScroll)
             throws Exception
