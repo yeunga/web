@@ -360,8 +360,8 @@ public abstract class AbstractTestWebPage
     public void waitForTextPresent(final By by, final String text)
             throws Exception
     {
-        final WebElement element = waitForElementPresent(by);
-        waitUntil(ExpectedConditions.textToBePresentInElement(element, text));
+        waitForElementVisible(by);
+        waitUntil(ExpectedConditions.textToBePresentInElementLocated(by, text));
     }
 
     public void verifyTextPresent(final By by, final String value)
