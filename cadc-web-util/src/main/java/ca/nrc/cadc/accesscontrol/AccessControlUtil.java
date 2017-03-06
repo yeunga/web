@@ -33,9 +33,9 @@ public class AccessControlUtil
 
     public Set<String> getSSOServers()
     {
-        Set<String> servers = new HashSet<>();
-        String hostsString =
-                applicationConfiguration.lookup("SSO_SERVERS");
+        final Set<String> servers = new HashSet<>();
+        final String hostsString =
+                applicationConfiguration.lookup(SSO_SERVERS_KEY);
 
         if (StringUtil.hasText(hostsString))
         {

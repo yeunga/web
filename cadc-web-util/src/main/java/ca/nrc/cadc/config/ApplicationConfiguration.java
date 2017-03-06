@@ -21,10 +21,8 @@ public class ApplicationConfiguration
     private static final Logger LOGGER = Logger
             .getLogger(ApplicationConfiguration.class);
     final CombinedConfiguration configuration;
-    private static final String DEFAULT_AC_PROPERTIES_FILE_PATH =
-            System.getProperty("user.home") + "/config/AccessControl.properties";
 
-    public ApplicationConfiguration(String filePath)
+    public ApplicationConfiguration(final String filePath)
     {
         configuration = new CombinedConfiguration();
 
@@ -48,11 +46,6 @@ public class ApplicationConfiguration
                     filePath));
         }
 
-    }
-
-    public ApplicationConfiguration()
-    {
-        this(DEFAULT_AC_PROPERTIES_FILE_PATH);
     }
 
     public URI lookupServiceURI(String key, URI defaultValue)

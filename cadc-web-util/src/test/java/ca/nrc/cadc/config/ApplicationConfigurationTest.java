@@ -100,7 +100,7 @@ public class ApplicationConfigurationTest
 
         fos.write("PROP2=VAL2\n".getBytes("UTF-8"));
         fos.write((ApplicationConfiguration.class.getCanonicalName()
-                   + ".PROP1=VAL11").getBytes("UTF-8"));
+                   + ".PROP1=VAL21").getBytes("UTF-8"));
 
         fos.flush();
         fos.close();
@@ -108,7 +108,8 @@ public class ApplicationConfigurationTest
         System.setProperty(ApplicationConfiguration.class.getCanonicalName()
                            + ".PROP1", "VAL1");
 
-        final ApplicationConfiguration testSubject = new ApplicationConfiguration();
+        final ApplicationConfiguration testSubject =
+                new ApplicationConfiguration(tmpConfigFile.getPath());
 
         final Parameters parameters = new Parameters();
 
@@ -117,16 +118,13 @@ public class ApplicationConfigurationTest
                         PropertiesConfiguration.class).configure(
                         parameters.fileBased().setFile(tmpConfigFile));
 
-        // Add this after System properties.
-        testSubject.configuration.addConfiguration(builder.getConfiguration());
-
         final List<String> results = testSubject.lookup(
                 ApplicationConfiguration.class.getCanonicalName()
                 + ".PROP1");
         final List<String> expected = new ArrayList<>();
 
         expected.add("VAL1");
-        expected.add("VAL11");
+        expected.add("VAL21");
 
         assertEquals("Wrong value.", expected, results);
     }
@@ -145,7 +143,7 @@ public class ApplicationConfigurationTest
         fos.close();
 
         final ApplicationConfiguration testSubject =
-                new ApplicationConfiguration();
+                new ApplicationConfiguration(tmpConfigFile.getPath());
 
         final Parameters parameters = new Parameters();
 
@@ -154,9 +152,7 @@ public class ApplicationConfigurationTest
                         PropertiesConfiguration.class).configure(
                         parameters.fileBased().setFile(tmpConfigFile));
 
-        // Add this after System properties.
-        testSubject.configuration.addConfiguration(builder.getConfiguration());
-
-        assertEquals("Wrong value.", "VAL11", testSubject.lookup("PROP1"));
+        assertEquals("Wrong value.", "VAL11",
+                     testSubject.lookup("PROP1"));
     }
 }
