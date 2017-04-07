@@ -15,7 +15,7 @@ public class AccessControlUtil
     private static final Logger LOG = Logger.getLogger(AccessControlUtil.class);
     public static final String SSO_COOKIE_NAME = "CADC_SSO";
     static final String SSO_SERVERS_KEY = "SSO_SERVERS";
-    private static final String DEFAULT_AC_PROPERTIES_FILE_PATH =
+    public static final String DEFAULT_AC_PROPERTIES_FILE_PATH =
             System.getProperty("user.home") + "/config/AccessControl.properties";
     private final ApplicationConfiguration applicationConfiguration;
 
@@ -25,9 +25,21 @@ public class AccessControlUtil
         this.applicationConfiguration = applicationConfiguration;
     }
 
+    /**
+     * Load from the given file path as well as the System properties.
+     * @param filePath      Path to a known configuration file.
+     */
+    public AccessControlUtil(final String filePath)
+    {
+        this(new ApplicationConfiguration(filePath));
+    }
+
+    /**
+     * Load from the default file path.
+     */
     public AccessControlUtil()
     {
-        this(new ApplicationConfiguration(DEFAULT_AC_PROPERTIES_FILE_PATH));
+        this(DEFAULT_AC_PROPERTIES_FILE_PATH);
     }
 
 
@@ -40,7 +52,14 @@ public class AccessControlUtil
         if (StringUtil.hasText(hostsString))
         {
             final String[] hosts = hostsString.split(" ");
-            servers.addAll(Arrays.asList(hosts));
+
+            for (final String host : hosts)
+            {
+                if (StringUtil.hasLength(host))
+                {
+                    servers.add(host);
+                }
+            }
         }
 
         return servers;

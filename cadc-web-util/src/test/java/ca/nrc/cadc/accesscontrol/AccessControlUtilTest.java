@@ -3,7 +3,7 @@
  *******************  CANADIAN ASTRONOMY DATA CENTRE  *******************
  **************  CENTRE CANADIEN DE DONNÉES ASTRONOMIQUES  **************
  *
- *  (c) 2016.                            (c) 2016.
+ *  (c) 2017.                            (c) 2017.
  *  Government of Canada                 Gouvernement du Canada
  *  National Research Council            Conseil national de recherches
  *  Ottawa, Canada, K1A 0R6              Ottawa, Canada, K1A 0R6
@@ -66,107 +66,43 @@
  ************************************************************************
  */
 
-package ca.nrc.cadc.web;
+package ca.nrc.cadc.accesscontrol;
 
-import ca.nrc.cadc.auth.*;
-import ca.nrc.cadc.net.NetUtil;
-import ca.nrc.cadc.util.StringUtil;
+import ca.nrc.cadc.config.ApplicationConfiguration;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.net.URL;
-import java.security.Principal;
+import org.junit.Test;
+
 import java.util.HashSet;
 import java.util.Set;
 
+import static org.junit.Assert.*;
+import static org.easymock.EasyMock.*;
 
-public class CookiePrincipalExtractorImpl implements PrincipalExtractor
+
+public class AccessControlUtilTest
 {
-    private final HttpServletRequest request;
-
-    private SSOCookieCredential cookieCredential;
-    private Principal cookiePrincipal;
-
-
-    public CookiePrincipalExtractorImpl(final HttpServletRequest request)
+    @Test
+    public void getSSOServers() throws Exception
     {
-        this.request = request;
-        init();
-    }
+        final ApplicationConfiguration mockConfiguration =
+                createMock(ApplicationConfiguration.class);
+        final AccessControlUtil testSubject =
+                new AccessControlUtil(mockConfiguration);
 
+        expect(mockConfiguration.lookup(AccessControlUtil.SSO_SERVERS_KEY))
+                .andReturn("1 5  6");
 
-    void init()
-    {
-        final Cookie[] requestCookies = request.getCookies();
-        final Cookie[] cookies = (requestCookies == null)
-                                 ? new Cookie[0] : requestCookies;
-        for (final Cookie cookie : cookies)
-        {
-            if ("CADC_SSO".equals(cookie.getName())
-                && StringUtil.hasText(cookie.getValue()))
-            {
-                try
-                {
-                    cookiePrincipal =
-                            new CookiePrincipal(
-                                    cookie.getValue());
-                    cookieCredential =
-                            new SSOCookieCredential(
-                                    cookie.getValue(), NetUtil.getDomainName(
-                                            request.getServerName()));
-                }
-                catch (IOException e)
-                {
-                    System.out.println(
-                            "Cannot use SSO Cookie. Reason: "
-                            + e.getMessage());
-                }
-            }
-        }
-    }
+        replay(mockConfiguration);
 
+        final Set<String> expected = new HashSet<>();
 
-    @Override
-    public Set<Principal> getPrincipals()
-    {
-        final Set<Principal> principals = new HashSet<>();
+        expected.add("1");
+        expected.add("5");
+        expected.add("6");
 
-        addHTTPPrincipal(principals);
+        assertEquals("Wrong server list.", expected,
+                     testSubject.getSSOServers());
 
-        return principals;
-    }
-
-    @Override
-    public X509CertificateChain getCertificateChain()
-    {
-        return null;
-    }
-
-    @Override
-    public DelegationToken getDelegationToken()
-    {
-        return null;
-    }
-
-    @Override
-    public SSOCookieCredential getSSOCookieCredential()
-    {
-        return cookieCredential;
-    }
-
-    private void addHTTPPrincipal(final Set<Principal> principals)
-    {
-        final String httpUser = request.getRemoteUser();
-
-        if (StringUtil.hasText(httpUser))
-        {
-            principals.add(new HttpPrincipal(httpUser));
-        }
-
-        if (cookiePrincipal != null)
-        {
-            principals.add(cookiePrincipal);
-        }
+        verify(mockConfiguration);
     }
 }
