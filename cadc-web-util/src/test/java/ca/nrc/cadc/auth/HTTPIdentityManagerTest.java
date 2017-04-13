@@ -72,6 +72,9 @@ package ca.nrc.cadc.auth;
 import javax.security.auth.Subject;
 
 import org.junit.Test;
+
+import java.math.BigInteger;
+
 import static org.junit.Assert.*;
 
 
@@ -106,7 +109,8 @@ public class HTTPIdentityManagerTest
         assertNull("Should be null.", testSubject.toOwner(null));
 
         subject.getPrincipals().add(new HttpPrincipal("TEST123"));
-        assertEquals("Should be TEST123.", "TEST123",
+        assertEquals("Should be 23720122240807475.",
+                     new BigInteger("TEST123".getBytes()),
                      testSubject.toOwner(subject));
     }
 }

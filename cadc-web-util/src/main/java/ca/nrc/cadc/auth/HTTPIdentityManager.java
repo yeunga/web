@@ -69,13 +69,14 @@
 package ca.nrc.cadc.auth;
 
 import javax.security.auth.Subject;
+import java.math.BigInteger;
 import java.security.Principal;
 import java.sql.PreparedStatement;
 import java.sql.Types;
 import java.util.Set;
 
 
-public class HTTPIdentityManager<T extends String> implements IdentityManager
+public class HTTPIdentityManager implements IdentityManager
 {
     /**
      * Create a subject from the specified owner object. This is the reverse
@@ -100,14 +101,17 @@ public class HTTPIdentityManager<T extends String> implements IdentityManager
      * @return arbitrary owner object to be persisted
      */
     @Override
-    public T toOwner(final Subject subject)
+    public Object toOwner(final Subject subject)
     {
-        return (T) toOwnerString(subject);
+        final String ownerStringName = toOwnerString(subject);
+
+        return (ownerStringName == null) ? null :
+               new BigInteger(ownerStringName.getBytes());
     }
 
     @SuppressWarnings("unchecked")
-    private <K extends Principal> T scanPrincipals(final Subject subject,
-                                                   final Class<K> principalClass)
+    private <K extends Principal> String scanPrincipals(
+            final Subject subject, final Class<K> principalClass)
     {
         final Set<K> principals = subject.getPrincipals(principalClass);
 
@@ -117,7 +121,7 @@ public class HTTPIdentityManager<T extends String> implements IdentityManager
         }
         else
         {
-            return (T) ((K) (principals.toArray()[0])).getName();
+            return ((K) (principals.toArray()[0])).getName();
         }
     }
 
@@ -132,7 +136,7 @@ public class HTTPIdentityManager<T extends String> implements IdentityManager
     @Override
     public int getOwnerType()
     {
-        return Types.VARCHAR;
+        return Types.BIGINT;
     }
 
     /**
