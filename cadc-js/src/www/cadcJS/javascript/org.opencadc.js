@@ -92,7 +92,7 @@
      */
     function hasLength(_str)
     {
-      return ((_str != null) && (_str.length > 0));
+      return ((_str !== null) && (_str.length > 0));
     }
 
     /**
@@ -102,7 +102,7 @@
      */
     function hasText(_str)
     {
-      var wrapper = String(_str);
+      var wrapper = (_str === null) ? null : String(_str);
       return hasLength(wrapper) && ($.trim(wrapper) !== "");
     }
 
@@ -128,11 +128,15 @@
      */
     function format(_str, _values)
     {
+      var vl = _values.length;
+
       // Create new string to not modify the original.
       return _str.replace(/{(\d+)}/g, function (match, number)
       {
         var index = (number - 1);
-        return _values[index] ? _values[index] : match;
+        var next = vl > index ? _values[index] : null;
+
+        return (next === null) ? match : next;
       });
     }
 

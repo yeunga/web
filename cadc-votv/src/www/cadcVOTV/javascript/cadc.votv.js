@@ -189,8 +189,7 @@
           // Set up to stream.
           if (input.url || input.csv)
           {
-            var inputFields =
-              input.tableMetadata.getFields();
+            var inputFields = input.tableMetadata.getFields();
             var $resultsGridHeader = getHeader();
             var $gridHeaderIcon = getHeader().find("img.grid-header-icon");
 
@@ -277,8 +276,7 @@
 
     function defaultRowCountMessage(totalRows, rowCount)
     {
-      return "Showing " + totalRows + " rows (" + rowCount
-             + " before filtering).";
+      return "Showing " + totalRows + " rows (" + rowCount + " before filtering).";
     }
 
     function getRowCountMessage(totalRows, rowCount)
@@ -360,7 +358,7 @@
     function isFilterable(column)
     {
       var globallyFilterable = getColumnManager().filterable || false;
-      var columnFilterable = ((column.filterable == null) && globallyFilterable)
+      var columnFilterable = ((column.filterable === null) && globallyFilterable)
                              || (column.filterable === true);
 
       return (columnFilterable === true);
@@ -399,19 +397,21 @@
 
     function setColumnFilter(columnID, filterValue)
     {
-      $(getTargetNodeSelector()).find("input[id='" + columnID
-                                      + "_filter']").val(filterValue);
+      $(getTargetNodeSelector()).find("input[id='" + columnID + "_filter']").val(filterValue);
     }
 
     function columnFiltersEmpty()
     {
       for (var cf in _self.columnFilters)
       {
-        var nextFilter = _self.columnFilters[cf];
-
-        if (nextFilter && $.trim(nextFilter))
+        if (_self.columnFilters.hasOwnProperty(cf))
         {
-          return false;
+          var nextFilter = _self.columnFilters[cf];
+
+          if (nextFilter && $.trim(nextFilter))
+          {
+            return false;
+          }
         }
       }
 
@@ -466,7 +466,7 @@
       {
         var nextCol = allCols[i];
 
-        if (nextCol.id == columnID)
+        if (nextCol.id === columnID)
         {
           return i;
         }
@@ -594,9 +594,7 @@
 
     function getGridHeaderHeight()
     {
-      return ($(".grid-header").height() +
-              $(".slick-header").height() +
-              $(".slick-headerrow").height());
+      return ($(".grid-header").height() + $(".slick-header").height() + $(".slick-headerrow").height());
     }
 
     /**
@@ -626,7 +624,7 @@
     {
       if (_self.sortcol)
       {
-        var isAscending = (_self.sortAsc || (_self.sortAsc == 1));
+        var isAscending = (_self.sortAsc || (_self.sortAsc === 1));
         getGrid().setSortColumn(_self.sortcol, isAscending);
 
         trigger(cadc.vot.events.onSort, {
@@ -682,7 +680,7 @@
      */
     function getDisplayColumns()
     {
-      if (!_self.displayColumns || (_self.displayColumns.length == 0))
+      if (!_self.displayColumns || (_self.displayColumns.length === 0))
       {
         setDisplayColumns(getDefaultColumns().slice(0));
       }
@@ -722,7 +720,7 @@
       var opts = getOptions();
       var defaultColumnIDs = opts.defaultColumnIDs;
 
-      if (!defaultColumnIDs || (defaultColumnIDs.length == 0))
+      if (!defaultColumnIDs || (defaultColumnIDs.length === 0))
       {
         cols = getColumns().slice(0);
       }
@@ -798,10 +796,10 @@
       {
         var filterRegexStartsWith = /^\s?(>=|<=|=|>|<)?\s?(.*)/;
         var matches = filterRegexStartsWith.exec(filter);
-        var match = ((matches != null) && (matches.length > 1))
+        var match = ((matches !== null) && (matches.length > 1))
           ? $.trim(matches[1]) : null;
 
-        var operator = (match == null) ? '' : cadc.vot.filters[match];
+        var operator = (match === null) ? '' : cadc.vot.filters[match];
 
         if (operator)
         {
@@ -818,7 +816,7 @@
         // Special case for those number filter expectations where the data is
         // absent.
         if (isFilterNumber
-            && ((value == "") || (value == "NaN") || (value == Number.NaN)))
+            && ((value === "") || (value === "NaN") || (value === Number.NaN)))
         {
           return true;
         }
@@ -1069,28 +1067,17 @@
       $(args.node).empty();
 
       // Display the label for the checkbox column filter row.
-      if (checkboxSelector
-          && (args.column.id == checkboxSelector.getColumnDefinition().id))
+      if (checkboxSelector && (args.column.id === checkboxSelector.getColumnDefinition().id))
       {
         $("<div class='filter-boxes-label' "
-          +
-          "title='Enter values into the boxes to further filter results.'>Filter:</div>").appendTo(args.node);
+          + "title='Enter values into the boxes to further filter results.'>Filter:</div>").appendTo(args.node);
       }
       // Do not display for the checkbox column.
       else if (isFilterable(args.column))
       {
         var datatype = args.column.datatype;
-        var tooltipTitle;
-
-        if (datatype.isNumeric())
-        {
-          tooltipTitle =
-            "Number: 10 or >=10 or 10..20 for a range , ! to negate";
-        }
-        else
-        {
-          tooltipTitle = "String: Substring match , ! to negate matches";
-        }
+        var tooltipTitle = (datatype.isNumeric()) ? "Number: 10 or >=10 or 10..20 for a range , ! to negate"
+            : "String: Substring match , ! to negate matches";
 
         var $filterInput =
           $("<input type='text'>")
@@ -1110,8 +1097,7 @@
         //
         if (getColumnFilterPluginName() === "suggest")
         {
-          $filterInput.cadcVOTV_filter_suggest(_self,
-                                               getOptions().suggest_maxRowCount);
+          $filterInput.cadcVOTV_filter_suggest(_self, getOptions().suggest_maxRowCount);
         }
         else
         {
@@ -1142,6 +1128,7 @@
           {
             _self.plugins[i].destroy();
           }
+
           _self.plugins.splice(i, 1);
           break;
         }
@@ -1306,7 +1293,7 @@
         var columnPicker;
         var pickerStyle = columnPickerConfig.style;
 
-        if (pickerStyle == "dialog")
+        if (pickerStyle === "dialog")
         {
           columnPicker =
             new cadc.vot.picker.DialogColumnPicker(getColumns(), _self.grid,
@@ -1338,7 +1325,7 @@
                                                                 trigger(cadc.vot.events.onColumnOrderReset, null);
                                                               });
         }
-        else if (pickerStyle == "header")
+        else if (pickerStyle === "header")
         {
           columnPicker = new Slick.Controls.ColumnPicker(getColumns(),
             _self.grid, getOptions());
@@ -1354,14 +1341,11 @@
                                                       trigger(cadc.vot.events.onColumnOrderReset, null);
                                                     });
         }
-        else if (pickerStyle == "tooltip")
+        else if (pickerStyle === "tooltip")
         {
           columnPicker =
-            new Slick.Controls.PanelTooltipColumnPicker(getColumns(),
-              _self.grid,
-              columnPickerConfig.panel,
-              columnPickerConfig.tooltipOptions,
-              columnPickerConfig.options);
+            new Slick.Controls.PanelTooltipColumnPicker(getColumns(), _self.grid, columnPickerConfig.panel,
+                                                        columnPickerConfig.tooltipOptions, columnPickerConfig.options);
 
           if (forceFitMax)
           {
@@ -1383,7 +1367,7 @@
           columnPicker.onResetColumnOrder.subscribe(function ()
                                                     {
                                                       // Clear the hash.
-                                                      parent.location.hash = '';
+                                                      parent.location.hash = "";
                                                       trigger(cadc.vot.events.onColumnOrderReset, null);
                                                     });
         }
@@ -1398,9 +1382,9 @@
         var totalWidth = 0;
         var gridColumns = _self.grid.getColumns();
 
-        for (var c in gridColumns)
+        for (var ci = 0, cl = gridColumns.length; ci < cl; ci++)
         {
-          var nextCol = gridColumns[c];
+          var nextCol = gridColumns[ci];
           totalWidth += nextCol.width;
         }
 
@@ -1421,22 +1405,23 @@
       _self.grid.onKeyDown.subscribe(function (e)
                                {
                                  // select all rows on ctrl-a
-                                 if ((e.which != 65) || !e.ctrlKey)
+                                 if ((e.which !== 65) || !e.ctrlKey)
                                  {
                                    return false;
                                  }
-
-                                 var rows = [];
-                                 for (var i = 0; i < _self.grid.getDataLength();
-                                      i++)
+                                 else
                                  {
-                                   rows.push(i);
+                                   var rows = [];
+                                   for (var i = 0; i < _self.grid.getDataLength(); i++)
+                                   {
+                                     rows.push(i);
+                                   }
+
+                                   _self.grid.setSelectedRows(rows);
+                                   e.preventDefault();
+
+                                   return true;
                                  }
-
-                                 _self.grid.setSelectedRows(rows);
-                                 e.preventDefault();
-
-                                 return true;
                                });
 
       /**
@@ -1499,12 +1484,9 @@
         _self.grid.onRenderComplete.subscribe(function (e, args)
                                         {
                                           var renderedRange = args.grid.getRenderedRange();
-                                          for (var i = renderedRange.top,
-                                                 ii = renderedRange.bottom;
-                                               i <= ii; i++)
+                                          for (var i = renderedRange.top, ii = renderedRange.bottom; i <= ii; i++)
                                           {
-                                            var $nextRow =
-                                              _self.grid.getData().getItem(i);
+                                            var $nextRow = _self.grid.getData().getItem(i);
                                             getRowManager().onRowRendered($nextRow, i);
                                           }
                                         });
@@ -1512,16 +1494,11 @@
 
       dataView.onPagingInfoChanged.subscribe(function (e, pagingInfo)
                                              {
-                                               var isLastPage =
-                                                 (pagingInfo.pageNum ==
-                                                  pagingInfo.totalPages - 1);
-                                               var enableAddRow =
-                                                 (isLastPage ||
-                                                  pagingInfo.pageSize == 0);
+                                               var isLastPage = (pagingInfo.pageNum === pagingInfo.totalPages - 1);
+                                               var enableAddRow = (isLastPage || pagingInfo.pageSize === 0);
                                                var options = _self.grid.getOptions();
 
-                                               if (options.enableAddRow !=
-                                                   enableAddRow)
+                                               if (options.enableAddRow !== enableAddRow)
                                                {
                                                  _self.grid.setOptions({enableAddRow: enableAddRow});
                                                }
@@ -1537,8 +1514,7 @@
 
       _self.grid.onHeaderRowCellRendered.subscribe(function (e, args)
                                              {
-                                               setupHeader(checkboxSelector,
-                                                           args);
+                                               setupHeader(checkboxSelector, args);
                                              });
 
       if (Slick.Plugins && Slick.Plugins.UnitSelection)
@@ -1550,22 +1526,18 @@
                                                    {
                                                      if (columnPicker.updateColumnData)
                                                      {
-                                                       columnPicker.updateColumnData(
-                                                         args.column.id,
-                                                         "unitValue",
-                                                         args.unitValue);
+                                                       columnPicker.updateColumnData(args.column.id, "unitValue",
+                                                                                     args.unitValue);
                                                      }
 
                                                      // track select changes.
-                                                     _self.updatedColumnSelects[args.column.id] =
-                                                       args.unitValue;
+                                                     _self.updatedColumnSelects[args.column.id] = args.unitValue;
 
                                                      // Invalidate to force
                                                      // column reformatting.
                                                      _self.grid.invalidate();
 
-                                                     trigger(cadc.vot.events.onUnitChanged,
-                                                             args);
+                                                     trigger(cadc.vot.events.onUnitChanged, args);
                                                    });
 
         _self.grid.registerPlugin(unitSelectionPlugin);
@@ -1576,8 +1548,7 @@
 
       for (var enabledPluginName in enabledPlugins)
       {
-        registerPlugin(new cadc.vot.plugin[enabledPluginName](
-          enabledPlugins[enabledPluginName]));
+        registerPlugin(new cadc.vot.plugin[enabledPluginName](enabledPlugins[enabledPluginName]));
       }
       // End VOTable Viewer plugins.
 
@@ -1586,16 +1557,13 @@
                                       {
                                         var columns = args.grid.getColumns();
 
-                                        for (var i = 0, ci = columns.length;
-                                             i < ci; i++)
+                                        for (var i = 0, ci = columns.length; i < ci; i++)
                                         {
                                           var column = columns[i];
 
-                                          if (column.width !==
-                                              column.previousWidth)
+                                          if (column.width !== column.previousWidth)
                                           {
-                                            getResizedColumns[column.id] =
-                                              column.width;
+                                            getResizedColumns[column.id] = column.width;
                                             return false;
                                           }
                                         }
@@ -1706,8 +1674,7 @@
         };
 
         // Default is to be sortable.
-        columnObject.sortable =
-          ((colOpts.sortable != null) && (colOpts.sortable != undefined))
+        columnObject.sortable = ((colOpts.sortable !== null) && (colOpts.sortable !== undefined))
             ? colOpts.sortable : true;
 
         if (datatype)
@@ -1766,25 +1733,28 @@
 
       for (var columnId in filters)
       {
-        var filterValue = filters[columnId];
-        if ((columnId !== undefined) && (filterValue !== ""))
+        if (filters.hasOwnProperty(columnId))
         {
-          var cellValue = args.formatCellValue(item, grid, columnId);
-
-          filterValue = $.trim(filterValue);
-          var negate = filterValue.indexOf("!") == 0;
-
-          if (negate)
+          var filterValue = filters[columnId];
+          if ((columnId !== undefined) && (filterValue !== ""))
           {
-            filterValue = filterValue.substring(1);
-          }
+            var cellValue = args.formatCellValue(item, grid, columnId);
 
-          // The args.doFilter method is in the Grid's DataView object.
-          var filterOut = args.doFilter(filterValue, cellValue);
+            filterValue = $.trim(filterValue);
+            var negate = filterValue.indexOf("!") === 0;
 
-          if ((!negate && filterOut) || (!filterOut && negate))
-          {
-            return false;
+            if (negate)
+            {
+              filterValue = filterValue.substring(1);
+            }
+
+            // The args.doFilter method is in the Grid's DataView object.
+            var filterOut = args.doFilter(filterValue, cellValue);
+
+            if ((!negate && filterOut) || (!filterOut && negate))
+            {
+              return false;
+            }
           }
         }
       }
