@@ -68,12 +68,12 @@
 
 package ca.nrc.cadc.web.selenium;
 
+import ca.nrc.cadc.util.StringUtil;
 import junit.framework.AssertionFailedError;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.FindBy;
-import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
@@ -89,11 +89,8 @@ public abstract class AbstractTestWebPage
     // One minute is just too long.
     static final long TIMEOUT_IN_SECONDS = 60L;
 
-    protected static final By CADC_HEADER_LINK_SELECTOR =
-            By.xpath("//p[@id='gcwu-title-in']/a[1]");
-
-    protected static final By CADC_CANADA_SITE_LINK =
-            By.linkText("Canada.gc.ca");
+    static final By CADC_HEADER_LINK_SELECTOR = By.xpath("//p[@id='gcwu-title-in']/a[1]");
+    static final By CADC_CANADA_SITE_LINK = By.linkText("Canada.gc.ca");
 
     protected WebDriver driver;
 
@@ -119,7 +116,7 @@ public abstract class AbstractTestWebPage
      * Only used for CADC pages as they have this link on all pages.
      *
      * @return String text.
-     * @throws Exception  For any test execution exceptions
+     * @throws Exception For any test execution exceptions
      */
     public String getHeaderLinkText() throws Exception
     {
@@ -168,11 +165,70 @@ public abstract class AbstractTestWebPage
         }
     }
 
+    protected void inputTextValue(final By by, final String value) throws Exception
+    {
+        inputTextValue(by, value, true);
+    }
+
+    protected void clearTextInput(final By by) throws Exception
+    {
+        final WebElement inputElement = waitUntil(ExpectedConditions.presenceOfElementLocated(by));
+
+        // Focus issues.
+        hover(by);
+        inputElement.click();
+        inputElement.clear();
+    }
+
+    protected void inputTextValue(final By by, final String value, final boolean clean) throws Exception
+    {
+        inputTextValue(by, value, clean, true);
+    }
+
+    protected void inputTextValue(final By by, final String value, final boolean clean, final boolean moveToInput)
+            throws Exception
+    {
+        waitForElementPresent(by);
+        final WebElement inputElement = find(by);
+
+        if (moveToInput)
+        {
+            hover(by);
+            inputElement.click();
+        }
+
+        if (clean)
+        {
+            clearTextInput(by);
+        }
+
+        if (StringUtil.hasText(value))
+        {
+            for (final char c : value.toCharArray())
+            {
+                inputElement.sendKeys(Character.toString(c));
+                waitFor(250L);
+            }
+        }
+    }
+
+    /**
+     * Allow waiting for less than a second.
+     *
+     * @param milliseconds Time in milliseconds to wait.
+     * @throws Exception  For any test execution errors
+     */
+    protected void waitFor(final long milliseconds) throws Exception
+    {
+        Thread.sleep(milliseconds);
+    }
+
     /**
      * Select in a pulldown.
-     * @param by            The finder element.
-     * @param value         The value to set.
-     * @throws Exception  For any test execution exceptions
+     *
+     * @param by    The finder element.
+     * @param value The value to set.
+     * @throws Exception For any test execution exceptions
      */
     protected void select(final By by, final String value) throws Exception
     {
@@ -193,8 +249,7 @@ public abstract class AbstractTestWebPage
         }
     }
 
-    protected void sendKeys(final WebElement webElement, final String value)
-            throws Exception
+    protected void sendKeys(final WebElement webElement, final String value) throws Exception
     {
         webElement.clear();
         webElement.sendKeys(Keys.BACK_SPACE);
@@ -225,12 +280,10 @@ public abstract class AbstractTestWebPage
         click(resetButtonBy);
     }
 
-    public <T extends AbstractTestWebPage> T goBack(final Class<T> pageClass)
-            throws Exception
+    public <T extends AbstractTestWebPage> T goBack(final Class<T> pageClass) throws Exception
     {
         driver.navigate().back();
-        final Constructor<T> constructor =
-                pageClass.getConstructor(WebDriver.class);
+        final Constructor<T> constructor = pageClass.getConstructor(WebDriver.class);
         return constructor.newInstance(driver);
     }
 
@@ -257,10 +310,7 @@ public abstract class AbstractTestWebPage
 
     protected void verifyDisabledInput(final String idSelector) throws Exception
     {
-        final Object obj =
-                executeJavaScript("return document.getElementById('"
-                                  + idSelector + "').disabled;");
-
+        final Object obj = executeJavaScript("return document.getElementById('" + idSelector + "').disabled;");
         verifyTrue((obj != null) && ((Boolean) obj));
     }
 
@@ -275,10 +325,9 @@ public abstract class AbstractTestWebPage
      * @param source      The source element.
      * @param destination The to (target) element to drop into.
      */
-    protected void dragAndDrop(final By source, final By destination)
+    protected void dragAndDrop(final By source, final By destination) throws Exception
     {
-        (new Actions(driver)).dragAndDrop(find(source), find(destination))
-                .perform();
+        (new Actions(driver)).dragAndDrop(find(source), find(destination)).perform();
     }
 
     protected void scrollIntoView(final WebElement element) throws Exception
@@ -292,11 +341,9 @@ public abstract class AbstractTestWebPage
      *
      * @param elementID           The ID of the element to find.
      * @param containerToScrollID The container to scroll.
-     * @throws Exception  For any test execution errors
+     * @throws Exception For any test execution errors
      */
-    protected void scrollVerticallyIntoView(final String elementID,
-                                            final String containerToScrollID)
-            throws Exception
+    protected void scrollVerticallyIntoView(final String elementID, final String containerToScrollID) throws Exception
     {
         final String script =
                 "var myElement = document.getElementById('" + elementID
@@ -316,7 +363,7 @@ public abstract class AbstractTestWebPage
      * TODO - found target!!!
      *
      * @param elementIDToScroll The ID of the container.
-     * @throws Exception  For any test execution errors
+     * @throws Exception For any test execution errors
      */
     protected void scrollGrid(final String elementIDToScroll) throws Exception
     {
@@ -338,7 +385,7 @@ public abstract class AbstractTestWebPage
      * Scroll the Grid.  This is for cadcVOTV grids.
      *
      * @param elementIDToScroll The ID of the container.
-     * @throws Exception  For any test execution errors
+     * @throws Exception For any test execution errors
      */
     protected void scrollGridHorizontally(final String elementIDToScroll)
             throws Exception
@@ -357,28 +404,23 @@ public abstract class AbstractTestWebPage
         executeJavaScript(script);
     }
 
-    public void waitForTextPresent(final By by, final String text)
-            throws Exception
+    public void waitForTextPresent(final By by, final String text) throws Exception
     {
         waitForElementVisible(by);
         waitUntil(ExpectedConditions.textToBePresentInElementLocated(by, text));
     }
 
-    public void verifyTextPresent(final By by, final String value)
-            throws Exception
+    public void verifyTextPresent(final By by, final String value) throws Exception
     {
         verifyTextPresent(find(by), value);
     }
 
-    public void verifyTextPresent(final WebElement webElement,
-                                  final String value)
-            throws Exception
+    public void verifyTextPresent(final WebElement webElement, final String value) throws Exception
     {
         verifyTrue(webElement.getText().contains(value));
     }
 
-    protected void verifyTextMatches(final By by, final String regex)
-            throws Exception
+    protected void verifyTextMatches(final By by, final String regex) throws Exception
     {
         verifyTrue(getText(by).matches(regex));
     }
@@ -421,12 +463,9 @@ public abstract class AbstractTestWebPage
         return this.getClass().getName();
     }
 
-    protected void waitForFormInputTextPresent(final WebElement webElement,
-                                               final String text)
-            throws Exception
+    protected void waitForFormInputTextPresent(final WebElement webElement, final String text) throws Exception
     {
-        waitUntil(ExpectedConditions.
-                textToBePresentInElementValue(webElement, text));
+        waitUntil(ExpectedConditions.textToBePresentInElementValue(webElement, text));
     }
 
     protected void hover(final By by) throws Exception
@@ -437,8 +476,7 @@ public abstract class AbstractTestWebPage
         if (getInternetBrowserCommand().contains("afari"))
         {
             final String byString = by.toString();
-            final String value =
-                    byString.substring(byString.indexOf(":") + 1).trim();
+            final String value = byString.substring(byString.indexOf(":") + 1).trim();
             final String locatorPrefix;
             final String locatorSuffix;
 
@@ -468,8 +506,7 @@ public abstract class AbstractTestWebPage
                 locatorSuffix = "\"";
             }
 
-            executeJavaScript("$(" + locatorPrefix + value + locatorSuffix
-                              + ").hover();");
+            executeJavaScript("$(" + locatorPrefix + value + locatorSuffix + ").hover();");
         }
         else
         {
@@ -477,16 +514,12 @@ public abstract class AbstractTestWebPage
         }
     }
 
-    protected Object executeJavaScript(final String javaScript,
-                                       final WebElement webElement)
-            throws Exception
+    protected Object executeJavaScript(final String javaScript, final WebElement webElement) throws Exception
     {
-        return ((JavascriptExecutor) driver).executeScript(javaScript,
-                                                           webElement);
+        return ((JavascriptExecutor) driver).executeScript(javaScript, webElement);
     }
 
-    public final Object executeJavaScript(final String javaScript)
-            throws Exception
+    public final Object executeJavaScript(final String javaScript) throws Exception
     {
         return ((JavascriptExecutor) driver).executeScript(javaScript);
     }
@@ -502,32 +535,27 @@ public abstract class AbstractTestWebPage
         return !element.isDisplayed();
     }
 
-    protected void waitForElementVisible(final WebElement element)
-            throws Exception
+    protected void waitForElementVisible(final WebElement element) throws Exception
     {
         assert (waitUntil(ExpectedConditions.visibilityOf(element)) != null);
     }
 
     protected void waitForElementVisible(final By by) throws Exception
     {
-        assert (waitUntil(
-                ExpectedConditions.visibilityOfElementLocated(by)) != null);
+        assert (waitUntil(ExpectedConditions.visibilityOfElementLocated(by)) != null);
     }
 
-    protected void waitForElementInvisible(final WebElement webElement)
-            throws Exception
+    protected void waitForElementInvisible(final WebElement webElement) throws Exception
     {
         final List<WebElement> elementList = new ArrayList<>();
         elementList.add(webElement);
 
-        assert (waitUntil(
-                ExpectedConditions.invisibilityOfAllElements(elementList)));
+        assert (waitUntil(ExpectedConditions.invisibilityOfAllElements(elementList)));
     }
 
     protected void waitForElementInvisible(final By by) throws Exception
     {
-        assert (waitUntil(
-                ExpectedConditions.invisibilityOfElementLocated(by)) != null);
+        assert (waitUntil(ExpectedConditions.invisibilityOfElementLocated(by)) != null);
     }
 
     public WebElement waitForElementPresent(final By by) throws Exception
@@ -545,19 +573,14 @@ public abstract class AbstractTestWebPage
         waitForElementClickable(find(_by));
     }
 
-    public void waitForElementClickable(final WebElement element)
-            throws Exception
+    public void waitForElementClickable(final WebElement element) throws Exception
     {
-        assert (waitUntil(
-                ExpectedConditions.elementToBeClickable(element)) != null);
+        assert (waitUntil(ExpectedConditions.elementToBeClickable(element)) != null);
     }
 
-    protected <V> V waitUntil(
-            final ExpectedCondition<V> expectedCondition)
-            throws Exception
+    protected <V> V waitUntil(final ExpectedCondition<V> expectedCondition) throws Exception
     {
-        final WebDriverWait webDriverWait =
-                new WebDriverWait(driver, TIMEOUT_IN_SECONDS);
+        final WebDriverWait webDriverWait = new WebDriverWait(driver, TIMEOUT_IN_SECONDS);
         return webDriverWait.until(expectedCondition);
     }
 
@@ -578,7 +601,7 @@ public abstract class AbstractTestWebPage
 
     protected String getInternetBrowserCommand()
     {
-        Capabilities caps = ((RemoteWebDriver) driver).getCapabilities();
+        final Capabilities caps = ((RemoteWebDriver) driver).getCapabilities();
         return caps.getBrowserName();
     }
 
