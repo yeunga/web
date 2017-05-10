@@ -91,6 +91,7 @@ public abstract class AbstractTestWebPage
 
     static final By CADC_HEADER_LINK_SELECTOR = By.xpath("//p[@id='gcwu-title-in']/a[1]");
     static final By CADC_CANADA_SITE_LINK = By.linkText("Canada.gc.ca");
+    static final By PARENT_ELEMENT_BY = By.xpath("..");
 
     protected WebDriver driver;
 
@@ -216,7 +217,7 @@ public abstract class AbstractTestWebPage
      * Allow waiting for less than a second.
      *
      * @param milliseconds Time in milliseconds to wait.
-     * @throws Exception  For any test execution errors
+     * @throws Exception For any test execution errors
      */
     protected void waitFor(final long milliseconds) throws Exception
     {
@@ -230,13 +231,18 @@ public abstract class AbstractTestWebPage
      * @param value The value to set.
      * @throws Exception For any test execution exceptions
      */
-    protected void select(final By by, final String value) throws Exception
+    public void select(final By by, final String value) throws Exception
     {
         final Select select = new Select(find(by));
         select.selectByValue(value);
     }
 
-    protected WebElement find(final By by)
+    public WebElement findParent(final WebElement childElement) throws Exception
+    {
+        return childElement.findElement(PARENT_ELEMENT_BY);
+    }
+
+    public WebElement find(final By by) throws Exception
     {
         try
         {
@@ -249,20 +255,20 @@ public abstract class AbstractTestWebPage
         }
     }
 
-    protected void sendKeys(final WebElement webElement, final String value) throws Exception
+    public void sendKeys(final WebElement webElement, final String value) throws Exception
     {
         webElement.clear();
         webElement.sendKeys(Keys.BACK_SPACE);
         webElement.sendKeys(value);
     }
 
-    protected void click(final By by) throws Exception
+    public void click(final By by) throws Exception
     {
         waitForElementPresent(by);
         click(find(by));
     }
 
-    protected void click(final WebElement elem) throws Exception
+    public void click(final WebElement elem) throws Exception
     {
         final Actions action = new Actions(driver);
         scrollIntoView(elem);
@@ -270,12 +276,12 @@ public abstract class AbstractTestWebPage
         action.moveToElement(elem).click(elem).build().perform();
     }
 
-    protected void resetForm() throws Exception
+    public void resetForm() throws Exception
     {
         resetForm(By.cssSelector("input[type=\"reset\"]"));
     }
 
-    protected void resetForm(final By resetButtonBy) throws Exception
+    public void resetForm(final By resetButtonBy) throws Exception
     {
         click(resetButtonBy);
     }
@@ -287,12 +293,12 @@ public abstract class AbstractTestWebPage
         return constructor.newInstance(driver);
     }
 
-    protected void verifyElementChecked(final By by) throws Exception
+    public void verifyElementChecked(final By by) throws Exception
     {
         verifyTrue(find(by).isSelected());
     }
 
-    protected void verifyElementUnChecked(final By by) throws Exception
+    public void verifyElementUnChecked(final By by) throws Exception
     {
         verifyFalse(find(by).isSelected());
     }
@@ -302,13 +308,13 @@ public abstract class AbstractTestWebPage
         return (find(by) != null);
     }
 
-    public void verifyElementPresent(final By by)
+    public void verifyElementPresent(final By by) throws Exception
     {
         final WebElement webElement = find(by);
         verifyFalse(webElement == null);
     }
 
-    protected void verifyDisabledInput(final String idSelector) throws Exception
+    public void verifyDisabledInput(final String idSelector) throws Exception
     {
         final Object obj = executeJavaScript("return document.getElementById('" + idSelector + "').disabled;");
         verifyTrue((obj != null) && ((Boolean) obj));
@@ -430,7 +436,7 @@ public abstract class AbstractTestWebPage
         verifyEquals(value, getText(by));
     }
 
-    protected String getText(final By by)
+    protected String getText(final By by) throws Exception
     {
         return find(by).getText();
     }
@@ -470,6 +476,10 @@ public abstract class AbstractTestWebPage
 
     protected void hover(final By by) throws Exception
     {
+        waitForElementPresent(by);
+        waitForElementVisible(by);
+        waitForElementClickable(by);
+
         // Wicked hack.  I hate this.
         // jenkinsd 2014.04.10
         //
@@ -527,7 +537,7 @@ public abstract class AbstractTestWebPage
     protected void hover(final WebElement element) throws Exception
     {
         final Actions action = new Actions(driver);
-        action.moveToElement(element).click().build().perform();
+        action.moveToElement(element).build().perform();
     }
 
     protected boolean isElementHidden(final WebElement element) throws Exception
