@@ -87,13 +87,16 @@ import java.util.List;
 public abstract class AbstractTestWebPage
 {
     // One minute is just too long.
-    static final long TIMEOUT_IN_SECONDS = 60L;
+    private static final int DEFAULT_TIMEOUT_IN_SECONDS = 60;
 
     static final By CADC_HEADER_LINK_SELECTOR = By.xpath("//p[@id='gcwu-title-in']/a[1]");
     static final By CADC_CANADA_SITE_LINK = By.linkText("Canada.gc.ca");
     static final By PARENT_ELEMENT_BY = By.xpath("..");
 
     protected WebDriver driver;
+    protected final int timeoutInSeconds;
+
+
 
     @FindBy(xpath = "//*[@id=\"wb-main-in\"]/div[1]/h2")
     private WebElement pageTitleHeader;
@@ -104,7 +107,13 @@ public abstract class AbstractTestWebPage
 
     public AbstractTestWebPage(final WebDriver driver)
     {
+        this(driver, DEFAULT_TIMEOUT_IN_SECONDS);
+    }
+
+    public AbstractTestWebPage(final WebDriver driver, final int timeoutInSeconds)
+    {
         this.driver = driver;
+        this.timeoutInSeconds = timeoutInSeconds;
     }
 
 
@@ -590,7 +599,7 @@ public abstract class AbstractTestWebPage
 
     protected <V> V waitUntil(final ExpectedCondition<V> expectedCondition) throws Exception
     {
-        final WebDriverWait webDriverWait = new WebDriverWait(driver, TIMEOUT_IN_SECONDS);
+        final WebDriverWait webDriverWait = new WebDriverWait(driver, timeoutInSeconds);
         return webDriverWait.until(expectedCondition);
     }
 
