@@ -87,40 +87,33 @@ public class ApplicationConfigurationTest
     @After
     public void reset() throws Exception
     {
-        System.clearProperty(ApplicationConfiguration.class.getCanonicalName()
-                             + ".PROP1");
+        System.clearProperty(ApplicationConfiguration.class.getCanonicalName() + ".PROP1");
     }
 
     @Test
     public void pullSystemProperty() throws Exception
     {
-        final File tmpConfigFile = File.createTempFile("config-",
-                                                       ".properties");
+        final File tmpConfigFile = File.createTempFile("config-", ".properties");
         final FileOutputStream fos = new FileOutputStream(tmpConfigFile);
 
         fos.write("PROP2=VAL2\n".getBytes("UTF-8"));
-        fos.write((ApplicationConfiguration.class.getCanonicalName()
-                   + ".PROP1=VAL21").getBytes("UTF-8"));
+        fos.write((ApplicationConfiguration.class.getCanonicalName() + ".PROP1=VAL21").getBytes("UTF-8"));
 
         fos.flush();
         fos.close();
 
-        System.setProperty(ApplicationConfiguration.class.getCanonicalName()
-                           + ".PROP1", "VAL1");
+        System.setProperty(ApplicationConfiguration.class.getCanonicalName() + ".PROP1", "VAL1");
 
-        final ApplicationConfiguration testSubject =
-                new ApplicationConfiguration(tmpConfigFile.getPath());
+        final ApplicationConfiguration testSubject = new ApplicationConfiguration(tmpConfigFile.getPath());
 
         final Parameters parameters = new Parameters();
 
         final FileBasedConfigurationBuilder<PropertiesConfiguration> builder =
                 new FileBasedConfigurationBuilder<>(
-                        PropertiesConfiguration.class).configure(
-                        parameters.fileBased().setFile(tmpConfigFile));
+                        PropertiesConfiguration.class).configure(parameters.fileBased().setFile(tmpConfigFile));
 
-        final List<String> results = testSubject.lookup(
-                ApplicationConfiguration.class.getCanonicalName()
-                + ".PROP1");
+        final List<String> results = testSubject.lookup(ApplicationConfiguration.class.getCanonicalName()
+                                                        + ".PROP1");
         final List<String> expected = new ArrayList<>();
 
         expected.add("VAL1");
@@ -132,8 +125,7 @@ public class ApplicationConfigurationTest
     @Test
     public void pullFileProperty() throws Exception
     {
-        final File tmpConfigFile = File.createTempFile("config-",
-                                                       ".properties");
+        final File tmpConfigFile = File.createTempFile("config-", ".properties");
         final FileOutputStream fos = new FileOutputStream(tmpConfigFile);
 
         fos.write("PROP2=VAL2\n".getBytes("UTF-8"));
@@ -142,17 +134,28 @@ public class ApplicationConfigurationTest
         fos.flush();
         fos.close();
 
-        final ApplicationConfiguration testSubject =
-                new ApplicationConfiguration(tmpConfigFile.getPath());
+        final ApplicationConfiguration testSubject = new ApplicationConfiguration(tmpConfigFile.getPath());
 
-        final Parameters parameters = new Parameters();
+        assertEquals("Wrong value.", "VAL11", testSubject.lookup("PROP1"));
+    }
 
-        final FileBasedConfigurationBuilder<PropertiesConfiguration> builder =
-                new FileBasedConfigurationBuilder<>(
-                        PropertiesConfiguration.class).configure(
-                        parameters.fileBased().setFile(tmpConfigFile));
+    @Test
+    public void pullSinglePropertyFromMultiple() throws Exception
+    {
+        System.setProperty("PROP2", "VAL2X");
 
-        assertEquals("Wrong value.", "VAL11",
-                     testSubject.lookup("PROP1"));
+        final File tmpConfigFile = File.createTempFile("config-", ".properties");
+        final FileOutputStream fos = new FileOutputStream(tmpConfigFile);
+
+        fos.write("PROP2=VAL2\n".getBytes("UTF-8"));
+        fos.write("PROP1=VAL11".getBytes("UTF-8"));
+
+        fos.flush();
+        fos.close();
+
+        final ApplicationConfiguration testSubject = new ApplicationConfiguration(tmpConfigFile.getPath());
+        final String result = testSubject.lookup("PROP2", "");
+
+        assertEquals("Wrong value.", "VAL2X", result);
     }
 }
