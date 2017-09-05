@@ -4,14 +4,12 @@ package ca.nrc.cadc.config;
 import ca.nrc.cadc.util.StringUtil;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.NoSuchElementException;
 
 import org.apache.commons.configuration2.CombinedConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.configuration2.SystemConfiguration;
-import org.apache.commons.configuration2.builder.BuilderParameters;
 import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
 import org.apache.commons.configuration2.builder.fluent.Parameters;
 import org.apache.commons.configuration2.ex.ConfigurationException;
@@ -58,6 +56,16 @@ public class ApplicationConfiguration
         configuration.addConfiguration(new SystemConfiguration());
     }
 
+    public void setThrowExceptionOnMissing(boolean throwExceptionOnMissing)
+    {
+    	this.configuration.setThrowExceptionOnMissing(throwExceptionOnMissing);
+    }
+    
+    public boolean isThrowExceptionOnMissing()
+    {
+    	return this.configuration.isThrowExceptionOnMissing();
+    }
+    
     public URI lookupServiceURI(String key, URI defaultValue)
     {
         final String value = this.lookup(key);
@@ -76,12 +84,28 @@ public class ApplicationConfiguration
 
     public String lookup(String key, String defaultValue)
     {
-        return configuration.getString(key, defaultValue);
+    	String value = configuration.getString(key, defaultValue);
+    	this.checkValue(key, value);
+        return value;
     }
 
     @SuppressWarnings("unchecked")
     public <T> T lookup(String key)
     {
-        return (T) configuration.getProperty(key);
+    	T value = (T) configuration.getProperty(key);
+    	this.checkValue(key, value);
+        return value;
+    }
+    
+    /* For some reason, CombinedConfiguration does not throw NoSuchElementException
+     * when the throwExceptionOnMissing flag is set. Simulate similar behaviour
+     * with this method.
+     */
+    private void checkValue(final String key, final Object value)
+    {
+    	if ((value == null) && (this.isThrowExceptionOnMissing()))
+    	{
+    		throw new NoSuchElementException("Property " + key + " does not exist.");
+    	}
     }
 }

@@ -72,6 +72,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
@@ -135,8 +136,18 @@ public class ApplicationConfigurationTest
         fos.close();
 
         final ApplicationConfiguration testSubject = new ApplicationConfiguration(tmpConfigFile.getPath());
+    	testSubject.setThrowExceptionOnMissing(true);
+    	boolean isThrowException = testSubject.isThrowExceptionOnMissing();
 
         assertEquals("Wrong value.", "VAL11", testSubject.lookup("PROP1"));
+        try
+        {
+        	Object val = testSubject.lookup("NOSUCHPROP");
+        }
+        catch (NoSuchElementException nsee)
+        {
+        	// expected
+        }
     }
 
     @Test
